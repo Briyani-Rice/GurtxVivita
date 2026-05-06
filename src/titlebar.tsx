@@ -17,7 +17,9 @@ export default function Titlebar(){
             Vivita materials app
         </h3>
 
-        <h1 className="title-main">hi</h1>
+        <div className="title-main">
+            <input type="search" placeholder="Enter in command... help for more info"/>
+        </div>
 
         <div className="title-right">
             <button title="settings" style={
