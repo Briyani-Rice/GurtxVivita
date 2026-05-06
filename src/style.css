@@ -294,3 +294,6 @@ code {
     border-right-color: var(--border);
   }
 }
+button{
+  cursor:pointer;
+}

@@ -1,0 +1,36 @@
+.title {
+    display: flex;
+    align-items: center;
+    app-region: drag;
+    height: 40px;
+    width: 100%;
+}
+
+/* LEFT */
+.title-text {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    app-region: no-drag;
+    margin: 0;
+}
+
+/* CENTER */
+.title-main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    app-region: no-drag;
+}
+
+/* RIGHT */
+.title-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    app-region: no-drag;
+}

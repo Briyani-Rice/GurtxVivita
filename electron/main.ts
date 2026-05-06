@@ -11,10 +11,10 @@ function createWindow () {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
-        title: "vitefirst",
+        title: "GurtxVivita",
         webPreferences: {
             preload: path.join(__dirname, '../dist-electron/preload.js'),
-            nodeIntegration: false,
+            nodeIntegration: true,
             contextIsolation: true,
         },
         ...(process.platform === 'darwin'
