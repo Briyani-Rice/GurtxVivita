@@ -1,14 +1,25 @@
 // @ts-ignore
 import "./titlestyle.css";
 import { BsGearFill } from "react-icons/bs";
-export default function Titlebar(){
+import {Tab} from "./types";
+import Settings from "./components/Settings/Settings";
+
+type Props = {
+    tabs: Tab[];
+    setTabIndex:any;
+    handleNewTab: () => number;
+    setTab: (index: number, tab: Tab) => void;
+};
+export default function Titlebar({ tabs,setTabIndex, handleNewTab, setTab }: Props){
     var leftPadding = 0;
+    //@ts-ignore
     if (window.electron?.isMac != null) {
-        leftPadding = window.electron.isMac ? 100 : 0;
-        console.log(window.electron.isMac);
+        //@ts-ignore
+        leftPadding = window.electron.isMac ? 85 : 0;
     } else {
         console.error("Electron not detected!");
     }
+
     return (<div className="title">
         <h3
             className="title-text"
@@ -18,15 +29,34 @@ export default function Titlebar(){
         </h3>
 
         <div className="title-main">
-            <input type="search" placeholder="Enter in command... help for more info"/>
+            <input type="search" placeholder="Enter command..."/>
         </div>
 
         <div className="title-right">
-            <button title="settings" style={
-                {
-                    alignItems:`center`
-                }
-            }><BsGearFill /></button>
+            <button
+                title="settings"
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "transparent",
+                    borderRadius: "5px",
+                    border: "1.5px solid transparent",
+                    padding: "5px",
+                    cursor: "pointer",
+                }}
+                onClick={()=>{
+                    const existingIndex = tabs.findIndex(tab => tab.name === "Settings");
+                    if (existingIndex !== -1) {
+                        setTabIndex(existingIndex);
+                    } else {
+                        const newIndex = handleNewTab();
+                        setTab(newIndex, new Settings());
+                    }
+                }}
+            >
+                <BsGearFill size={18} color="black" />
+            </button>
         </div>
     </div>)
 }

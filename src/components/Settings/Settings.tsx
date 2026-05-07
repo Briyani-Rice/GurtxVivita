@@ -1,0 +1,142 @@
+import { Tab } from "../../types";
+import React, {
+    ReactElement,
+    useEffect,
+    useState
+} from "react";
+
+async function getPages(): Promise<SettingsPage[]> {
+    //@ts-ignore
+    const modules = import.meta.glob(
+        "./SettingsPages/*.tsx"
+    );
+
+    const pages: SettingsPage[] = [];
+
+    for (const path in modules) {
+        const module: any = await modules[path]();
+
+        if (module.default) {
+            pages.push(module.default);
+        }
+    }
+
+    return pages;
+}
+
+function SettingsContent() {
+    const [pages, setPages] = useState<SettingsPage[]>([]);
+    const [selectedIndex, setSelectedIndex] =
+        useState<number>(0);
+
+    useEffect(() => {
+        loadPages();
+    }, []);
+
+    async function loadPages() {
+        const loadedPages = await getPages();
+        console.log(loadedPages)
+        setPages(loadedPages);
+    }
+    console.log(pages[selectedIndex]?.content)
+
+    // @ts-ignore
+    return (
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "row",
+                gap: "20px",
+                padding: "10px"
+            }}
+        >
+            {/* Sidebar */}
+            <div
+                style={{
+                    width: "250px",
+                    borderRight: "1px solid #ccc",
+                    paddingRight: "10px"
+                }}
+            >
+                <h2>Settings</h2>
+
+                <input
+                    type="search"
+                    placeholder="Search..."
+                    style={{
+                        width: "100%",
+                        marginBottom: "10px"
+                    }}
+                />
+
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px"
+                    }}
+                >
+                    {
+                        pages.map((page, index) => (
+                            <button
+                                key={index}
+                                onClick={() =>
+                                    setSelectedIndex(index)
+                                }
+                                style={{
+                                    textAlign: "left",
+                                    padding: "8px",
+                                    borderRadius: "5px",
+                                    border:
+                                        index === selectedIndex
+                                            ? "2px solid black"
+                                            : "1px solid #ccc",
+                                    background:
+                                        index === selectedIndex
+                                            ? "#eee"
+                                            : "white",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                {page.name}
+                            </button>
+                        ))
+                    }
+                </div>
+            </div>
+
+            {/* Content */}
+            <div
+                style={{
+                    flex: 1
+                }}
+            >
+                {
+                    pages.length > 0
+                        ? pages[selectedIndex]?.content
+                        : <p>Loading settings...</p>
+                }
+            </div>
+        </div>
+    );
+}
+
+export default class Settings implements Tab {
+    id = crypto.randomUUID()
+
+    name: string = "Settings";
+
+    content: React.ReactNode;
+
+    constructor() {
+        this.content = <SettingsContent />;
+    }
+}
+
+export interface SettingsPage {
+    name: string;
+
+    content: ReactElement;
+
+    save: () => {};
+}

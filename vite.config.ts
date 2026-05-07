@@ -8,6 +8,9 @@ export default defineConfig({
     build: {
         outDir: 'dist',
     },
+    checks:{
+        pluginTimings: false,
+    },
     plugins: [
         react(),
         tailwindcss(),

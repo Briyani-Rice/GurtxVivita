@@ -22,7 +22,7 @@
 // <div class="ticks"></div>
 //
 // <section id="next-steps">
-//   <div id="docs">
+//   <div id="Docs">
 //     <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
 //     <h2>Documentation</h2>
 //     <p>Your questions, answered</p>
@@ -59,29 +59,556 @@
 // `
 //
 // setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
-
-
 //@ts-ignore
-import React from 'react'
+import React, {useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 //@ts-ignore
 import './style.css'
-import Titlebar from "./titlebar";
+import Titlebar from "./titlebar"
+import { Tab } from "./types"
+import "react-icons/io"
+import { IoIosCloseCircle, IoIosCloseCircleOutline } from 'react-icons/io'
+import { MdAddCircle, MdAddCircleOutline } from "react-icons/md";
+import { BsGearFill } from "react-icons/bs";
+import {
+    arrayMove,
+    horizontalListSortingStrategy,
+    SortableContext,
+    useSortable
+} from "@dnd-kit/sortable"
 
+import {
+    CSS
+} from "@dnd-kit/utilities"
+import {closestCenter, DndContext, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
+import {restrictToHorizontalAxis} from "@dnd-kit/modifiers";
+import Settings from "./components/Settings/Settings";
+import DocsView from "./components/Docs/DocsView";
 
-export default function App(){
-    return (<main>
-            <Titlebar/>
-            <h1>Vite test</h1>
-            <div>
-                <img src="src/assets/typescript.svg"/>
-                <h1>Type script</h1>
+export type BasicTabProps = {
+    tabs:Tab[];
+    setTabs:(tabs:Tab[])=>void;
+    tabIndex:number;
+    setTabIndex:(index:number)=>void;
+    handleNewTab:()=>number;
+    setTab: (index: number, tab: Tab) => void;
+    handleClosingTab:(index:number)=>void;
+}
+
+export class welcomeTab implements Tab {
+
+    id = crypto.randomUUID()
+    name: string = "Welcome"
+    content: React.ReactNode
+    static props:BasicTabProps
+
+    constructor() {
+        this.content = (
+            <div
+                style={{
+                    padding: "20px",
+                    height: "100%",
+                    boxSizing: "border-box",
+                    overflow: "hidden"
+                }}
+            >
+                <h2>Welcome!</h2>
+
+                <div>
+                    <p>Search:</p>
+                    <input
+                        type="search"
+                        placeholder="Search up materials..."
+                    />
+                </div>
+
+                <a href="#" onClick={()=>{
+                    const existingIndex = welcomeTab.props.tabs.findIndex(tab => tab.name === "Settings");
+                    if (existingIndex !== -1) {
+                        welcomeTab.props.setTabIndex(existingIndex);
+                    } else {
+                        const newIndex = welcomeTab.props.handleNewTab();
+                        welcomeTab.props.setTab(newIndex, new Settings());
+                    }
+                }}>
+                    <BsGearFill /> Settings
+                </a>
+                <a href="#" onClick={()=>{
+                    const existingIndex = welcomeTab.props.tabs.findIndex(tab => tab.name === "Documentation");
+                    if (existingIndex !== -1) {
+                        welcomeTab.props.setTabIndex(existingIndex);
+                    } else {
+                        const newIndex = welcomeTab.props.handleNewTab();
+                        welcomeTab.props.setTab(newIndex, new DocsView());
+                    }
+                }}>
+                    <BsGearFill /> Docs
+                </a>
             </div>
-            <a href="https://www.google.com">Google</a>
+        )
+    }
+    static SetProps(p0: { tabs: Tab[] }, basicTabProps: BasicTabProps){
+        this.props = basicTabProps
+    }
+}
+//@ts-ignore
+type RenderTabBarTabProps = {
+    tab:Tab;
+    index:number;
+    onClose:(index: number) => void;
+    currentTabIndex:number;
+    setTabIndex:(index: number) => void;
+    moveTab:(from:number,to:number)=>void;
+    tabsLength:number;
+}
+
+// @ts-ignore
+
+function RenderTabBarTab({
+                             tab,
+                             index,
+                             onClose,
+                             currentTabIndex,
+                             setTabIndex
+                         }: RenderTabBarTabProps) {
+    const [isHovered, setIsHovered] = useState(false)
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({
+        id: tab.id
+    })
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+
+        width: "180px",
+
+        padding: "5px 10px",
+
+        borderRadius: "10px 10px 0px 0px",
+
+        border: "2px solid black",
+
+        display: "flex",
+
+        alignItems: "center",
+
+        justifyContent: "space-between",
+
+        background:
+            index === currentTabIndex
+                ? "#fff8dc"
+                : "#dbeafe",
+
+        userSelect: "none" as const,
+
+        cursor: isDragging
+            ? "grabbing"
+            : "grab",
+
+        flexShrink: 0,
+
+        zIndex: isDragging ? 1000 : 1,
+
+        boxShadow: isDragging
+            ? "0 10px 25px rgba(0,0,0,0.2)"
+            : "none",
+
+        opacity: isDragging ? 0.9 : 1
+    }
+    // @ts-ignore
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            onClick={() => setTabIndex(index)}
+        >
+            <div
+                {...listeners}
+                style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    flex: 1,
+                    cursor: "grab",
+                    display: "flex",
+                    alignItems: "center"
+                }}
+            >
+                {tab.name}
+            </div>
+
+            <button
+                onPointerDown={(e) => e.stopPropagation()}
+
+                onMouseEnter={() => setIsHovered(true)}
+
+                onMouseLeave={() => setIsHovered(false)}
+
+                onClick={(e) => {
+
+                    e.stopPropagation()
+
+                    onClose(index)
+                }}
+
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    background:
+                        isHovered
+                            ? "#eee"
+                            : "transparent",
+
+                    borderRadius: "5px",
+
+                    border: "1.5px solid transparent",
+
+                    padding: "5px",
+
+                    cursor: "pointer",
+
+                    marginLeft: "8px",
+                }}
+            >
+                {
+                    isHovered
+                        ? <IoIosCloseCircle size={18} color="black" />
+                        : <IoIosCloseCircleOutline size={18} color="black" />
+                }
+            </button>
+        </div>
+    )
+}
+type RenderTabBarProps = {
+    tabs: Tab[]
+    setTabs: React.Dispatch<React.SetStateAction<Tab[]>>
+    onClose: (index: number) => void
+    currentTabIndex: number
+    setTabIndex: React.Dispatch<React.SetStateAction<number>>
+    handleNewTab: () => number
+    moveTab: (from: number, to: number) => void
+}
+
+function RenderTabBar({
+              tabs,
+              setTabs,
+              onClose,
+              currentTabIndex,
+              setTabIndex,
+              handleNewTab,
+              moveTab
+          }: RenderTabBarProps): React.ReactElement {
+
+    const [isHovered, setIsHovered] = useState(false)
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        })
+    )
+    return (
+        <DndContext
+            sensors={sensors}
+
+            collisionDetection={closestCenter}
+            modifiers={[restrictToHorizontalAxis]}
+            onDragEnd={(event) => {
+
+                const { active, over } = event
+
+                if (!over || active.id === over.id) return
+
+                const oldIndex =
+                    tabs.findIndex(
+                        t => t.id === active.id
+                    )
+
+                const newIndex =
+                    tabs.findIndex(
+                        t => t.id === over.id
+                    )
+
+                setTabs((items) =>
+                    arrayMove(items, oldIndex, newIndex)
+                )
+
+                if (currentTabIndex === oldIndex) {
+                    setTabIndex(newIndex)
+                }
+            }}
+        >
+            <SortableContext
+                items={tabs.map(t => t.id)}
+
+                strategy={horizontalListSortingStrategy}
+            >
+                <div
+                    style={{
+                        borderRadius: "10px 10px 0px 0px",
+
+                        border: "2px solid black",
+
+                        display: "flex",
+
+                        alignItems: "center",
+
+                        width: "100%",
+
+                        padding: "5px 5px 0px 5px",
+
+                        gap: "5px",
+
+                        overflowX: "scroll",
+                        scrollbarWidth:"thin",
+                        scrollbarGutter:"unset",
+                        overflowY: "hidden",
+
+                        background: "#f3f4f6",
+
+                        boxSizing: "border-box"
+                    }}
+                >
+                    {
+                        tabs.map((tab, index) => (
+                            <RenderTabBarTab
+                                key={tab.id}
+                                tab={tab}
+                                index={index}
+                                onClose={onClose}
+                                currentTabIndex={currentTabIndex}
+                                setTabIndex={setTabIndex}
+                                moveTab={moveTab}
+                                tabsLength={tabs.length}
+                            />
+                        ))
+                    }
+
+                    <button
+                        onMouseEnter={() => setIsHovered(true)}
+
+                        onMouseLeave={() => setIsHovered(false)}
+
+                        onClick={(e) => {
+
+                            e.stopPropagation()
+
+                            handleNewTab()
+                        }}
+
+                        style={{
+                            flexShrink: 0,
+
+                            display: "flex",
+
+                            alignItems: "center",
+
+                            justifyContent: "center",
+
+                            background:
+                                isHovered
+                                    ? "#eee"
+                                    : "transparent",
+
+                            borderRadius: "5px",
+
+                            border: "1.5px solid transparent",
+
+                            padding: "5px",
+
+                            cursor: "pointer",
+                        }}
+                    >
+                        {
+                            isHovered
+                                ? <MdAddCircle size={18} color="black" />
+                                : <MdAddCircleOutline size={18} color="black" />
+                        }
+                    </button>
+                </div>
+            </SortableContext>
+        </DndContext>
+    )
+}
+
+function RenderTab(
+    tabs: Tab[],
+    tabIndex: number
+): React.ReactElement {
+
+    return (
+        <div
+            style={{
+                flex: 1,
+                border: "2px solid black",
+                borderRadius: "0px 0px 15px 15px",
+                overflow: "hidden",
+                minHeight: 0
+            }}
+        >
+            {
+                tabs.length > 0 &&
+                tabIndex >= 0 &&
+                tabIndex < tabs.length
+                    ? tabs[tabIndex].content
+                    : null
+            }
+        </div>
+    )
+}
+
+function App() {
+
+    const [tabs, setTabs] = useState<Tab[]>([
+        new welcomeTab(),
+        new welcomeTab(),
+        new welcomeTab()
+    ])
+
+    const [tabIndex, setTabIndex] = useState<number>(0)
+
+    const handleNewTab = (): number => {
+
+        const newIndex = tabs.length
+
+        setTabs((prev) => {
+            return [...prev, new welcomeTab()]
+        })
+
+        setTabIndex(newIndex)
+
+        return newIndex
+    }
+
+    const handleClosingTab:(index:number)=>void = (index: number) => {
+
+        setTabs((prevTabs) => {
+
+            const newTabs = prevTabs.filter((_, i) => i !== index)
+
+            if (newTabs.length === 0) {
+                setTabIndex(0)
+                return [new welcomeTab()]
+            }
+
+            if (tabIndex >= newTabs.length) {
+                setTabIndex(newTabs.length - 1)
+            } else if (tabIndex === index) {
+                setTabIndex(Math.max(0, index - 1))
+            }
+
+            return newTabs
+        })
+    }
+
+    const moveTab = (from: number, to: number) => {
+
+        setTabs((prev) => {
+
+            const updated = [...prev]
+
+            const [movedTab] = updated.splice(from, 1)
+
+            updated.splice(to, 0, movedTab)
+
+            return updated
+        })
+
+        setTabIndex(to)
+    }
+
+    const moveTabLeft = (index: number) => {
+
+        if (index <= 0) return
+
+        moveTab(index, index - 1)
+    }
+
+    const moveTabRight = (index: number) => {
+
+        if (index >= tabs.length - 1) return
+
+        moveTab(index, index + 1)
+    }
+
+    const setTab = (index: number, tab: Tab) => {
+
+        setTabs((prev) => {
+
+            const updated = [...prev]
+
+            updated[index] = tab
+
+            return updated
+        })
+    }
+    welcomeTab.SetProps(
+        { tabs },
+        {
+            tabs,
+            setTabs,
+            tabIndex,
+            setTabIndex,
+            handleNewTab,
+            setTab,
+            handleClosingTab
+        }
+    )
+    return (
+        <main
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                height: "100vh",
+                width: "100vw",
+                overflow: "hidden",
+                boxSizing: "border-box"
+            }}
+        >
+            <Titlebar
+                tabs={tabs}
+                setTabIndex={setTabIndex}
+                handleNewTab={handleNewTab}
+                setTab={setTab}
+            />
+            <div
+                style={{
+                    flex: 1,
+                    minHeight: 0,
+                    display: "flex",
+                    flexDirection: "column"
+                }}
+            >
+                <RenderTabBar
+                    tabs={tabs}
+                    setTabs={setTabs}
+                    onClose={handleClosingTab}
+                    currentTabIndex={tabIndex}
+                    setTabIndex={setTabIndex}
+                    handleNewTab={handleNewTab}
+                    moveTab={moveTab}
+                />
+
+                {RenderTab(tabs, tabIndex)}
+            </div>
         </main>
     )
 }
 
+export default App
+
+//@ts-ignore
 ReactDOM.createRoot(document.getElementById('app')!).render(
     <React.StrictMode>
         <App />
