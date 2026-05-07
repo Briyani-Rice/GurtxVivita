@@ -67,17 +67,59 @@ import ReactDOM from 'react-dom/client'
 //@ts-ignore
 import './style.css'
 import Titlebar from "./titlebar";
+import {Tab} from "./types";
 
+class welcomeTab implements Tab{
+    name: string = "Welcome";
+    constructor() {
+        this.content = (
+            <div>
+                <h2>Welcome!</h2>
+                <div>
+                    <input type="search"/>
+                </div>
+                <button>
+                    Help
+                </button>
+            </div>
+        );
+    }
+    content: React.ReactNode;
+
+}
+let tabs:Tab[] = [new welcomeTab()];
+
+let tabIndex = 0;
+
+
+export function RenderTabBar():React.ReactElement{
+
+    return (
+        <div>
+
+        </div>
+    );
+}
+
+export function RenderTab():React.ReactElement{
+    return (
+        <div>
+
+        </div>
+    );
+}
 
 export default function App(){
-    return (<main>
+    return (<main style={
+        {
+            display:`flex`,
+            flexDirection:`column`,
+            gap:`10px`
+        }
+    }>
             <Titlebar/>
-            <h1>Vite test</h1>
-            <div>
-                <img src="src/assets/typescript.svg"/>
-                <h1>Type script</h1>
-            </div>
-            <a href="https://www.google.com">Google</a>
+            <RenderTabBar/>
+
         </main>
     )
 }

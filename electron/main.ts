@@ -11,11 +11,14 @@ function createWindow () {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
+        minWidth: 800,
+        minHeight: 600,
         title: "GurtxVivita",
         webPreferences: {
             preload: path.join(__dirname, '../dist-electron/preload.js'),
             nodeIntegration: true,
-            contextIsolation: true,
+            contextIsolation: true,    
+            // devTools: false 
         },
         ...(process.platform === 'darwin'
             ? { titleBarStyle: 'hiddenInset' }

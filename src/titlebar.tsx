@@ -4,7 +4,7 @@ import { BsGearFill } from "react-icons/bs";
 export default function Titlebar(){
     var leftPadding = 0;
     if (window.electron?.isMac != null) {
-        leftPadding = window.electron.isMac ? 100 : 0;
+        leftPadding = window.electron.isMac ? 85 : 0;
         console.log(window.electron.isMac);
     } else {
         console.error("Electron not detected!");
@@ -18,15 +18,25 @@ export default function Titlebar(){
         </h3>
 
         <div className="title-main">
-            <input type="search" placeholder="Enter in command... help for more info"/>
+            <input type="search" placeholder="Enter command..."/>
         </div>
 
         <div className="title-right">
-            <button title="settings" style={
-                {
-                    alignItems:`center`
-                }
-            }><BsGearFill /></button>
+            <button
+                title="settings"
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "transparent",
+                    borderRadius: "5px",
+                    border: "1.5px solid transparent",
+                    padding: "5px",
+                    cursor: "pointer",
+                }}
+            >
+                <BsGearFill size={18} color="black" />
+            </button>
         </div>
     </div>)
 }

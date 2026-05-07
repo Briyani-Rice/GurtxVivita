@@ -24,10 +24,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  padding: 0px;
+  margin: 0px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -157,15 +155,19 @@ code {
 }
 
 #app {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
+  width: 100%;
   min-height: 100svh;
+
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+
+  text-align: center;
+
+  /* remove these if you want edge-to-edge */
+  border-inline: none;
+
+  margin: 0;
+  padding: 0;
 }
 
 #center {
@@ -296,4 +298,8 @@ code {
 }
 button{
   cursor:pointer;
+}
+
+body {
+  overflow-x: hidden;
 }
