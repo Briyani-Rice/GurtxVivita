@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain } from "electron"
 import path from "path"
 import { fileURLToPath } from "url"
 import { readdir } from "node:fs/promises"
-import { File } from "../src/components/fileHelper"
+import { File } from "../src/components/FileHelper"
 import fs from "node:fs";
 
 const __filename = fileURLToPath(import.meta.url)
