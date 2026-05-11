@@ -8,9 +8,6 @@ export default defineConfig({
     build: {
         outDir: 'dist',
     },
-    checks:{
-        pluginTimings: false,
-    },
     plugins: [
         react(),
         tailwindcss(),
@@ -20,11 +17,11 @@ export default defineConfig({
             },
             {
                 entry: 'electron/preload.ts',
-                onstart(options) {
+                onstart(options:any) {
                     // optional: restart renderer when electron reloads
                     options.reload()
                 },
             },
         ]),
     ],
-})
+});

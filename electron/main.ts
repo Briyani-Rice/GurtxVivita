@@ -56,19 +56,19 @@ ipcMain.handle("get-md-files", async () => {
         const fullPath = app.isPackaged ? prodPath : devPath;
 
         const files = await fs.promises.readdir(fullPath);
-        console.log(files)
         return files.map(f => path.join(fullPath, f)); // return strings only
     } catch (err) {
-        console.error(err);
         return [];
     }
 });
-ipcMain.handle("load-file-content", async (event, filePath: string) => {
+ipcMain.handle("load-file-content", async (event, filePath: string):Promise<String> => {
+    console.log("Opening file")
     try {
         const data = await fs.promises.readFile(filePath, "utf8");
-        return { success: true, content: data };
+        console.log(data)
+        return data;
     } catch (err) {
         console.error(err);
-        return { success: false, error: `${err}` };
+        return `# ERROR: ${err}`;
     }
 });

@@ -19,7 +19,7 @@ function DocsContent() {
         async function loadFiles() {
             // Step 1: Get paths from main process
             const paths: string[] = await window.electron?.getMdFiles(); // use electronAPI from preload
-            console.log("Paths: "+paths)
+            console.log(paths)
             const fileObjects: File[] = await Promise.all(paths.map(path => File.create(path)));
             await Promise.all(fileObjects.map(file => file.ready));
             setFiles(fileObjects);

@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electron", {
     getMdFiles: ():string[] => ipcRenderer.invoke("get-md-files"),
-    loadFileContent: (path: string):string => ipcRenderer.invoke("load-file-content", path),
+    loadFileContent: (path: string):Promise<String> => ipcRenderer.invoke("load-file-content", path),
     invoke: (channel: string, data?: any) => {
         return ipcRenderer.invoke(channel, data);
     },
