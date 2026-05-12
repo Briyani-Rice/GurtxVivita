@@ -134,18 +134,32 @@ export class welcomeTab implements Tab {
                     <h1>Welcome!</h1>
                     <h2>Vivita materials app</h2>
                     <input
-                        style={
-                            {
-                                fontSize:"24px",
-                                width:"50%",
-                                borderRadius:"17.5px",
-                                border:"2px solid black",
-                                outline: "none",
-
-                            }
-                        }
                         type="search"
-                        placeholder="Search up materials..."
+                        placeholder="Search materials..."
+                        style={{
+                            width: "50%",
+                            height: "56px",
+
+                            padding: "0 22px",
+
+                            fontSize: "18px",
+                            fontWeight: "500",
+
+                            border: "none",
+                            borderRadius: "16px",
+
+                            background: "#f4f7fb",
+                            color: "#1e293b",
+
+                            outline: "none",
+
+                            boxSizing: "border-box",
+
+                            boxShadow:
+                                "inset 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06)",
+
+                            transition: "all 120ms ease",
+                        }}
                     />
                 </div>
                 <footer

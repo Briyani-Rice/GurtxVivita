@@ -141,3 +141,9 @@ ipcMain.handle(
         }
     }
 );
+ipcMain.handle(
+    "get-settings",
+    async (event): Promise<string> => {
+        store
+    }
+);
