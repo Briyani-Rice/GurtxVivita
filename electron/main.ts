@@ -4,6 +4,50 @@ import { fileURLToPath } from "url"
 import { readdir } from "node:fs/promises"
 import { File } from "../src/components/FileHelper"
 import fs from "node:fs";
+import Store from 'electron-store';
+import IpcMainEvent = Electron.IpcMainEvent;
+import Ajv from "ajv";
+
+const ajv = new Ajv();
+
+const schema = {
+    type: "object",
+    properties: {
+        settings: {
+            type: "object",
+            properties: {
+                Appearance: {
+                    type: "object",
+                    properties: {
+                        Theme: {
+                            type: "string",
+                            enum: ["light", "dark", "system"]
+                        }
+                    },
+                    required: ["Theme"],
+                    additionalProperties: false
+                }
+            },
+            required: ["Appearance"],
+            additionalProperties: false
+        },
+
+        user: {
+            type: "object"
+        },
+
+        app: {
+            type: "object"
+        }
+    },
+
+    required: ["settings"],
+    additionalProperties: false
+};
+
+const validate = ajv.compile(schema);
+
+const store = new Store();
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -72,3 +116,28 @@ ipcMain.handle("load-file-content", async (event, filePath: string):Promise<Stri
         return `# ERROR: ${err}`;
     }
 });
+ipcMain.handle(
+    "save-settings",
+    async (event, data: string): Promise<boolean> => {
+        try {
+            const value = JSON.parse(data);
+
+            const isValid = validate(value);
+
+            if (!isValid) {
+                console.error(validate.errors);
+                return false;
+            }
+
+            // Save only AFTER validation
+            Object.entries(value).forEach(([key, val]) => {
+                store.set(key, val);
+            });
+
+            return true;
+        } catch (err) {
+            console.error(err);
+            return false;
+        }
+    }
+);

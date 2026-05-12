@@ -67,7 +67,7 @@ import './style.css'
 import Titlebar from "./titlebar"
 import { Tab } from "./types"
 import "react-icons/io"
-import { IoIosCloseCircle, IoIosCloseCircleOutline } from 'react-icons/io'
+import {IoIosBook, IoIosCloseCircle, IoIosCloseCircleOutline} from 'react-icons/io'
 import { MdAddCircle, MdAddCircleOutline } from "react-icons/md";
 import { BsGearFill } from "react-icons/bs";
 import {
@@ -106,44 +106,104 @@ export class welcomeTab implements Tab {
         this.content = (
             <div
                 style={{
-                    padding: "20px",
                     height: "100%",
+                    width: "100%",
+                    position: "relative",
                     boxSizing: "border-box",
-                    overflow: "hidden"
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    paddingRight: "20%",
+                    paddingLeft: "20%",
                 }}
             >
-                <h2>Welcome!</h2>
-
-                <div>
-                    <p>Search:</p>
+                <div style={
+                    {
+                        borderRadius:"30px",
+                        background:"lightblue",
+                        width:"100%",
+                        display: "flex",
+                        flexDirection:"column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding:"30px",
+                    }
+                }>
+                    <h1>Welcome!</h1>
+                    <h2>Vivita materials app</h2>
                     <input
+                        style={
+                            {
+                                fontSize:"24px",
+                                width:"50%",
+                                borderRadius:"17.5px",
+                                border:"2px solid black",
+                                outline: "none",
+
+                            }
+                        }
                         type="search"
                         placeholder="Search up materials..."
                     />
                 </div>
+                <footer
+                    style={{
+                        position: "absolute",
+                        bottom: "0",
+                        left: "0",
+                        width: "100%",
+                        background: "lightyellow",
+                        padding: "16px 24px",
+                        display: "flex",
+                        justifyContent: "left",
+                        alignItems: "center",
+                        gap: "20px",
+                        boxSizing: "border-box",
+                        borderTop: "1px solid #ddd",
+                        height:"10%"
+                    }}
+                >
+                    <h3>
+                        Gurt
+                    </h3>
 
-                <a href="#" onClick={()=>{
-                    const existingIndex = welcomeTab.props.tabs.findIndex(tab => tab.name === "Settings");
-                    if (existingIndex !== -1) {
-                        welcomeTab.props.setTabIndex(existingIndex);
-                    } else {
-                        const newIndex = welcomeTab.props.handleNewTab();
-                        welcomeTab.props.setTab(newIndex, new Settings());
-                    }
-                }}>
-                    <BsGearFill /> Settings
-                </a>
-                <a href="#" onClick={()=>{
-                    const existingIndex = welcomeTab.props.tabs.findIndex(tab => tab.name === "Documentation");
-                    if (existingIndex !== -1) {
-                        welcomeTab.props.setTabIndex(existingIndex);
-                    } else {
-                        const newIndex = welcomeTab.props.handleNewTab();
-                        welcomeTab.props.setTab(newIndex, new DocsView());
-                    }
-                }}>
-                    <BsGearFill /> Docs
-                </a>
+                    <div style={{flexGrow:"1",}}/>
+                    <button
+                        onClick={() => {
+                            const existingIndex = welcomeTab.props.tabs.findIndex(
+                                tab => tab.name === "Settings"
+                            );
+
+                            if (existingIndex !== -1) {
+                                welcomeTab.props.setTabIndex(existingIndex);
+                            } else {
+                                const newIndex = welcomeTab.props.handleNewTab();
+                                welcomeTab.props.setTab(newIndex, new Settings());
+                            }
+                        }}
+                    >
+                        <BsGearFill /> Settings
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            const existingIndex = welcomeTab.props.tabs.findIndex(
+                                tab => tab.name === "Documentation"
+                            );
+
+                            if (existingIndex !== -1) {
+                                welcomeTab.props.setTabIndex(existingIndex);
+                            } else {
+                                const newIndex = welcomeTab.props.handleNewTab();
+                                welcomeTab.props.setTab(newIndex, new DocsView());
+                            }
+                        }}
+                    >
+                        <IoIosBook /> Docs
+                    </button>
+                </footer>
             </div>
         )
     }
@@ -159,7 +219,7 @@ type RenderTabBarTabProps = {
     currentTabIndex:number;
     setTabIndex:(index: number) => void;
     moveTab:(from:number,to:number)=>void;
-    tabsLength:number;
+    tabsLength:number;  
 }
 
 // @ts-ignore
@@ -451,7 +511,7 @@ function RenderTab(
             style={{
                 flex: 1,
                 border: "2px solid black",
-                borderRadius: "0px 0px 15px 15px",
+                borderRadius: "0px 0px 10px 10px",
                 overflow: "hidden",
                 minHeight: 0
             }}
