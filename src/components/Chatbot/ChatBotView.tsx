@@ -4,6 +4,7 @@ import {
     Trash2, ChevronDown, Check, ShieldCheck, Zap,
 } from "lucide-react";
 import { Material, FloorData, FloorElement } from "../../types";
+// @ts-ignore
 import { GROQ_API_KEY } from "../../Secrets";
 // @ts-ignore
 import guidelinesRaw from "./ChatBotGuidelines.md?raw";
