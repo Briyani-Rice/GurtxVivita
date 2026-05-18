@@ -132,7 +132,7 @@ export class welcomeTab implements Tab {
                     }
                 }>
                     <h1>Welcome!</h1>
-                    <h2>Vivita materials app</h2>
+                    <h2>Viventory</h2>
                     <input
                         type="search"
                         placeholder="Search materials..."
@@ -142,7 +142,7 @@ export class welcomeTab implements Tab {
 
                             padding: "0 22px",
 
-                            fontSize: "18px",
+                            fontSize: "20px",
                             fontWeight: "500",
 
                             border: "none",
@@ -544,8 +544,6 @@ function RenderTab(
 function App() {
 
     const [tabs, setTabs] = useState<Tab[]>([
-        new welcomeTab(),
-        new welcomeTab(),
         new welcomeTab()
     ])
 
