@@ -25,7 +25,7 @@ export default function Titlebar({ tabs,setTabIndex, handleNewTab, setTab }: Pro
             className="title-text"
             style={{ paddingLeft: `${leftPadding}px` }}
         >
-            Vivita materials app
+            Viventory
         </h3>
 
         <div className="title-main">

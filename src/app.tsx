@@ -148,7 +148,7 @@ export class welcomeTab implements Tab {
                             border: "none",
                             borderRadius: "16px",
 
-                            background: "#f4f7fb",
+                            background: "#f fffff",
                             color: "#1e293b",
 
                             outline: "none",
@@ -180,7 +180,7 @@ export class welcomeTab implements Tab {
                     }}
                 >
                     <h3>
-                        Gurt
+                        gurt
                     </h3>
 
                     <div style={{flexGrow:"1",}}/>

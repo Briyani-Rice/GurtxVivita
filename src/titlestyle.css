@@ -3,9 +3,7 @@
     align-items: center;
     app-region: drag;
     height: 35px;
-    background-color: lightyellow;
-    border-radius: 10px;
-    border: solid 2px black;
+    background-color: #dddddd;
 }
 
 /* LEFT */
