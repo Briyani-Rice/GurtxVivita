@@ -20,3 +20,8 @@ contextBridge.exposeInMainWorld("electron", {
     platform: process.platform,
     isMac: process.platform === "darwin"
 });
+
+contextBridge.exposeInMainWorld('darkMode', {
+    toggle: () => ipcRenderer.invoke('dark-mode:toggle'),
+    system: () => ipcRenderer.invoke('dark-mode:system')
+})

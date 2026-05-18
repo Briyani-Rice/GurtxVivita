@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron"
+import { app, BrowserWindow, ipcMain, nativeTheme } from "electron"
 import path from "path"
 import { fileURLToPath } from "url"
 import { readdir } from "node:fs/promises"
@@ -147,3 +147,15 @@ ipcMain.handle(
         store
     }
 );
+ipcMain.handle('dark-mode:toggle', () => {
+    if (nativeTheme.shouldUseDarkColors) {
+        nativeTheme.themeSource = 'light'
+    } else {
+        nativeTheme.themeSource = 'dark'
+    }
+    return nativeTheme.shouldUseDarkColors
+})
+
+ipcMain.handle('dark-mode:system', () => {
+    nativeTheme.themeSource = 'system'
+})
