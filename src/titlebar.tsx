@@ -23,7 +23,7 @@ export default function Titlebar({ tabs,setTabIndex, handleNewTab, setTab }: Pro
     return (<div className="title">
         <h3
             className="title-text"
-            style={{ paddingLeft: `${leftPadding}px` }}
+            style={{ paddingLeft: `${leftPadding}px`}}
         >
             Viventory
         </h3>
