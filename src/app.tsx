@@ -104,12 +104,14 @@ export class welcomeTab implements Tab {
 
     constructor() {
         this.content = (
+            
             <div
                 style={{
                     height: "100%",
                     width: "100%",
                     position: "relative",
                     boxSizing: "border-box",
+                    background: "#ffffff",
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
@@ -119,45 +121,32 @@ export class welcomeTab implements Tab {
                     paddingLeft: "20%",
                 }}
             >
-                <div style={
-                    {
-                        borderRadius:"25px",
-                        background:"lightblue",
-                        width:"100%",
-                        display: "flex",
-                        flexDirection:"column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        padding:"30px",
-                    }
-                }>
-                    <h1>Welcome!</h1>
-                    <h2>Viventory</h2>
+                <div>
+                    <h1 style={{
+                        margin: 0,
+                        marginBottom: "50px",
+                        fontSize: "100px",
+                        fontWeight: 500,
+                        color: "#3b83a3",
+                    }}>
+                        Viventory
+                    </h1>
                     <input
                         type="search"
-                        placeholder="Search materials..."
+                        placeholder="Search for materials..."
                         style={{
                             width: "50%",
-                            height: "56px",
-
-                            padding: "0 22px",
-
+                            height: "50px",
+                            padding: "22px",
                             fontSize: "15px",
                             fontWeight: "500",
-
+                            fontFamily: "Libre Franklin, sans-serif",
                             border: "none",
                             borderRadius: "20px",
-
-                            background: "#f fffff",
-                            color: "#000000",
-
+                            background: "#000000",
+                            color: "#ffffff",
                             outline: "none",
-
                             boxSizing: "border-box",
-
-                            boxShadow:
-                                "inset 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06)",
-
                             transition: "all 120ms ease",
                         }}
                     />
@@ -175,12 +164,13 @@ export class welcomeTab implements Tab {
                         alignItems: "center",
                         gap: "20px",
                         boxSizing: "border-box",
-                        height: "35 px"
+                        height: "10px"
                     }}
                 >
                     <h4 style={{
                         color: "white",
-                        fontWeight: "500"
+                        fontSize: "15px",
+                        fontWeight: "375"
                     }}>
                         team gurt x vivita
                     </h4>
@@ -263,21 +253,13 @@ function RenderTabBarTab({
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-
         width: "180px",
-
         padding: "5px 15px",
-
         borderRadius: "10px",
-
         height: "25px",
-
         display: "flex",
-
         alignItems: "center",
-
         justifyContent: "space-between",
-
         background:
             index === currentTabIndex
                 ? "#cce8f4"
@@ -292,10 +274,6 @@ function RenderTabBarTab({
         flexShrink: 0,
 
         zIndex: isDragging ? 1000 : 1,
-
-        boxShadow: isDragging
-            ? "0 10px 25px rgba(0,0,0,0.2)"
-            : "none",
 
         opacity: isDragging ? 0.9 : 1
     }
@@ -339,20 +317,14 @@ function RenderTabBarTab({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-
                     background:
                         isHovered
-                            ? "#ffffff"
+                            ? "#ffffff75"
                             : "transparent",
-
                     borderRadius: "100%",
-
                     border: "1.5px solid transparent",
-
                     padding: "5px",
-
                     cursor: "pointer",
-
                     marginLeft: "5px",
                 }}
             >
@@ -432,26 +404,17 @@ function RenderTabBar({
                 <div
                     style={{
                         borderRadius: "0px",
-
                         display: "flex",
-
                         alignItems: "center",
-
                         width: "100%",
-
-                        padding: "5px 5px 5px 5px",
-
-                        height: "60px",
-
+                        padding: "5px",
+                        height: "55px",
                         gap: "5px",
-
                         overflowX: "scroll",
                         scrollbarWidth:"thin",
                         scrollbarGutter:"unset",
                         overflowY: "hidden",
-
-                        background: "#f3f4f6",
-
+                        background: "#00000010",
                         boxSizing: "border-box"
                     }}
                 >
@@ -484,24 +447,16 @@ function RenderTabBar({
 
                         style={{
                             flexShrink: 0,
-
                             display: "flex",
-
                             alignItems: "center",
-
                             justifyContent: "center",
-
                             background:
                                 isHovered
-                                    ? "#eee"
+                                    ? "#00000025"
                                     : "transparent",
-
-                            borderRadius: "5px",
-
+                            borderRadius: "100%",
                             border: "1.5px solid transparent",
-
                             padding: "5px",
-
                             cursor: "pointer",
                         }}
                     >
