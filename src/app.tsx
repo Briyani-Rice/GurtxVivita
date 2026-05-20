@@ -121,7 +121,7 @@ export class welcomeTab implements Tab {
             >
                 <div style={
                     {
-                        borderRadius:"30px",
+                        borderRadius:"25px",
                         background:"lightblue",
                         width:"100%",
                         display: "flex",
@@ -142,14 +142,14 @@ export class welcomeTab implements Tab {
 
                             padding: "0 22px",
 
-                            fontSize: "20px",
+                            fontSize: "15px",
                             fontWeight: "500",
 
                             border: "none",
-                            borderRadius: "16px",
+                            borderRadius: "20px",
 
                             background: "#f fffff",
-                            color: "#1e293b",
+                            color: "#000000",
 
                             outline: "none",
 
@@ -168,20 +168,22 @@ export class welcomeTab implements Tab {
                         bottom: "0",
                         left: "0",
                         width: "100%",
-                        background: "lightyellow",
-                        padding: "16px 24px",
+                        background: "#3b83a3",
+                        padding: "20px 20px",
                         display: "flex",
                         justifyContent: "left",
                         alignItems: "center",
                         gap: "20px",
                         boxSizing: "border-box",
-                        borderTop: "1px solid #ddd",
-                        height:"10%"
+                        height: "35 px"
                     }}
                 >
-                    <h3>
-                        gurt
-                    </h3>
+                    <h4 style={{
+                        color: "white",
+                        fontWeight: "500"
+                    }}>
+                        team gurt x vivita
+                    </h4>
 
                     <div style={{flexGrow:"1",}}/>
                     <button
@@ -264,11 +266,11 @@ function RenderTabBarTab({
 
         width: "180px",
 
-        padding: "5px 10px",
+        padding: "5px 15px",
 
-        borderRadius: "10px 10px 0px 0px",
+        borderRadius: "10px",
 
-        border: "2px solid black",
+        height: "25px",
 
         display: "flex",
 
@@ -278,8 +280,8 @@ function RenderTabBarTab({
 
         background:
             index === currentTabIndex
-                ? "#fff8dc"
-                : "#dbeafe",
+                ? "#cce8f4"
+                : "#dddddd",
 
         userSelect: "none" as const,
 
@@ -340,10 +342,10 @@ function RenderTabBarTab({
 
                     background:
                         isHovered
-                            ? "#eee"
+                            ? "#ffffff"
                             : "transparent",
 
-                    borderRadius: "5px",
+                    borderRadius: "100%",
 
                     border: "1.5px solid transparent",
 
@@ -351,13 +353,13 @@ function RenderTabBarTab({
 
                     cursor: "pointer",
 
-                    marginLeft: "8px",
+                    marginLeft: "5px",
                 }}
             >
                 {
                     isHovered
-                        ? <IoIosCloseCircle size={18} color="black" />
-                        : <IoIosCloseCircleOutline size={18} color="black" />
+                        ? <IoIosCloseCircle size={20} color="black" />
+                        : <IoIosCloseCircleOutline size={20} color="black" />
                 }
             </button>
         </div>
@@ -429,9 +431,7 @@ function RenderTabBar({
             >
                 <div
                     style={{
-                        borderRadius: "10px 10px 0px 0px",
-
-                        border: "2px solid black",
+                        borderRadius: "0px",
 
                         display: "flex",
 
@@ -439,7 +439,9 @@ function RenderTabBar({
 
                         width: "100%",
 
-                        padding: "5px 5px 0px 5px",
+                        padding: "5px 5px 5px 5px",
+
+                        height: "60px",
 
                         gap: "5px",
 
@@ -524,8 +526,7 @@ function RenderTab(
         <div
             style={{
                 flex: 1,
-                border: "2px solid black",
-                borderRadius: "0px 0px 10px 10px",
+                borderRadius: "0px",
                 overflow: "hidden",
                 minHeight: 0
             }}
@@ -641,7 +642,7 @@ function App() {
             style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "10px",
+                gap: "0px",
                 height: "100vh",
                 width: "100vw",
                 overflow: "hidden",
