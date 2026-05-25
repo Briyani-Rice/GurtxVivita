@@ -4,6 +4,6 @@
 - [ ] Add in proper documentation
 - [ ] Add in command bar
 ## Designing side
-- [ ] Design the logo
+- [x] Design the logo
 ## Client side
 - [ ] Tell client on our 2 weeks update 
