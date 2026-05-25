@@ -3,9 +3,8 @@
     align-items: center;
     app-region: drag;
     height: 35px;
-    background-color: lightyellow;
-    border-radius: 10px;
-    border: solid 2px black;
+    background-color: #3b83a3;
+    color: white;
 }
 
 /* LEFT */
@@ -43,7 +42,6 @@
 input[type="search"] {
     width: 100%;
     padding: 5px;
-    border: solid 1px black;
     border-radius: 5px;
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 

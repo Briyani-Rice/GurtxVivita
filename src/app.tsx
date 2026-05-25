@@ -104,12 +104,14 @@ export class welcomeTab implements Tab {
 
     constructor() {
         this.content = (
+            
             <div
                 style={{
                     height: "100%",
                     width: "100%",
                     position: "relative",
                     boxSizing: "border-box",
+                    background: "#ffffff",
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
@@ -119,45 +121,32 @@ export class welcomeTab implements Tab {
                     paddingLeft: "20%",
                 }}
             >
-                <div style={
-                    {
-                        borderRadius:"30px",
-                        background:"lightblue",
-                        width:"100%",
-                        display: "flex",
-                        flexDirection:"column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        padding:"30px",
-                    }
-                }>
-                    <h1>Welcome!</h1>
-                    <h2>Viventory</h2>
+                <div>
+                    <h1 style={{
+                        margin: 0,
+                        marginBottom: "50px",
+                        fontSize: "100px",
+                        fontWeight: 500,
+                        color: "#3b83a3",
+                    }}>
+                        Viventory
+                    </h1>
                     <input
                         type="search"
-                        placeholder="Search materials..."
+                        placeholder="Search for materials..."
                         style={{
                             width: "50%",
-                            height: "56px",
-
-                            padding: "0 22px",
-
-                            fontSize: "20px",
+                            height: "50px",
+                            padding: "22px",
+                            fontSize: "15px",
                             fontWeight: "500",
-
+                            fontFamily: "Libre Franklin, sans-serif",
                             border: "none",
-                            borderRadius: "16px",
-
-                            background: "#f4f7fb",
-                            color: "#1e293b",
-
+                            borderRadius: "20px",
+                            background: "#000000",
+                            color: "#ffffff",
                             outline: "none",
-
                             boxSizing: "border-box",
-
-                            boxShadow:
-                                "inset 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06)",
-
                             transition: "all 120ms ease",
                         }}
                     />
@@ -168,20 +157,23 @@ export class welcomeTab implements Tab {
                         bottom: "0",
                         left: "0",
                         width: "100%",
-                        background: "lightyellow",
-                        padding: "16px 24px",
+                        background: "#3b83a3",
+                        padding: "20px 20px",
                         display: "flex",
                         justifyContent: "left",
                         alignItems: "center",
                         gap: "20px",
                         boxSizing: "border-box",
-                        borderTop: "1px solid #ddd",
-                        height:"10%"
+                        height: "10px"
                     }}
                 >
-                    <h3>
-                        Gurt
-                    </h3>
+                    <h4 style={{
+                        color: "white",
+                        fontSize: "15px",
+                        fontWeight: "375"
+                    }}>
+                        team gurt x vivita
+                    </h4>
 
                     <div style={{flexGrow:"1",}}/>
                     <button
@@ -261,25 +253,17 @@ function RenderTabBarTab({
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-
         width: "180px",
-
-        padding: "5px 10px",
-
-        borderRadius: "10px 10px 0px 0px",
-
-        border: "2px solid black",
-
+        padding: "5px 15px",
+        borderRadius: "10px",
+        height: "25px",
         display: "flex",
-
         alignItems: "center",
-
         justifyContent: "space-between",
-
         background:
             index === currentTabIndex
-                ? "#fff8dc"
-                : "#dbeafe",
+                ? "#cce8f4"
+                : "#dddddd",
 
         userSelect: "none" as const,
 
@@ -290,10 +274,6 @@ function RenderTabBarTab({
         flexShrink: 0,
 
         zIndex: isDragging ? 1000 : 1,
-
-        boxShadow: isDragging
-            ? "0 10px 25px rgba(0,0,0,0.2)"
-            : "none",
 
         opacity: isDragging ? 0.9 : 1
     }
@@ -337,27 +317,21 @@ function RenderTabBarTab({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-
                     background:
                         isHovered
-                            ? "#eee"
+                            ? "#ffffff75"
                             : "transparent",
-
-                    borderRadius: "5px",
-
+                    borderRadius: "100%",
                     border: "1.5px solid transparent",
-
                     padding: "5px",
-
                     cursor: "pointer",
-
-                    marginLeft: "8px",
+                    marginLeft: "5px",
                 }}
             >
                 {
                     isHovered
-                        ? <IoIosCloseCircle size={18} color="black" />
-                        : <IoIosCloseCircleOutline size={18} color="black" />
+                        ? <IoIosCloseCircle size={20} color="black" />
+                        : <IoIosCloseCircleOutline size={20} color="black" />
                 }
             </button>
         </div>
@@ -429,27 +403,18 @@ function RenderTabBar({
             >
                 <div
                     style={{
-                        borderRadius: "10px 10px 0px 0px",
-
-                        border: "2px solid black",
-
+                        borderRadius: "0px",
                         display: "flex",
-
                         alignItems: "center",
-
                         width: "100%",
-
-                        padding: "5px 5px 0px 5px",
-
+                        padding: "5px",
+                        height: "55px",
                         gap: "5px",
-
                         overflowX: "scroll",
                         scrollbarWidth:"thin",
                         scrollbarGutter:"unset",
                         overflowY: "hidden",
-
-                        background: "#f3f4f6",
-
+                        background: "#00000010",
                         boxSizing: "border-box"
                     }}
                 >
@@ -482,24 +447,16 @@ function RenderTabBar({
 
                         style={{
                             flexShrink: 0,
-
                             display: "flex",
-
                             alignItems: "center",
-
                             justifyContent: "center",
-
                             background:
                                 isHovered
-                                    ? "#eee"
+                                    ? "#00000025"
                                     : "transparent",
-
-                            borderRadius: "5px",
-
+                            borderRadius: "100%",
                             border: "1.5px solid transparent",
-
                             padding: "5px",
-
                             cursor: "pointer",
                         }}
                     >
@@ -524,8 +481,7 @@ function RenderTab(
         <div
             style={{
                 flex: 1,
-                border: "2px solid black",
-                borderRadius: "0px 0px 10px 10px",
+                borderRadius: "0px",
                 overflow: "hidden",
                 minHeight: 0
             }}
@@ -641,7 +597,7 @@ function App() {
             style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "10px",
+                gap: "0px",
                 height: "100vh",
                 width: "100vw",
                 overflow: "hidden",
