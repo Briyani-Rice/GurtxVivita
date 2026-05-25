@@ -84,6 +84,7 @@ import {closestCenter, DndContext, PointerSensor, useSensor, useSensors} from "@
 import {restrictToHorizontalAxis} from "@dnd-kit/modifiers";
 import Settings from "./components/Settings/Settings";
 import DocsView from "./components/Docs/DocsView";
+import {AdminViewTab} from "./components/AdminViewTab";
 
 export type BasicTabProps = {
     tabs:Tab[];
@@ -509,7 +510,8 @@ function RenderTab(
 function App() {
 
     const [tabs, setTabs] = useState<Tab[]>([
-        new welcomeTab()
+        new welcomeTab(),
+        new AdminViewTab()
     ])
 
     const [tabIndex, setTabIndex] = useState<number>(0)

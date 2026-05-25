@@ -1,11 +1,8 @@
-import { app, BrowserWindow, ipcMain, nativeTheme } from "electron"
+import { app, BrowserWindow, ipcMain, nativeTheme, Tray } from "electron"
 import path from "path"
 import { fileURLToPath } from "url"
-import { readdir } from "node:fs/promises"
-import { File } from "../src/components/FileHelper"
 import fs from "node:fs";
 import Store from 'electron-store';
-import IpcMainEvent = Electron.IpcMainEvent;
 import Ajv from "ajv";
 
 const ajv = new Ajv();
@@ -69,7 +66,8 @@ function createWindow() {
         ...(process.platform === "darwin"
             ? { titleBarStyle: "hiddenInset" }
             : { titleBarStyle: "hidden" }),
-        ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {})
+        ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
+        icon:"../public/GurtXVivita_Logo.png"
     })
 
     if (!app.isPackaged) {
