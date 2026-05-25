@@ -1,9 +1,17 @@
-import {Tab} from "../types.ts"
-import { LoginView } from "../components/LoginView";
-import { AdminView } from "../components/AdminView";
-export class AdminViewTab implements Tab {
+import {
+    Tab,
+    FloorData,
+    Material,
+    MaterialRequest,
+} from "../types";
+
+import { UserView } from "../components/UserView";
+
+export class UserViewTab implements Tab {
     id: string = crypto.randomUUID();
-    name: string = "Admin View";
+
+    name: string = "User View";
+
     private floors: FloorData[] = [
         {
             id: "floor-1",
@@ -33,6 +41,24 @@ export class AdminViewTab implements Tab {
                     color: "#34d399",
                     label: "Electronics",
                 },
+                {
+                    id: "stairs-1",
+                    type: "stairs",
+                    x: 430,
+                    y: 40,
+                    width: 60,
+                    height: 60,
+                    label: "Stairs",
+                },
+                {
+                    id: "lift-1",
+                    type: "lift",
+                    x: 520,
+                    y: 40,
+                    width: 50,
+                    height: 50,
+                    label: "Lift",
+                },
             ],
         },
         {
@@ -51,40 +77,19 @@ export class AdminViewTab implements Tab {
                     color: "#fbbf24",
                     label: "Meeting",
                 },
+                {
+                    id: "comp-202",
+                    type: "compartment",
+                    x: 300,
+                    y: 60,
+                    width: 170,
+                    height: 100,
+                    number: "B202",
+                    name: "Server Room",
+                    color: "#f87171",
+                    label: "Servers",
+                },
             ],
-        },
-    ];
-
-    private compartments: Compartment[] = [
-        {
-            id: "comp-101",
-            number: "A101",
-            name: "Storage Room",
-            x: 50,
-            y: 40,
-            width: 140,
-            height: 90,
-            color: "#60a5fa",
-        },
-        {
-            id: "comp-102",
-            number: "A102",
-            name: "Electronics Lab",
-            x: 240,
-            y: 40,
-            width: 160,
-            height: 90,
-            color: "#34d399",
-        },
-        {
-            id: "comp-201",
-            number: "B201",
-            name: "Meeting Room",
-            x: 70,
-            y: 60,
-            width: 180,
-            height: 100,
-            color: "#fbbf24",
         },
     ];
 
@@ -101,18 +106,27 @@ export class AdminViewTab implements Tab {
         {
             id: "mat-2",
             name: "Laptop",
-            description: "Dell Latitude",
-            quantity: 6,
+            description: "Dell Latitude Laptop",
+            quantity: 5,
             unit: "units",
             compartmentId: "comp-102",
             createdAt: new Date().toISOString(),
         },
         {
             id: "mat-3",
-            name: "Projector",
-            description: "Conference projector",
+            name: "Ethernet Cable",
+            description: "Cat 6 networking cable",
             quantity: 0,
-            unit: "unit",
+            unit: "pcs",
+            compartmentId: "comp-202",
+            createdAt: new Date().toISOString(),
+        },
+        {
+            id: "mat-4",
+            name: "Projector",
+            description: "Portable projector",
+            quantity: 2,
+            unit: "units",
             compartmentId: "comp-201",
             createdAt: new Date().toISOString(),
         },
@@ -121,50 +135,30 @@ export class AdminViewTab implements Tab {
     private requests: MaterialRequest[] = [
         {
             id: "req-1",
-            materialId: "mat-1",
-            materialName: "HDMI Cable",
-            requestedQuantity: 2,
-            reason: "Needed for classroom presentation",
-            status: "pending",
-            createdAt: new Date().toISOString(),
-        },
-        {
-            id: "req-2",
             materialId: "mat-2",
             materialName: "Laptop",
             requestedQuantity: 1,
-            reason: "Temporary replacement",
+            reason: "For presentation",
             status: "pending",
             createdAt: new Date().toISOString(),
         },
     ];
 
     content: React.ReactNode = (
-        <AdminView
+        <UserView
             floors={this.floors}
-            onFloorsChange={(floors) => {
-                console.log("Updated floors:", floors);
-            }}
-            compartments={this.compartments}
             materials={this.materials}
             requests={this.requests}
-            onAddMaterial={(material) => {
-                console.log("Add material:", material);
+            onSubmitRequest={(materialId, quantity, reason) => {
+                console.log("Request submitted:", {
+                    materialId,
+                    quantity,
+                    reason,
+                });
             }}
-            onEditMaterial={(id, material) => {
-                console.log("Edit material:", id, material);
-            }}
-            onDeleteMaterial={(id) => {
-                console.log("Delete material:", id);
-            }}
-            onApproveRequest={(id) => {
-                console.log("Approve request:", id);
-            }}
-            onDeclineRequest={(id) => {
-                console.log("Decline request:", id);
-            }}
-            getterEmptyMaterials={() => {
-                return this.materials.filter((m) => m.quantity <= 0);
+            prefs={{
+                hideOutOfStock: false,
+                compactCards: false,
             }}
         />
     );
