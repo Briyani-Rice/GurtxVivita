@@ -408,7 +408,7 @@ function RenderTabBar({
                         alignItems: "center",
                         width: "100%",
                         padding: "5px",
-                        height: "55px",
+                        height: "45px",
                         gap: "5px",
                         overflowX: "scroll",
                         scrollbarWidth:"thin",
