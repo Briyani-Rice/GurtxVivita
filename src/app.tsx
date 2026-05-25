@@ -131,18 +131,18 @@ export class welcomeTab implements Tab {
                     }}>
                         Viventory
                     </h1>
-                    <h1 style={{
+                    <h2 style={{
                         margin: 0,
                         marginBottom: "50px",
-                        fontSize: "100px",
+                        fontSize: "25px",
                         fontWeight: 625,
-                        color: "#3b83a3",
+                        color: "#555555",
                     }}>
-                        Viventory
-                    </h1>
+                        Enter text below to search.
+                    </h2>
                     <input
                         type="search"
-                        placeholder="Search for materials..."
+                        placeholder="Search..."
                         style={{
                             width: "100%",
                             height: "50px",
