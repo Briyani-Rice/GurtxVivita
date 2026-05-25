@@ -126,7 +126,16 @@ export class welcomeTab implements Tab {
                         margin: 0,
                         marginBottom: "50px",
                         fontSize: "100px",
-                        fontWeight: 500,
+                        fontWeight: 625,
+                        color: "#3b83a3",
+                    }}>
+                        Viventory
+                    </h1>
+                    <h1 style={{
+                        margin: 0,
+                        marginBottom: "50px",
+                        fontSize: "100px",
+                        fontWeight: 625,
                         color: "#3b83a3",
                     }}>
                         Viventory
@@ -135,7 +144,7 @@ export class welcomeTab implements Tab {
                         type="search"
                         placeholder="Search for materials..."
                         style={{
-                            width: "50%",
+                            width: "100%",
                             height: "50px",
                             padding: "22px",
                             fontSize: "15px",
@@ -408,7 +417,7 @@ function RenderTabBar({
                         alignItems: "center",
                         width: "100%",
                         padding: "5px",
-                        height: "55px",
+                        height: "45px",
                         gap: "5px",
                         overflowX: "scroll",
                         scrollbarWidth:"thin",
