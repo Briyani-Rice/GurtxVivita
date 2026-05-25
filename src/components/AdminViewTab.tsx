@@ -1,4 +1,6 @@
 import {Tab} from "../types.ts"
+import { LoginView } from "../components/LoginView";
+import { AdminView } from "../components/AdminView";
 export class AdminViewTab implements Tab {
     id: string = crypto.randomUUID();
     name: string = "Admin View";
