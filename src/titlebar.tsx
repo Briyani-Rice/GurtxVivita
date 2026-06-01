@@ -3,14 +3,17 @@ import "./titlestyle.css";
 import { BsGearFill } from "react-icons/bs";
 import {Tab} from "./types";
 import Settings from "./components/Settings/Settings";
+import {Button} from "./components/ui/button";
+import {useState} from "react";
 
 type Props = {
     tabs: Tab[];
     setTabIndex:any;
     handleNewTab: () => number;
     setTab: (index: number, tab: Tab) => void;
+    setCmdBarVis: (b:boolean) => void;
 };
-export default function Titlebar({ tabs,setTabIndex, handleNewTab, setTab }: Props){
+export default function Titlebar({ tabs,setTabIndex, handleNewTab, setTab, setCmdBarVis}: Props){
     var leftPadding = 0;
     //@ts-ignore
     if (window.electron?.isMac != null) {
@@ -19,7 +22,6 @@ export default function Titlebar({ tabs,setTabIndex, handleNewTab, setTab }: Pro
     } else {
         console.error("Electron not detected!");
     }
-
     return (<div className="title">
         <h3
             className="title-text"
@@ -33,7 +35,18 @@ export default function Titlebar({ tabs,setTabIndex, handleNewTab, setTab }: Pro
         </h3>
 
         <div className="title-main">
-            <input type="search" placeholder="Enter command..."/>
+            <Button style={{
+                width:"100%",
+                border:"none",
+                borderRadius:"5px",
+            }}
+            onClick={
+                ()=>{
+                    setCmdBarVis(true)
+                }
+            }>
+                Input command
+            </Button>
         </div>
 
         <div className="title-right">

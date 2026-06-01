@@ -60,41 +60,74 @@
 //
 // setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
 //@ts-ignore
-import React, {useRef, useState } from 'react'
+import React, {useRef, useState} from 'react'
 import ReactDOM from 'react-dom/client'
 //@ts-ignore
 import './style.css'
 import Titlebar from "./titlebar"
-import { Tab } from "./types"
+import {Command, CommandArgument, CommandArgumentType, Tab} from "./types"
 import "react-icons/io"
 import {IoIosBook, IoIosCloseCircle, IoIosCloseCircleOutline} from 'react-icons/io'
-import { MdAddCircle, MdAddCircleOutline } from "react-icons/md";
-import { BsGearFill } from "react-icons/bs";
-import {
-    arrayMove,
-    horizontalListSortingStrategy,
-    SortableContext,
-    useSortable
-} from "@dnd-kit/sortable"
+import {MdAddCircle, MdAddCircleOutline} from "react-icons/md";
+import {BsGearFill} from "react-icons/bs";
+import {arrayMove, horizontalListSortingStrategy, SortableContext, useSortable} from "@dnd-kit/sortable"
 
-import {
-    CSS
-} from "@dnd-kit/utilities"
+import {CSS} from "@dnd-kit/utilities"
 import {closestCenter, DndContext, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
 import {restrictToHorizontalAxis} from "@dnd-kit/modifiers";
 import Settings from "./components/Settings/Settings";
 import DocsView from "./components/Docs/DocsView";
 import {AdminViewTab} from "./components/AdminViewTab";
+import {CommandBar} from "./CommandBar";
 
 export type BasicTabProps = {
-    tabs:Tab[];
-    setTabs:(tabs:Tab[])=>void;
-    tabIndex:number;
-    setTabIndex:(index:number)=>void;
-    handleNewTab:()=>number;
+    tabs: Tab[];
+    setTabs: (tabs: Tab[]) => void;
+    tabIndex: number;
+    setTabIndex: (index: number) => void;
+    handleNewTab: () => number;
     setTab: (index: number, tab: Tab) => void;
-    handleClosingTab:(index:number)=>void;
+    handleClosingTab: (index: number) => void;
 }
+
+export class SearchCommand implements Command {
+    id: string = crypto.randomUUID()
+    args: CommandArgument[] = [new CommandArgument("Item",CommandArgumentType.String)]
+    name: string = "Search"
+    onRun: () => void = ()=>{}
+}
+
+export class HelpCommand implements Command {
+    id: string = crypto.randomUUID()
+    args: CommandArgument[] = []
+    name: string = "Help"
+    onRun: () => void = ()=>{
+        var nw = HelpCommand.bt.tabs
+        nw.push(new DocsView())
+        HelpCommand.bt.setTabs(nw)
+        HelpCommand.bt.setTabIndex(nw.length-1)
+    }
+    static bt:BasicTabProps
+    static receive (bt0: BasicTabProps):void{
+        HelpCommand.bt=bt0;
+    }
+}
+
+
+export class SettingCommand implements Command {
+    id: string = crypto.randomUUID()
+    args: CommandArgument[] = []
+    name: string = "Settings"
+    onRun: () => void = ()=>{
+        var nw = HelpCommand.bt.tabs
+        nw.push(new Settings())
+        HelpCommand.bt.setTabs(nw)
+        HelpCommand.bt.setTabIndex(nw.length-1)
+    }
+}
+
+
+export var commands:Command[] = [new SearchCommand(),new HelpCommand(),new SettingCommand()]
 
 export class welcomeTab implements Tab {
 
@@ -120,6 +153,8 @@ export class welcomeTab implements Tab {
                     alignItems: "center",
                     paddingRight: "20%",
                     paddingLeft: "20%",
+                    backgroundImage: "radial-gradient(gray 1px, transparent 1px)",
+                    backgroundSize: "16px 16px"
                 }}
             >
                 <div>
@@ -509,6 +544,8 @@ function RenderTab(
 
 function App() {
 
+    const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
+
     const [tabs, setTabs] = useState<Tab[]>([
         new welcomeTab(),
         new AdminViewTab()
@@ -603,6 +640,15 @@ function App() {
             handleClosingTab
         }
     )
+    HelpCommand.receive({
+        tabs,
+        setTabs,
+        tabIndex,
+        setTabIndex,
+        handleNewTab,
+        setTab,
+        handleClosingTab
+    })
     return (
         <main
             style={{
@@ -615,11 +661,14 @@ function App() {
                 boxSizing: "border-box"
             }}
         >
+            {cmdBarVis && <CommandBar setVisibility={setCmdBarVis} />}
+
             <Titlebar
                 tabs={tabs}
                 setTabIndex={setTabIndex}
                 handleNewTab={handleNewTab}
                 setTab={setTab}
+                setCmdBarVis={setCmdBarVis}
             />
             <div
                 style={{

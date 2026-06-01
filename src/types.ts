@@ -1,3 +1,6 @@
+import {Name} from "ajv";
+import {BasicTabProps} from "./app";
+
 export interface Renderable {
     render(): void;
 }
@@ -107,4 +110,26 @@ export interface Tab{
     id: string
     name: string;
     content: React.ReactNode;
+}
+
+export enum CommandArgumentType{
+    String,
+    Number,
+    Boolean,
+}
+
+export class CommandArgument{
+    Name:string;
+    Type:CommandArgumentType
+    constructor(Name: string, Type: CommandArgumentType) {
+        this.Name = Name;
+        this.Type = Type;
+    }
+}
+
+export interface Command{
+    id: string;
+    args: CommandArgument[];
+    name: string;
+    onRun: ()=>void;
 }
