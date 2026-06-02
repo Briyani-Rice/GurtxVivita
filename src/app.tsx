@@ -79,6 +79,7 @@ import Settings from "./components/Settings/Settings";
 import DocsView from "./components/Docs/DocsView";
 import {AdminViewTab} from "./components/AdminViewTab";
 import {CommandBar} from "./CommandBar";
+import LoginTab from "./components/LoginTab";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -127,7 +128,19 @@ export class SettingCommand implements Command {
 }
 
 
-export var commands:Command[] = [new SearchCommand(),new HelpCommand(),new SettingCommand()]
+export class LoginCommand implements Command {
+    id: string = crypto.randomUUID()
+    args: CommandArgument[] = []
+    name: string = "Login"
+    onRun: () => void = ()=>{
+        var nw = HelpCommand.bt.tabs
+        nw.push(new LoginTab())
+        HelpCommand.bt.setTabs(nw)
+        HelpCommand.bt.setTabIndex(nw.length-1)
+    }
+}
+
+export var commands:Command[] = [new SearchCommand(),new HelpCommand(),new SettingCommand(),new LoginCommand()]
 
 export class welcomeTab implements Tab {
 

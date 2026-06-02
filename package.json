@@ -10,7 +10,16 @@
     "lint": "eslint ../Backup",
     "start": "npm run build && electron .",
     "preview": "vite preview",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "dist": "vite build && electron-builder"
+  },
+  "build": {
+    "appId": "com.gurtxvivita.app",
+    "productName": "GurtxVivita",
+    "icon": "public/nativeIcons/GurtXVivita_Logo",
+    "mac": {
+      "target": "dmg"
+    }
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.4",

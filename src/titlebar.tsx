@@ -39,13 +39,15 @@ export default function Titlebar({ tabs,setTabIndex, handleNewTab, setTab, setCm
                 width:"100%",
                 border:"none",
                 borderRadius:"5px",
+                fontFamily:"monospace",
+                justifyContent:"left",
             }}
             onClick={
                 ()=>{
                     setCmdBarVis(true)
                 }
             }>
-                Input command
+                &gt; Enter command
             </Button>
         </div>
 

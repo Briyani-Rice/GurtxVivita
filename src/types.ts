@@ -59,8 +59,6 @@ export interface MaterialRequest {
     comments?: string;
 }
 
-export type UserRole = 'admin' | 'user';
-
 export enum UserPerms {
     Basic,  // regular user — UserView
     Staff,  // admin      — AdminView
@@ -132,4 +130,9 @@ export interface Command{
     args: CommandArgument[];
     name: string;
     onRun: ()=>void;
+}
+
+export type BasicDataProps = {
+    floorDatas:FloorData[],
+    materRequest:MaterialRequest[]
 }

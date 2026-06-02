@@ -133,6 +133,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                             }}
                             onClick={()=>{
                                 value.onRun()
+                                setVisibility(false)
                             }}
                         >
                             {`> ${value.name} ${args}`}
