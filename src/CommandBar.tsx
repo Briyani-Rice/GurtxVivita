@@ -92,6 +92,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Search..."
                 style={{
+                    color:"black",
                     fontFamily: "monospace",
                     height: "20px",
                     fontSize: "12.5px",
@@ -130,6 +131,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                                 border: "none",
                                 borderBottom: "1px solid black",
                                 cursor: "pointer",
+                                color:"black"
                             }}
                             onClick={()=>{
                                 value.onRun()
