@@ -136,3 +136,11 @@ export type BasicDataProps = {
     floorDatas:FloorData[],
     materRequest:MaterialRequest[]
 }
+
+export enum Language {
+    English="English",
+    Chinese = "中文",
+    Japanese = "日本語",
+    Malay = "Melayu",
+    Tamil = "தமிழ்"
+}
