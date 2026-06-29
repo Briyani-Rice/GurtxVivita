@@ -3,7 +3,7 @@ import { Tab } from "../../types"
 import { File, renderMdFile } from "../FileHelper"
 import React, { useState, useEffect } from "react"
 
-export default class DocsView implements Tab {
+class DocsView implements Tab {
     id: string = crypto.randomUUID()
     name: string = "Documentation"
     content: ReactNode
@@ -124,3 +124,4 @@ function DocsContent() {
         </div>
     )
 }
+export default DocsView;

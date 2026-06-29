@@ -169,3 +169,5 @@ export class AdminViewTab implements Tab {
         />
     );
 }
+export default AdminViewTab
+export default AdminViewTab

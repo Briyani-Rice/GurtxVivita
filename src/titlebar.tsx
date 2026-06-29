@@ -4,7 +4,7 @@ import { BsGearFill } from "react-icons/bs";
 import {Tab} from "./types";
 import Settings from "./components/Settings/Settings";
 import {Button} from "./components/ui/button";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 type Props = {
     tabs: Tab[];
@@ -41,6 +41,8 @@ export default function Titlebar({ tabs,setTabIndex, handleNewTab, setTab, setCm
                 borderRadius:"5px",
                 fontFamily:"monospace",
                 justifyContent:"left",
+                color:"black",
+                background:"white"
             }}
             onClick={
                 ()=>{

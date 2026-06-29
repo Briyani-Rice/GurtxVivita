@@ -1,90 +1,215 @@
-import {Tab} from "../types";
-import React, {useState} from "react";
-import {welcomeTab} from "../app";
-import {Eye, EyeClosed} from "lucide-react";
+import { Tab } from "../types";
+import {BasicTabProps} from "../app";
+import React, {useEffect, useState} from "react";
+import { Eye, EyeClosed } from "lucide-react";
 
-class LoginTab implements Tab{
+type LoginTabContentProps = BasicTabProps & {
+    actL: number;
+};
+
+export default class LoginTab implements Tab {
     content: React.ReactNode;
     id: string = crypto.randomUUID();
     name: string = "Login";
 
-    constructor() {
-        this.content = (<LoginTabContent/>)
+    constructor(props: BasicTabProps, actL: number) {
+        this.content = (
+            <LoginTabContent {...props} actL={actL} />
+        );
     }
-
 }
-function LoginTabContent(){
-    const [showPass, setShowPass] = useState<boolean>(false)
-    return (<div style={{
-        height: "100%",
-        width: "100%",
-        position: "relative",
-        boxSizing: "border-box",
-        background: "#ffffff",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        paddingRight: "20%",
-        paddingLeft: "20%",
-        backgroundImage: "radial-gradient(gray 1px, transparent 1px)",
-        backgroundSize: "16px 16px"
-    }}>
-        <div style={{
-            alignContent:"center",
-            alignItems:"center",
-        }}>
-            <h1>Login to Viventory</h1>
 
-            <label htmlFor="username">Username: </label>
-            <input type="text" id="username" name="email"style={{
-                outline:"none",
-                border:"none",
-                borderBottom:"1px solid black",
-                background:"transparent",
-                fontFamily:"monospace"
-            }}/><br/>
+function LoginTabContent({
+                             tabs,
+                             setTabs,
+                             tabIndex,
+                             setTabIndex,
+                             handleNewTab,
+                             setTab,
+                             handleClosingTab,
+                             actL,
+                         }: LoginTabContentProps) {
+    const [showPass, setShowPass] = useState(false);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [note, setNote] = useState("");
+    const [loading, setLoading] = useState(false);
 
-            <label htmlFor="password">Password: </label>
-            <input style={{
-                outline:"none",
-                border:"none",
-                borderBottom:"1px solid black",
-                background:"transparent",
-                fontFamily:"monospace"
-            }} type={
-                showPass ? "text" : "password"
-            } id="password" name="password" />
-            <button style={{
-                outline:"none",
-                border:"none",
-                width:"25px",
-                height:"25px",
-                padding:"1px"
-            }} onClick={()=>{
-                setShowPass(!showPass)
-            }}>{showPass? <Eye/> : <EyeClosed/>}</button>
-            <br/>
+    const handleLogin = async () => {
+        try {
+            setLoading(true);
+            setNote("");
 
-            <button
-                onClick={ async () => {
-                    const username:string = document.getElementById("username")?.value;
-                    const password:string = document.getElementById("password")?.value;
+            const res = await window.user?.signIn({
+                username,
+                password,
+            });
 
-                    let res = await window.user?.signIn({username, password});
-                    if (!res["success"]) {
-                        const noteElement = document.getElementById("note");
-                        if (noteElement) {
-                            noteElement.innerHTML = res["note"];
-                        }
-                    }
+            if (!res?.success) {
+                setNote(res?.note ?? "Login failed.");
+                return;
+            }
+
+            setNote("Login successful!");
+            handleClosingTab(actL);
+            setTabIndex(0);
+
+        } catch (err) {
+            console.error(err);
+            setNote("Unexpected error occurred.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const run = async () => {
+            try {
+                const usrname = await window.user?.getCUsrname();
+
+                if (usrname != undefined) {
+                    handleClosingTab(actL);
+                    setTabIndex(0);
+                }
+            } catch (err) {
+                console.error("Failed to get username:", err);
+            }
+        };
+
+        run();
+    }, []);
+
+    return (
+        <div
+            style={{
+                height: "100%",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                background: "#fff",
+                backgroundImage:
+                    "radial-gradient(gray 1px, transparent 1px)",
+                backgroundSize: "16px 16px",
+                padding: "20px",
+                boxSizing: "border-box",
+            }}
+        >
+            <div
+                style={{
+                    minWidth: "350px",
+                    padding: "32px",
+                    border: "1px solid #ddd",
+                    borderRadius: "12px",
+                    background: "rgba(255,255,255,0.95)",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
             >
-                Login!
-            </button>
-            <p id="note"></p>
+                <h1 style={{ marginBottom: "24px" }}>
+                    Login to Viventory
+                </h1>
+
+                {/* Username */}
+                <div style={{ marginBottom: "16px" }}>
+                    <label htmlFor="username">Username</label>
+                    <br />
+                    <input
+                        id="username"
+                        value={username}
+                        onChange={(e) =>
+                            setUsername(e.target.value)
+                        }
+                        type="text"
+                        style={{
+                            width: "100%",
+                            border: "none",
+                            borderBottom: "1px solid black",
+                            background: "transparent",
+                            outline: "none",
+                            fontFamily: "monospace",
+                            padding: "4px 0",
+                        }}
+                    />
+                </div>
+
+                {/* Password */}
+                <div style={{ marginBottom: "16px" }}>
+                    <label htmlFor="password">Password</label>
+                    <br />
+
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                        }}
+                    >
+                        <input
+                            id="password"
+                            value={password}
+                            onChange={(e) =>
+                                setPassword(e.target.value)
+                            }
+                            type={showPass ? "text" : "password"}
+                            style={{
+                                flex: 1,
+                                border: "none",
+                                borderBottom: "1px solid black",
+                                background: "transparent",
+                                outline: "none",
+                                fontFamily: "monospace",
+                                padding: "4px 0",
+                            }}
+                        />
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setShowPass((v) => !v)
+                            }
+                            style={{
+                                border: "none",
+                                background: "transparent",
+                                cursor: "pointer",
+                                padding: 0,
+                            }}
+                        >
+                            {showPass ? (
+                                <Eye size={18} />
+                            ) : (
+                                <EyeClosed size={18} />
+                            )}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Login button */}
+                <button
+                    onClick={handleLogin}
+                    disabled={loading}
+                    style={{
+                        width: "100%",
+                        padding: "10px",
+                        cursor: "pointer",
+                    }}
+                >
+                    {loading ? "Logging in..." : "Login"}
+                </button>
+
+                {/* Status */}
+                {note && (
+                    <p
+                        style={{
+                            marginTop: "12px",
+                            color: note.includes("successful")
+                                ? "green"
+                                : "red",
+                        }}
+                    >
+                        {note}
+                    </p>
+                )}
+            </div>
         </div>
-    </div>)
+    );
 }
-export default LoginTab;

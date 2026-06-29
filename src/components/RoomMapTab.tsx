@@ -1,10 +1,14 @@
 import {Tab} from "../types.ts"
+import {RoomMap} from "./RoomMap"
 
 export class RoomMapTab implements Tab{
     
     id = crypto.randomUUID()
     name: string = "Room map"
-    content = (<div>
+    content = (<div style={{
+        width:"100%",
+        height:"100%",
+    }}>
         <RoomMap
             floors={[
                 {
@@ -207,6 +211,7 @@ export class RoomMapTab implements Tab{
                 height: 90,
                 color: '#60a5fa',
             }}
+            //@ts-ignore
             onCompartmentClick={(compartment) => {
                 console.log('Clicked:', compartment);
             }}
@@ -218,3 +223,4 @@ export class RoomMapTab implements Tab{
         />
     </div>)
 }
+export default RoomMapTab;
