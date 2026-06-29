@@ -1,5 +1,5 @@
 //@ts-ignore
-import React, {useRef, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import ReactDOM from 'react-dom/client'
 //@ts-ignore
 import './style.css'
@@ -19,6 +19,8 @@ import DocsView from "./components/Docs/DocsView";
 import {AdminViewTab} from "./components/AdminViewTab";
 import {CommandBar} from "./CommandBar";
 import LoginTab from "./components/LoginTab";
+import {RoomMapTab} from "./components/RoomMapTab";
+import {UserViewTab} from "./components/UserViewTab";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -73,7 +75,7 @@ export class LoginCommand implements Command {
     name: string = "Login"
     onRun: () => void = ()=>{
         var nw = HelpCommand.bt.tabs
-        nw.push(new LoginTab())
+        nw.push(new LoginTab(HelpCommand.bt,nw.length))
         HelpCommand.bt.setTabs(nw)
         HelpCommand.bt.setTabIndex(nw.length-1)
     }
@@ -89,8 +91,19 @@ export class welcomeTab implements Tab {
     static props:BasicTabProps
 
     constructor() {
-        this.content = (
-            
+        this.content = this.loadContent()
+    }
+    static SetProps(p0: { tabs: Tab[] }, basicTabProps: BasicTabProps){
+        this.props = basicTabProps
+    }
+    loadContent(){
+        useEffect(() => {
+            document.addEventListener('keydown',(event)=>{
+
+            })
+        }, []);
+        return(
+
             <div
                 style={{
                     height: "100%",
@@ -207,11 +220,7 @@ export class welcomeTab implements Tab {
                         <IoIosBook /> Docs
                     </button>
                 </footer>
-            </div>
-        )
-    }
-    static SetProps(p0: { tabs: Tab[] }, basicTabProps: BasicTabProps){
-        this.props = basicTabProps
+            </div>)
     }
 }
 //@ts-ignore
@@ -500,7 +509,8 @@ function App() {
 
     const [tabs, setTabs] = useState<Tab[]>([
         new welcomeTab(),
-        new AdminViewTab()
+        new RoomMapTab(),
+        new UserViewTab()
     ])
 
     const [tabIndex, setTabIndex] = useState<number>(0)
@@ -601,6 +611,16 @@ function App() {
         setTab,
         handleClosingTab
     })
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.metaKey && event.key === 'y') {
+                setCmdBarVis((prev) => !prev);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
     return (
         <main
             style={{

@@ -27,5 +27,6 @@ contextBridge.exposeInMainWorld('darkMode', {
 })
 
 contextBridge.exposeInMainWorld('user',{
-    signIn: (cred: {}):{} => ipcRenderer.invoke('sign-in:user',cred)
+    signIn: (cred: {}):{} => ipcRenderer.invoke('sign-in:user',cred),
+    getCUsrname: ():string => ipcRenderer.invoke('username:user')
 })

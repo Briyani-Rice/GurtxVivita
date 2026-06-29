@@ -1,12 +1,13 @@
+/*@import "tailwindcss";*/
 :root {
   --text: #000000;
   --text-h: #08060d;
   --bg: #dddddd;
   --border: #bbbbbb;
   --code-bg: #dddddd;
-  --accent: #9b3ab8;
-  --accent-bg: #7e3594;
-  --accent-border: #b81fe7;
+  --accent: #4e82a0;
+  --accent-bg: #397698;
+  --accent-border: #1c6b9a;
   --social-bg: rgba(244, 243, 236, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.25) 0 10px 15px -3px, rgba(0, 0, 0, 0.125) 0 4px 6px -2px;
@@ -35,9 +36,9 @@
     --bg: #dddddd;
     --border: #bbbbbb;
     --code-bg: #dddddd;
-    --accent: #9b3ab8;
-    --accent-bg: #7e3594;
-    --accent-border: #b81fe7;
+    --accent: #4e82a0;
+    --accent-bg: #397698;
+    --accent-border: #1c6b9a;
     --social-bg: rgba(244, 243, 236, 0.5);
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
