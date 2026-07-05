@@ -67,6 +67,11 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
         return () => document.removeEventListener("mousedown", onMouseDown);
     }, [setVisibility]);
 
+    const inputRef = useRef(null);
+    useEffect(() => {
+        inputRef.current.focus();
+    }, []);
+
     return (
         <div
             ref={menuRef}
@@ -87,11 +92,13 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
             }}
         >
             <input
+                ref={inputRef}
                 type="search"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Search..."
                 style={{
+                    color:"black",
                     fontFamily: "monospace",
                     height: "20px",
                     fontSize: "12.5px",
@@ -130,6 +137,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                                 border: "none",
                                 borderBottom: "1px solid black",
                                 cursor: "pointer",
+                                color:"black"
                             }}
                             onClick={()=>{
                                 value.onRun()
