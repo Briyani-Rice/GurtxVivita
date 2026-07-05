@@ -30,6 +30,7 @@ export type BasicTabProps = {
     handleNewTab: () => number;
     setTab: (index: number, tab: Tab) => void;
     handleClosingTab: (index: number) => void;
+    handleMaterialSearch: (query: string) => void;
 }
 
 export class SearchCommand implements Command {
@@ -144,6 +145,13 @@ export class welcomeTab implements Tab {
                     <input
                         type="search"
                         placeholder="Search..."
+                        onKeyDown={(event) => {
+                            if (event.key !== "Enter") {
+                                return;
+                            }
+
+                            welcomeTab.props.handleMaterialSearch(event.currentTarget.value);
+                        }}
                         style={{
                             width: "100%",
                             height: "50px",
@@ -590,6 +598,29 @@ function App() {
             return updated
         })
     }
+
+    const handleMaterialSearch = (query: string) => {
+        const trimmedQuery = query.trim();
+
+        if (!trimmedQuery) {
+            return;
+        }
+
+        setTabs((prevTabs) => {
+            const existingIndex = prevTabs.findIndex(tab => tab.name === "User View");
+            const searchedUserViewTab = new UserViewTab(trimmedQuery);
+
+            if (existingIndex !== -1) {
+                const updatedTabs = [...prevTabs];
+                updatedTabs[existingIndex] = searchedUserViewTab;
+                setTabIndex(existingIndex);
+                return updatedTabs;
+            }
+
+            setTabIndex(prevTabs.length);
+            return [...prevTabs, searchedUserViewTab];
+        });
+    }
     welcomeTab.SetProps(
         { tabs },
         {
@@ -599,7 +630,8 @@ function App() {
             setTabIndex,
             handleNewTab,
             setTab,
-            handleClosingTab
+            handleClosingTab,
+            handleMaterialSearch
         }
     )
     HelpCommand.receive({
@@ -609,7 +641,8 @@ function App() {
         setTabIndex,
         handleNewTab,
         setTab,
-        handleClosingTab
+        handleClosingTab,
+        handleMaterialSearch
     })
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
