@@ -144,23 +144,29 @@ export class UserViewTab implements Tab {
         },
     ];
 
-    content: React.ReactNode = (
-        <UserView
-            floors={this.floors}
-            materials={this.materials}
-            requests={this.requests}
-            onSubmitRequest={(materialId, quantity, reason) => {
-                console.log("Request submitted:", {
-                    materialId,
-                    quantity,
-                    reason,
-                });
-            }}
-            prefs={{
-                hideOutOfStock: false,
-                compactCards: false,
-                defaultFloor:0
-            }}
-        />
-    );
+    content: React.ReactNode;
+
+    constructor(initialMaterialSearch: string = "") {
+        this.content = (
+            <UserView
+                floors={this.floors}
+                materials={this.materials}
+                requests={this.requests}
+                initialTab={initialMaterialSearch.trim() ? "materials" : "map"}
+                initialMaterialSearch={initialMaterialSearch}
+                onSubmitRequest={(materialId, quantity, reason) => {
+                    console.log("Request submitted:", {
+                        materialId,
+                        quantity,
+                        reason,
+                    });
+                }}
+                prefs={{
+                    hideOutOfStock: false,
+                    compactCards: false,
+                    defaultFloor: 0
+                }}
+            />
+        );
+    }
 }

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { filterMaterialsBySearch } from '../utils/materialSearch';
 import {
     Search,
     Send,
@@ -16,6 +17,8 @@ interface UserViewProps {
     requests: MaterialRequest[];
     onSubmitRequest: (materialId: string, quantity: number, reason: string) => void;
     prefs?: UserPrefs;
+    initialTab?: UserTab;
+    initialMaterialSearch?: string;
 }
 
 type Styles = {
@@ -28,6 +31,7 @@ type Styles = {
     searchBar: React.CSSProperties;
     input: React.CSSProperties;
     grid: React.CSSProperties;
+    emptyState: React.CSSProperties;
     card: (empty: boolean) => React.CSSProperties;
     btnPrimary: React.CSSProperties;
     modalBackdrop: React.CSSProperties;
@@ -100,6 +104,14 @@ const styles: Styles = {
         display: 'grid',
         gap: 12,
         gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'
+    },
+    emptyState: {
+        padding: 20,
+        border: '1px dashed #d1d5db',
+        borderRadius: 12,
+        color: '#6b7280',
+        background: '#f9fafb',
+        fontSize: 14
     },
 
     card: (empty: boolean) => ({
@@ -179,20 +191,36 @@ export function UserView({
                              floors,
                              materials,
                              requests,
-                             onSubmitRequest
+                             onSubmitRequest,
+                             prefs,
+                             initialTab = 'map',
+                             initialMaterialSearch = ''
                          }: UserViewProps) {
-    const [activeTab, setActiveTab] = useState<UserTab>('map');
-    const [search, setSearch] = useState('');
+    const [activeTab, setActiveTab] = useState<UserTab>(initialTab);
+    const [search, setSearch] = useState(initialMaterialSearch);
     const [requesting, setRequesting] = useState<Material | null>(null);
     const [reqQty, setReqQty] = useState('1');
     const [reqReason, setReqReason] = useState('');
     const [submitted, setSubmitted] = useState(false);
     const [selectedCompartment, setSelectedCompartment] = useState<string | null>(null);
 
-    const filteredMaterials = materials.filter(m =>
-        m.name.toLowerCase().includes(search.toLowerCase()) ||
-        m.description.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredMaterials = filterMaterialsBySearch(materials, search);
+    const hasMaterialSearch = search.trim().length > 0;
+
+    useEffect(() => {
+        const handleMaterialSearch = (event: Event) => {
+            const detail = (event as CustomEvent<{ query?: string }>).detail;
+
+            setActiveTab('materials');
+            setSearch(detail?.query ?? '');
+        };
+
+        window.addEventListener('viventory:material-search', handleMaterialSearch);
+
+        return () => {
+            window.removeEventListener('viventory:material-search', handleMaterialSearch);
+        };
+    }, []);
 
     const handleRequest = () => {
         if (!requesting) return;
@@ -256,28 +284,36 @@ export function UserView({
                         </div>
                     </div>
 
-                    <div style={styles.grid}>
-                        {filteredMaterials.map(m => {
-                            const empty = m.quantity <= 0;
+                    {filteredMaterials.length > 0 ? (
+                        <div style={styles.grid}>
+                            {filteredMaterials.map(m => {
+                                const empty = m.quantity <= 0;
 
-                            return (
-                                <div key={m.id} style={styles.card(empty)}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <strong>{m.name}</strong>
-                                        <span>{empty ? 'Out' : m.quantity}</span>
+                                return (
+                                    <div key={m.id} style={styles.card(empty)}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <strong>{m.name}</strong>
+                                            <span>{empty ? 'Out' : m.quantity}</span>
+                                        </div>
+
+                                        <button
+                                            style={styles.btnPrimary}
+                                            onClick={() => setRequesting(m)}
+                                            disabled={empty}
+                                        >
+                                            <Send size={14} /> Request
+                                        </button>
                                     </div>
-
-                                    <button
-                                        style={styles.btnPrimary}
-                                        onClick={() => setRequesting(m)}
-                                        disabled={empty}
-                                    >
-                                        <Send size={14} /> Request
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div style={styles.emptyState}>
+                            {hasMaterialSearch
+                                ? `No materials found for "${search.trim()}"`
+                                : 'No materials available'}
+                        </div>
+                    )}
 
                     {myRequests.length > 0 && (
                         <div style={{ marginTop: 20, padding: 12, background: '#fef3c7' }}>
