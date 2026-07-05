@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { filterMaterialsBySearch } from '../utils/materialSearch';
 import {
     Search, Package, MapPin, Send, Check, X,
     Map, List, ChevronDown, ChevronUp
@@ -15,6 +16,8 @@ interface UserViewProps {
     requests: MaterialRequest[];
     onSubmitRequest: (materialId: string, quantity: number, reason: string) => void;
     prefs?: UserPrefs;
+    initialTab?: UserTab;
+    initialMaterialSearch?: string;
 }
 
 const styles: Record<string, React.CSSProperties> = {
@@ -79,6 +82,14 @@ const styles: Record<string, React.CSSProperties> = {
         display: 'grid',
         gap: 12,
         gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'
+    },
+    emptyState: {
+        padding: 20,
+        border: '1px dashed #d1d5db',
+        borderRadius: 12,
+        color: '#6b7280',
+        background: '#f9fafb',
+        fontSize: 14
     },
 
     card: (empty: boolean): React.CSSProperties => ({
@@ -150,10 +161,12 @@ export function UserView({
                              materials,
                              requests,
                              onSubmitRequest,
-                             prefs
+                             prefs,
+                             initialTab = 'map',
+                             initialMaterialSearch = ''
                          }: UserViewProps) {
-    const [activeTab, setActiveTab] = useState<UserTab>('map');
-    const [search, setSearch] = useState('');
+    const [activeTab, setActiveTab] = useState<UserTab>(initialTab);
+    const [search, setSearch] = useState(initialMaterialSearch);
     const [requesting, setRequesting] = useState<Material | null>(null);
     const [reqQty, setReqQty] = useState('1');
     const [reqReason, setReqReason] = useState('');
@@ -168,10 +181,8 @@ export function UserView({
     const getCompartment = (id: string) =>
         allCompartments.find(c => c.id === id);
 
-    const filteredMaterials = materials.filter(m =>
-        m.name.toLowerCase().includes(search.toLowerCase()) ||
-        m.description.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredMaterials = filterMaterialsBySearch(materials, search);
+    const hasMaterialSearch = search.trim().length > 0;
 
     const handleRequest = () => {
         if (!requesting) return;
@@ -239,28 +250,36 @@ export function UserView({
                         </div>
                     </div>
 
-                    <div style={styles.grid}>
-                        {filteredMaterials.map(m => {
-                            const empty = m.quantity <= 0;
+                    {filteredMaterials.length > 0 ? (
+                        <div style={styles.grid}>
+                            {filteredMaterials.map(m => {
+                                const empty = m.quantity <= 0;
 
-                            return (
-                                <div key={m.id} style={styles.card(empty)}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <strong>{m.name}</strong>
-                                        <span>{empty ? 'Out' : m.quantity}</span>
+                                return (
+                                    <div key={m.id} style={styles.card(empty)}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <strong>{m.name}</strong>
+                                            <span>{empty ? 'Out' : m.quantity}</span>
+                                        </div>
+
+                                        <button
+                                            style={styles.btnPrimary}
+                                            onClick={() => setRequesting(m)}
+                                            disabled={empty}
+                                        >
+                                            <Send size={14} /> Request
+                                        </button>
                                     </div>
-
-                                    <button
-                                        style={styles.btnPrimary}
-                                        onClick={() => setRequesting(m)}
-                                        disabled={empty}
-                                    >
-                                        <Send size={14} /> Request
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div style={styles.emptyState}>
+                            {hasMaterialSearch
+                                ? `No materials found for "${search.trim()}"`
+                                : 'No materials available'}
+                        </div>
+                    )}
 
                     {myRequests.length > 0 && (
                         <div style={{ marginTop: 20, padding: 12, background: '#fef3c7' }}>
