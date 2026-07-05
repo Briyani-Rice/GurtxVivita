@@ -1,86 +1,58 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import electron from 'vite-plugin-electron'
-import { notBundle } from 'vite-plugin-electron/plugin'
-import tailwindcss from "@tailwindcss/vite"
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { resolve } from "path";
+
+// @ts-expect-error process is a Node.js global
+const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
-    base: './',
+    base: "./",
+
+    resolve: {
+        alias: {
+            "@": resolve(__dirname, "./src"),
+        },
+    },
+
     build: {
-        outDir: 'dist',
-        // Optimises production build assets
+        outDir: "dist",
         cssCodeSplit: true,
         chunkSizeWarningLimit: 1000,
+        minify: "esbuild",
+        sourcemap: false,
     },
-    experimental: {
-        // BYPASSES 10-MINUTE BUG: Reverts Rolldown's native Rust resolver
-        // back to the stable JS-based resolver path until regressions are patched.
-        enableNativePlugin: false
-    },
-    server: {
-        watch: {
-            // Strictly blocks filesystems from being repeatedly crawled
-            ignored: ['**/node_modules/**', '**/dist/**', '**/release/**']
-        }
-    },
-    optimizeDeps: {
-        include: [
 
-            'react',
-            'react-dom',
-            'lucide-react',
-            'react-markdown',
-            'remark-gfm',
-            'rehype-sanitize',
-            '@dnd-kit/core',
-            '@dnd-kit/modifiers',
-            '@dnd-kit/sortable',
-            '@dnd-kit/utilities',
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip',
-            'class-variance-authority',
-            'clsx',
-            'tailwind-merge',
-            'sonner'
-        ], // NOTE: 'react-icons' explicitly removed. Use direct imports in components.
+    clearScreen: false,
+
+    server: {
+        port: 5173,
+        strictPort: true,
+        // Fallback to '127.0.0.1' instead of false to bypass macOS localhost DNS slowdowns
+        host: host || "127.0.0.1",
+
+        hmr: host
+            ? {
+                protocol: "ws",
+                host,
+                port: 1421,
+            }
+            : undefined,
+
+        watch: {
+            ignored: [
+                "**/node_modules/**",
+                "**/dist/**",
+                "**/release/**",
+                "**/src-tauri/**",
+            ],
+        },
     },
+
+    // REMOVED: Massive optimizeDeps.include list that was choking the compiler startup
+
     plugins: [
         react(),
-        tailwindcss(),
-        electron([
-            {
-                entry: 'electron/main.ts',
-                vite: {
-                    build: {
-                        outDir: 'dist-electron',
-                    },
-                    plugins: [
-                        // Tells Rolldown not to resolve or bundle node_modules
-                        // for the main native Node context
-                        notBundle()
-                    ]
-                }
-            },
-            {
-                entry: 'electron/preload.ts',
-                onstart(options: any) {
-                    options.reload()
-                },
-                vite: {
-                    build: {
-                        outDir: 'dist-electron',
-                    },
-                    plugins: [
-                        // Tells Rolldown not to resolve or bundle node_modules
-                        // for the isolated preload context
-                        notBundle()
-                    ]
-                }
-            },
-        ]),
+        tailwindcss(), // Let Tailwind optimize automatically
     ],
-})
+});

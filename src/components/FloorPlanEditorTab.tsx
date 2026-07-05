@@ -111,6 +111,12 @@ export class FloorPlanEditorTab implements Tab {
             selectedElement={null}
             onElementSelect={(elementId) => {
                 console.log("Selected element:", elementId);
+            }} onAddMaterial={function (data: Omit<Material, "id" | "createdAt">): void {
+                throw new Error("Function not implemented.");
+            }} onEditMaterial={function (id: string, data: Omit<Material, "id" | "createdAt">): void {
+                throw new Error("Function not implemented.");
+            }} onDeleteMaterial={function (id: string): void {
+                throw new Error("Function not implemented.");
             }}
         />
     );

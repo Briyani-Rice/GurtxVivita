@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Plus, CheckCircle, XCircle, Edit2, Trash2 } from 'lucide-react';
-import { Material, Compartment, MaterialRequest, FloorData, FloorElement } from '../types';
-import { FloorPlanEditor } from './FloorPlanEditor';
+import { Material, Compartment, MaterialRequest, FloorData } from '../types';
 import { MaterialDialog } from './MaterialDialog';
 
 interface AdminViewProps {

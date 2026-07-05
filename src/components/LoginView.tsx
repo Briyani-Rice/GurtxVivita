@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, UserPerms } from '../types';
+import { User } from '../types';
 import { Package, Eye, EyeOff, LogIn } from 'lucide-react';
 
 export interface LoginProps {

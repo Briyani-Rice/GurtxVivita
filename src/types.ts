@@ -1,5 +1,3 @@
-import {Name} from "ajv";
-import {BasicTabProps} from "./app";
 
 export interface Renderable {
     render(): void;

@@ -217,7 +217,7 @@ export class RoomMapTab implements Tab{
             }}
             isAdmin={true}
             floorplanImage="https://via.placeholder.com/1200x800"
-            onFloorplanUpload={(file) => {
+            onFloorplanUpload={(file:any) => {
                 console.log('Uploaded floorplan:', file);
             }}
         />

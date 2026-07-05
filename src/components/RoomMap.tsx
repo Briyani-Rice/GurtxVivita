@@ -178,7 +178,7 @@ export function RoomMap({ floors = [], onCompartmentClick }: any) {
         const canvas = canvasRef.current!;
         const c = cam.current;
 
-        return floor?.elements.find(el => {
+        return floor?.elements.find((el:FloorElement) => {
             const r = elRect(el, canvas.width, canvas.height, c);
             return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
         });
@@ -356,11 +356,11 @@ export function RoomMap({ floors = [], onCompartmentClick }: any) {
                         zIndex: 10,
                     }}
                 >
-                    <button onClick={() => cam.current.targetZoom = Math.min(6, cam.current.targetZoom * 1.2)} style={btn1}>
+                    <button onClick={() => cam.current.targetZoom = Math.min(6, cam.current.targetZoom * 1.2)} style={btn}>
                         +
                     </button>
 
-                    <button onClick={() => cam.current.targetZoom = Math.max(0.05, cam.current.targetZoom * 0.8)} style={btn1}>
+                    <button onClick={() => cam.current.targetZoom = Math.max(0.05, cam.current.targetZoom * 0.8)} style={btn}>
                         -
                     </button>
 
@@ -385,14 +385,4 @@ const btn: React.CSSProperties = {
     background: 'white',
     borderRadius: 6,
     cursor: 'pointer',
-    color:"black"
-};
-const btn1: React.CSSProperties = {
-    padding: '6px 10px',
-    fontSize: 20,
-    border: '1px solid #d1d5db',
-    background: 'white',
-    borderRadius: 6,
-    cursor: 'pointer',
-    color:"black"
 };

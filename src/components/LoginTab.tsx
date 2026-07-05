@@ -40,6 +40,7 @@ function LoginTabContent({
             setLoading(true);
             setNote("");
 
+            // @ts-ignore
             const res = await window.user?.signIn({
                 username,
                 password,
@@ -65,6 +66,7 @@ function LoginTabContent({
     useEffect(() => {
         const run = async () => {
             try {
+                // @ts-ignore
                 const usrname = await window.user?.getCUsrname();
 
                 if (usrname != undefined) {

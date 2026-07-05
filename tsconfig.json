@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2019",
-    "lib": ["ES2019", "DOM"],
+    "useDefineForClassFields": true,
+    "lib": ["ES2019", "DOM", "DOM.Iterable"],
 
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -12,24 +13,20 @@
     "strict": true,
     "skipLibCheck": true,
 
-    "types": ["@figma/plugin-typings"],
-
     "noEmit": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
 
-    "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules/@figma"
-    ],
-    "allowSyntheticDefaultImports": true
+    "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
+
+    "types": [],
+
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true
   },
 
-  "include": [
-    "src",
-    "plugin",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.figma.ts"
-  ]
+  "include": ["src"],
+  "references": [{ "path": "tsconfig.node.json" }]
 }

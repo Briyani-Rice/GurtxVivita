@@ -159,6 +159,7 @@ export class UserViewTab implements Tab {
             prefs={{
                 hideOutOfStock: false,
                 compactCards: false,
+                defaultFloor:0
             }}
         />
     );

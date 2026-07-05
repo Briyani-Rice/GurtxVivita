@@ -16,7 +16,6 @@ import {closestCenter, DndContext, PointerSensor, useSensor, useSensors} from "@
 import {restrictToHorizontalAxis} from "@dnd-kit/modifiers";
 import Settings from "./components/Settings/Settings";
 import DocsView from "./components/Docs/DocsView";
-import {AdminViewTab} from "./components/AdminViewTab";
 import {CommandBar} from "./CommandBar";
 import LoginTab from "./components/LoginTab";
 import {RoomMapTab} from "./components/RoomMapTab";
@@ -93,15 +92,15 @@ export class welcomeTab implements Tab {
     constructor() {
         this.content = this.loadContent()
     }
-    static SetProps(p0: { tabs: Tab[] }, basicTabProps: BasicTabProps){
+    static SetProps(_: { tabs: Tab[] }, basicTabProps: BasicTabProps){
         this.props = basicTabProps
     }
     loadContent(){
-        useEffect(() => {
-            document.addEventListener('keydown',(event)=>{
-
-            })
-        }, []);
+        // useEffect(() => {
+        //     document.addEventListener('keydown',(_)=>{
+        //
+        //     })
+        // }, []);
         return(
 
             <div

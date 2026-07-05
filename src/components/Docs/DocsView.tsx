@@ -1,7 +1,8 @@
 import { ReactNode } from "react"
 import { Tab } from "../../types"
 import { File, renderMdFile } from "../FileHelper"
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
+import {invoke} from "@tauri-apps/api/core";
 
 class DocsView implements Tab {
     id: string = crypto.randomUUID()
@@ -21,7 +22,7 @@ function DocsContent() {
     useEffect(() => {
         async function loadFiles() {
             // @ts-ignore
-            const paths: string[] = await window.electron?.getMdFiles()
+            const paths: string[] = await invoke<String[]>('get_md_files')
             const fileObjects: File[] = await Promise.all(paths.map(path => File.create(path)))
             // @ts-ignore
             await Promise.all(fileObjects.map(file => file.ready))

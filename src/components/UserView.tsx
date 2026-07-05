@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import {
-    Search, Package, MapPin, Send, Check, X,
-    Map, List, ChevronDown, ChevronUp
+    Search,
+    Send,
+    Check
 } from 'lucide-react';
-import { Material, FloorData, FloorElement, MaterialRequest } from '../types';
+import { Material, FloorData, MaterialRequest } from '../types';
 import { RoomMap } from './RoomMap';
 import { UserPrefs } from './SettingsView';
 
@@ -17,7 +18,26 @@ interface UserViewProps {
     prefs?: UserPrefs;
 }
 
-const styles: Record<string, React.CSSProperties> = {
+type Styles = {
+    container: React.CSSProperties;
+    tabBar: React.CSSProperties;
+    tabBtn: (active: boolean) => React.CSSProperties;
+    mapWrapper: React.CSSProperties;
+    absoluteFill: React.CSSProperties;
+    hint: React.CSSProperties;
+    searchBar: React.CSSProperties;
+    input: React.CSSProperties;
+    grid: React.CSSProperties;
+    card: (empty: boolean) => React.CSSProperties;
+    btnPrimary: React.CSSProperties;
+    modalBackdrop: React.CSSProperties;
+    modal: React.CSSProperties;
+    buttonRow: React.CSSProperties;
+    primaryBtn: React.CSSProperties;
+    secondaryBtn: React.CSSProperties;
+};
+
+const styles: Styles = {
     container: { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 },
 
     tabBar: {
@@ -30,7 +50,7 @@ const styles: Record<string, React.CSSProperties> = {
         overflowX: 'auto'
     },
 
-    tabBtn: (active: boolean): React.CSSProperties => ({
+    tabBtn: (active: boolean) => ({
         display: 'flex',
         alignItems: 'center',
         gap: 6,
@@ -45,6 +65,7 @@ const styles: Record<string, React.CSSProperties> = {
     }),
 
     mapWrapper: { flex: 1, position: 'relative', overflow: 'hidden' },
+
     absoluteFill: { position: 'absolute', inset: 0 },
 
     hint: {
@@ -81,7 +102,7 @@ const styles: Record<string, React.CSSProperties> = {
         gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'
     },
 
-    card: (empty: boolean): React.CSSProperties => ({
+    card: (empty: boolean) => ({
         background: '#fff',
         border: `1px solid ${empty ? '#fecaca' : '#e5e7eb'}`,
         borderRadius: 16,
@@ -99,7 +120,10 @@ const styles: Record<string, React.CSSProperties> = {
         padding: '6px 10px',
         borderRadius: 10,
         cursor: 'pointer',
-        fontSize: 12
+        fontSize: 12,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6
     },
 
     modalBackdrop: {
@@ -120,10 +144,16 @@ const styles: Record<string, React.CSSProperties> = {
         padding: 20,
         width: '100%',
         maxWidth: 380,
-        boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10
     },
 
-    buttonRow: { display: 'flex', gap: 8 },
+    buttonRow: {
+        display: 'flex',
+        gap: 8
+    },
 
     primaryBtn: {
         flex: 1,
@@ -149,8 +179,7 @@ export function UserView({
                              floors,
                              materials,
                              requests,
-                             onSubmitRequest,
-                             prefs
+                             onSubmitRequest
                          }: UserViewProps) {
     const [activeTab, setActiveTab] = useState<UserTab>('map');
     const [search, setSearch] = useState('');
@@ -159,14 +188,6 @@ export function UserView({
     const [reqReason, setReqReason] = useState('');
     const [submitted, setSubmitted] = useState(false);
     const [selectedCompartment, setSelectedCompartment] = useState<string | null>(null);
-    const [compartmentPanelOpen, setCompartmentPanelOpen] = useState(true);
-
-    const allCompartments = floors.flatMap(f =>
-        f.elements.filter(e => e.type === 'compartment')
-    );
-
-    const getCompartment = (id: string) =>
-        allCompartments.find(c => c.id === id);
 
     const filteredMaterials = materials.filter(m =>
         m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -189,21 +210,18 @@ export function UserView({
 
     return (
         <div style={styles.container}>
-
-            {/* Tabs */}
             <div style={styles.tabBar}>
-                {['map', 'materials'].map(tab => (
+                {(['map', 'materials'] as UserTab[]).map(tab => (
                     <button
                         key={tab}
                         style={styles.tabBtn(activeTab === tab)}
-                        onClick={() => setActiveTab(tab as UserTab)}
+                        onClick={() => setActiveTab(tab)}
                     >
                         {tab}
                     </button>
                 ))}
             </div>
 
-            {/* MAP */}
             {activeTab === 'map' && (
                 <div style={styles.mapWrapper}>
                     <div style={styles.absoluteFill}>
@@ -224,7 +242,6 @@ export function UserView({
                 </div>
             )}
 
-            {/* MATERIALS */}
             {activeTab === 'materials' && (
                 <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
                     <div style={styles.searchBar}>
@@ -270,12 +287,11 @@ export function UserView({
                 </div>
             )}
 
-            {/* MODAL */}
             {requesting && (
                 <div style={styles.modalBackdrop}>
                     <div style={styles.modal}>
                         {submitted ? (
-                            <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <Check />
                                 Request submitted
                             </div>

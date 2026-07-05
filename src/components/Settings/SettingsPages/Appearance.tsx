@@ -252,15 +252,6 @@ function AppearanceContent() {
                     onSelect={setLanguage} 
                 />
             </label>
-            <label style={{
-                display:"flex",
-                flexDirection:"row",
-                gap:"36px",
-                alignItems:"center",
-            }}>
-                <p>Vertical tabs</p>
-                <input type="checkbox"/>
-            </label>
         </div>
     );
 }

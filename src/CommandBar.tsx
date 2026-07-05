@@ -69,6 +69,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
 
     const inputRef = useRef(null);
     useEffect(() => {
+        // @ts-ignore
         inputRef.current.focus();
     }, []);
 
