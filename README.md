@@ -1,7 +1,7 @@
 # GurtxVivita
 ## Gurt
 ### What is gurt?
-idk
+Gurt is a group created by Bryan.
 
 ## Admin
 For administrator,...
