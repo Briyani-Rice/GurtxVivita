@@ -4,7 +4,7 @@
 Gurt is a group created by Bryan.
 
 ## Admin
-For administrator,...
+For administrator,....
 
 ### Running
 Make sure you have the rust compiler and cargo in order to run tauri.
