@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { filterMaterialsBySearch } from '../utils/materialSearch';
 import {
     Search, Package, MapPin, Send, Check, X,
@@ -183,6 +183,21 @@ export function UserView({
 
     const filteredMaterials = filterMaterialsBySearch(materials, search);
     const hasMaterialSearch = search.trim().length > 0;
+
+    useEffect(() => {
+        const handleMaterialSearch = (event: Event) => {
+            const detail = (event as CustomEvent<{ query?: string }>).detail;
+
+            setActiveTab('materials');
+            setSearch(detail?.query ?? '');
+        };
+
+        window.addEventListener('viventory:material-search', handleMaterialSearch);
+
+        return () => {
+            window.removeEventListener('viventory:material-search', handleMaterialSearch);
+        };
+    }, []);
 
     const handleRequest = () => {
         if (!requesting) return;

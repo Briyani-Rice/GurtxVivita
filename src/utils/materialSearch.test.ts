@@ -54,7 +54,7 @@ assert.deepEqual(
 
 assert.deepEqual(
     filterMaterialsBySearch(materials, "Latitude").map(material => material.name),
-    []
+    ["Laptop"]
 );
 
 assert.deepEqual(

@@ -606,19 +606,23 @@ function App() {
             return;
         }
 
+        const existingIndex = tabs.findIndex(tab => tab.name === "User View");
+
+        if (existingIndex !== -1) {
+            setTabIndex(existingIndex);
+            window.setTimeout(() => {
+                window.dispatchEvent(
+                    new CustomEvent("viventory:material-search", {
+                        detail: { query: trimmedQuery }
+                    })
+                );
+            }, 0);
+            return;
+        }
+
         setTabs((prevTabs) => {
-            const existingIndex = prevTabs.findIndex(tab => tab.name === "User View");
-            const searchedUserViewTab = new UserViewTab(trimmedQuery);
-
-            if (existingIndex !== -1) {
-                const updatedTabs = [...prevTabs];
-                updatedTabs[existingIndex] = searchedUserViewTab;
-                setTabIndex(existingIndex);
-                return updatedTabs;
-            }
-
             setTabIndex(prevTabs.length);
-            return [...prevTabs, searchedUserViewTab];
+            return [...prevTabs, new UserViewTab(trimmedQuery)];
         });
     }
     welcomeTab.SetProps(
