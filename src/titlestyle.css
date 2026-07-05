@@ -1,0 +1,62 @@
+.title {
+    display: flex;
+    align-items: center;
+    app-region: drag;
+    height: 35px;
+    background-color: #3b83a3;
+    color: white;
+}
+
+/* LEFT */
+.title-text {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    /* app-region: no-drag; */
+    margin: 0;
+}
+
+/* CENTER */
+.title-main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    app-region: no-drag;
+}
+
+/* RIGHT */
+.title-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    app-region: drag;
+    padding-right: 15px;
+}
+.title-right button {
+    app-region:no-drag;
+}
+input[type="search"] {
+    width: 100%;
+    padding: 5px;
+    border-radius: 5px;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+
+}
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  display: none;
+}
+
+/* Removes the 'X' from older Internet Explorer and Edge */
+input[type="search"]::-ms-clear,
+input[type="search"]::-ms-reveal {
+  display: none;
+  width: 0;
+  height: 0;
+}
