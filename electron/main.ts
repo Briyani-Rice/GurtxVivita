@@ -244,10 +244,7 @@ ipcMain.handle("dark-mode:system", () => {
 ipcMain.handle("sign-in:user", (event, creds) => {
     const { username, password } = creds
 
-    console.log(username)
-
     const find = User.DEMO_ACCS.find((value, index, obj) => {
-        console.log(value.getUsername())
         return value.getUsername() == username
     })
 
@@ -262,7 +259,8 @@ ipcMain.handle("sign-in:user", (event, creds) => {
 
             return {
                 success: true,
-                note: "Welcome back!"
+                note: "Welcome back!",
+                perms: find.getPerms()
             }
         } else {
             return {

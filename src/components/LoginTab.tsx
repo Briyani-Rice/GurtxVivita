@@ -1,7 +1,8 @@
-import { Tab } from "../types";
+import { Tab, User, UserPerms } from "../types";
 import {BasicTabProps} from "../app";
 import React, {useEffect, useState} from "react";
 import { Eye, EyeClosed } from "lucide-react";
+import AdminViewTab from "./AdminViewTab";
 
 type LoginTabContentProps = BasicTabProps & {
     actL: number;
@@ -40,20 +41,50 @@ function LoginTabContent({
             setLoading(true);
             setNote("");
 
+            const localUser = User.login(username.trim(), password);
+
             // @ts-ignore
-            const res = await window.user?.signIn({
-                username,
-                password,
-            });
+            const res = window.user?.signIn
+                // @ts-ignore
+                ? await window.user.signIn({
+                    username: username.trim(),
+                    password,
+                })
+                : localUser
+                    ? {
+                        success: true,
+                        note: "Welcome back!",
+                        perms: localUser.getPerms(),
+                    }
+                    : {
+                        success: false,
+                        note: "Invalid username or password",
+                    };
 
             if (!res?.success) {
                 setNote(res?.note ?? "Login failed.");
                 return;
             }
 
+            const isAdmin = res?.perms === UserPerms.Staff || localUser?.getPerms() === UserPerms.Staff;
+            const tabsWithoutLogin = tabs.filter((_, index) => index !== actL);
+
             setNote("Login successful!");
-            handleClosingTab(actL);
-            setTabIndex(0);
+
+            if (isAdmin) {
+                const existingAdminIndex = tabsWithoutLogin.findIndex(tab => tab.name === "Admin View");
+
+                if (existingAdminIndex !== -1) {
+                    setTabs(tabsWithoutLogin);
+                    setTabIndex(existingAdminIndex);
+                } else {
+                    setTabs([...tabsWithoutLogin, new AdminViewTab()]);
+                    setTabIndex(tabsWithoutLogin.length);
+                }
+            } else {
+                setTabs(tabsWithoutLogin);
+                setTabIndex(0);
+            }
 
         } catch (err) {
             console.error(err);
@@ -110,6 +141,9 @@ function LoginTabContent({
                 <h1 style={{ marginBottom: "24px" }}>
                     Login to Viventory
                 </h1>
+                <p style={{ marginTop: "-12px", marginBottom: "24px", color: "#555" }}>
+                    Admin demo: User / User12345
+                </p>
 
                 {/* Username */}
                 <div style={{ marginBottom: "16px" }}>

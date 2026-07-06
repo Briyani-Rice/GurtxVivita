@@ -87,13 +87,13 @@ function drawPlanShell(ctx: CanvasRenderingContext2D, cam: CameraState) {
     ctx.fillStyle = "#ffffff";
 
     ctx.beginPath();
-    ctx.rect(x + 96 * z, y + 150 * z, 960 * z, 430 * z);
+    ctx.rect(x + 96 * z, y + 150 * z, 1080 * z, 470 * z);
     ctx.stroke();
 
     ctx.strokeStyle = "#16a34a";
     ctx.lineWidth = Math.max(2, 5 * z);
     ctx.setLineDash([24 * z, 16 * z]);
-    ctx.strokeRect(x + 70 * z, y + 60 * z, 1040 * z, 610 * z);
+    ctx.strokeRect(x + 70 * z, y + 60 * z, 1180 * z, 610 * z);
     ctx.setLineDash([]);
 
     ctx.fillStyle = "#166534";
@@ -106,12 +106,10 @@ function drawPlanShell(ctx: CanvasRenderingContext2D, cam: CameraState) {
 
 function drawShelves(ctx: CanvasRenderingContext2D, cam: CameraState) {
     const shelves = [
-        { x: 180, y: 170, w: 190, h: 18, label: "VIVI-SHELVING" },
-        { x: 410, y: 170, w: 160, h: 18, label: "VIVI-SHELVING" },
-        { x: 570, y: 255, w: 150, h: 22, label: "VIVI-SHELVING" },
-        { x: 760, y: 300, w: 140, h: 22, label: "VIVI-SHELVING" },
-        { x: 760, y: 360, w: 140, h: 22, label: "VIVI-SHELVING" },
-        { x: 500, y: 480, w: 190, h: 22, label: "VIVI-SHELVING" },
+        { x: 390, y: 155, w: 180, h: 18, label: "WINDOW STORAGE" },
+        { x: 600, y: 155, w: 180, h: 18, label: "WINDOW STORAGE" },
+        { x: 820, y: 485, w: 170, h: 22, label: "VIVI-SHELVING" },
+        { x: 840, y: 530, w: 150, h: 22, label: "VIVI-SHELVING" },
     ];
 
     ctx.save();
@@ -141,20 +139,20 @@ function drawShelves(ctx: CanvasRenderingContext2D, cam: CameraState) {
 
 function drawFurniture(ctx: CanvasRenderingContext2D, cam: CameraState) {
     const tables = [
-        { x: 190, y: 240, w: 42, h: 28 },
-        { x: 190, y: 300, w: 42, h: 28 },
-        { x: 190, y: 360, w: 42, h: 28 },
-        { x: 520, y: 535, w: 150, h: 46 },
-        { x: 705, y: 535, w: 150, h: 46 },
-        { x: 275, y: 250, w: 42, h: 170 },
+        { x: 430, y: 295, w: 95, h: 56 },
+        { x: 540, y: 295, w: 95, h: 56 },
+        { x: 650, y: 295, w: 95, h: 56 },
+        { x: 455, y: 390, w: 130, h: 56 },
+        { x: 615, y: 390, w: 130, h: 56 },
+        { x: 160, y: 240, w: 52, h: 150 },
     ];
 
     const chairs = [
-        { x: 170, y: 232 }, { x: 238, y: 232 },
-        { x: 170, y: 292 }, { x: 238, y: 292 },
-        { x: 170, y: 352 }, { x: 238, y: 352 },
-        { x: 400, y: 540 }, { x: 435, y: 540 }, { x: 470, y: 540 },
-        { x: 860, y: 185 }, { x: 900, y: 185 }, { x: 940, y: 185 },
+        { x: 420, y: 262 }, { x: 465, y: 262 }, { x: 510, y: 262 },
+        { x: 535, y: 262 }, { x: 580, y: 262 }, { x: 625, y: 262 },
+        { x: 650, y: 262 }, { x: 695, y: 262 },
+        { x: 470, y: 455 }, { x: 515, y: 455 }, { x: 635, y: 455 }, { x: 680, y: 455 },
+        { x: 880, y: 185 }, { x: 920, y: 185 }, { x: 960, y: 185 },
     ];
 
     ctx.save();
@@ -225,6 +223,32 @@ function drawElement(
 
     if (el.type === "stairs") {
         drawStairs(ctx, r);
+    }
+
+    if (el.id === "window-wall") {
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 1;
+        const panes = 10;
+        for (let i = 1; i < panes; i += 1) {
+            const x = r.x + (r.w / panes) * i;
+            ctx.beginPath();
+            ctx.moveTo(x, r.y + 6);
+            ctx.lineTo(x, r.y + r.h - 6);
+            ctx.stroke();
+        }
+    }
+
+    if (el.id === "pegboard-storage") {
+        ctx.fillStyle = "#b45309";
+        const gap = Math.max(8, 14 * cam.zoom);
+        const dot = Math.max(1.2, 2 * cam.zoom);
+        for (let y = r.y + gap; y < r.y + r.h - gap; y += gap) {
+            for (let x = r.x + gap; x < r.x + r.w - gap; x += gap) {
+                ctx.beginPath();
+                ctx.arc(x, y, dot, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
     }
 
     ctx.fillStyle = style.text;

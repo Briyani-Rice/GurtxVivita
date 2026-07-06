@@ -35,8 +35,8 @@ export function LoginView({ onLogin }: LoginProps) {
 
     // Quick-fill helpers for the demo
     const fillDemo = (role: 'user' | 'admin') => {
-        setUsername(role === 'admin' ? 'Admin' : 'User');
-        setPassword('pass');
+        setUsername('User');
+        setPassword('User12345');
         setError('');
     };
 

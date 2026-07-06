@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::{Component, Path, PathBuf};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
 
@@ -9,11 +10,15 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 fn get_md_files(app: AppHandle) -> Result<Vec<String>, String> {
-    let resource_path = app
+    let resource_dir = app
         .path()
         .resource_dir()
-        .map_err(|e| e.to_string())?
-        .join("src/components/Docs/Resources/MDFiles");
+        .map_err(|e| e.to_string())?;
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let resource_path = docs_dir_candidates(&resource_dir, &manifest_dir)
+        .into_iter()
+        .find(|path| path.is_dir())
+        .ok_or_else(|| "Documentation directory was not found".to_string())?;
 
     let entries = fs::read_dir(resource_path).map_err(|e| e.to_string())?;
 
@@ -31,6 +36,33 @@ fn get_md_files(app: AppHandle) -> Result<Vec<String>, String> {
     }
 
     Ok(files)
+}
+
+fn docs_dir_candidates(resource_dir: &Path, manifest_dir: &Path) -> Vec<PathBuf> {
+    [
+        resource_dir.join("src/components/Docs/Resources/MDFiles"),
+        manifest_dir.join("../src/components/Docs/Resources/MDFiles"),
+        manifest_dir.join("src/components/Docs/Resources/MDFiles"),
+    ]
+    .into_iter()
+    .map(normalize_path)
+    .collect()
+}
+
+fn normalize_path(path: PathBuf) -> PathBuf {
+    let mut normalized = PathBuf::new();
+
+    for component in path.components() {
+        match component {
+            Component::ParentDir => {
+                normalized.pop();
+            }
+            Component::CurDir => {}
+            other => normalized.push(other.as_os_str()),
+        }
+    }
+
+    normalized
 }
 
 #[tauri::command]
@@ -66,4 +98,22 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn docs_dir_candidates_include_repo_docs_for_dev() {
+        let resource_dir = PathBuf::from("/tmp/gurtxvivita/resources");
+        let manifest_dir = PathBuf::from("/workspace/GurtxVivita/src-tauri");
+
+        let candidates = docs_dir_candidates(&resource_dir, &manifest_dir);
+
+        assert!(candidates.contains(
+            &PathBuf::from("/workspace/GurtxVivita/src/components/Docs/Resources/MDFiles")
+        ));
+    }
 }

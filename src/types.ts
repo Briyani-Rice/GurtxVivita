@@ -69,8 +69,7 @@ export class User {
 
     // Hardcoded demo accounts — swap for an API call in production
     static DEMO_ACCS: User[] = [
-        new User('User',  'pass', UserPerms.Basic),
-        new User('Admin', 'pass', UserPerms.Staff),
+        new User('User', 'User12345', UserPerms.Staff),
     ];
 
     // Private so callers must go through User.login()

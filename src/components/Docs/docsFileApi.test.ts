@@ -1,64 +1,24 @@
 import assert from "node:assert/strict";
-import {
-    getDocsMarkdownFiles,
-    loadDocsMarkdownFileContent,
-} from "./docsFileApi.ts";
+import { readFileSync } from "node:fs";
 
-let tauriCalls = 0;
+const source = readFileSync(new URL("./docsFileApi.ts", import.meta.url), "utf8");
 
-const electronApi = {
-    getMdFiles: async () => ["/docs/CommandBar.md", "/docs/Roommap.md"],
-    loadFileContent: async (path: string) => `# Loaded ${path}`,
-};
-
-const tauriInvoke = async <T>(): Promise<T> => {
-    tauriCalls += 1;
-    throw new Error("Tauri should not be called when Electron docs API exists");
-};
-
-assert.deepEqual(
-    await getDocsMarkdownFiles(electronApi, tauriInvoke),
-    ["/docs/CommandBar.md", "/docs/Roommap.md"]
+assert.match(
+    source,
+    /import\.meta\.glob\("\.\/Resources\/MDFiles\/\*\.md"/,
+    "Docs markdown files should be bundled through a direct Vite import.meta.glob call"
 );
 
-assert.equal(
-    await loadDocsMarkdownFileContent(
-        "/docs/CommandBar.md",
-        electronApi,
-        tauriInvoke
-    ),
-    "# Loaded /docs/CommandBar.md"
+assert.match(
+    source,
+    /tauriInvoke<string>\("load_file_content",\s*\{\s*filePath:\s*path\s*\}\)/,
+    "Tauri load_file_content should receive the camelCase filePath argument"
 );
 
-assert.equal(tauriCalls, 0);
-
-const bundledDocs = {
-    "./Resources/MDFiles/CommandBar.md": async () => "# Command Bar",
-    "./Resources/MDFiles/Roommap.md": async () => "# Room map",
-};
-
-const unavailableTauriInvoke = async <T>(): Promise<T> => {
-    throw new TypeError(
-        "Cannot read properties of undefined (reading 'invoke')"
-    );
-};
-
-assert.deepEqual(
-    await getDocsMarkdownFiles(undefined, unavailableTauriInvoke, bundledDocs),
-    [
-        "./Resources/MDFiles/CommandBar.md",
-        "./Resources/MDFiles/Roommap.md",
-    ]
-);
-
-assert.equal(
-    await loadDocsMarkdownFileContent(
-        "./Resources/MDFiles/CommandBar.md",
-        undefined,
-        unavailableTauriInvoke,
-        bundledDocs
-    ),
-    "# Command Bar"
+assert.doesNotMatch(
+    source,
+    /file_path:\s*path/,
+    "The old snake_case Tauri argument should not be used from JavaScript"
 );
 
 console.log("docsFileApi tests passed");

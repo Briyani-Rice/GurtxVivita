@@ -30,7 +30,9 @@ export function AdminView({
                               onDeclineRequest,
                               getterEmptyMaterials,
                           }: AdminViewProps) {
-    const [selectedElement, setSelectedElement] = useState<string | null>(null);
+    const [selectedElement, setSelectedElement] = useState<string | null>(
+        compartments[0]?.id ?? null
+    );
     const [isMaterialDialogOpen, setIsMaterialDialogOpen] = useState(false);
     const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
 

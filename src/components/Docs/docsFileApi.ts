@@ -18,27 +18,6 @@ declare global {
     }
 }
 
-type ImportMetaWithGlob = ImportMeta & {
-    glob?: (
-        pattern: string,
-        options: {
-            eager?: boolean;
-            query?: string;
-            import?: string;
-        }
-    ) => BundledDocs;
-};
-
-const importMeta = import.meta as ImportMetaWithGlob;
-
-const bundledMarkdownFiles: BundledDocs =
-    typeof importMeta.glob === "function"
-        ? importMeta.glob("./Resources/MDFiles/*.md", {
-            query: "?raw",
-            import: "default",
-        }) as unknown as BundledDocs
-        : {};
-
 function getElectronDocsApi(): ElectronDocsApi | undefined {
     if (typeof window === "undefined") {
         return undefined;
@@ -46,6 +25,11 @@ function getElectronDocsApi(): ElectronDocsApi | undefined {
 
     return window.electron;
 }
+
+const bundledMarkdownFiles = import.meta.glob("./Resources/MDFiles/*.md", {
+    query: "?raw",
+    import: "default",
+}) as unknown as BundledDocs;
 
 function getBundledMarkdownPaths(bundledDocs: BundledDocs): string[] {
     return Object.keys(bundledDocs).sort();
@@ -84,5 +68,5 @@ export async function loadDocsMarkdownFileContent(
         return Promise.resolve(bundledDocs[path]());
     }
 
-    return tauriInvoke<string>("load_file_content", { file_path: path });
+    return tauriInvoke<string>("load_file_content", { filePath: path });
 }
