@@ -28,6 +28,12 @@ const PALETTES = {
         activeTab: "#cce8f4",
         control: "#1f1f1f",
         controlText: "#ffffff",
+        welcomeBg: "#fff7df",
+        welcomeCard: "rgba(255, 255, 255, 0.9)",
+        welcomeAccent: "#f59e0b",
+        welcomeAccent2: "#ef6f4d",
+        welcomeDot: "rgba(78, 130, 160, 0.38)",
+        welcomeFooter: "#d97706",
     },
     dark: {
         bg: "#111827",
@@ -40,6 +46,12 @@ const PALETTES = {
         activeTab: "#164e63",
         control: "#0f172a",
         controlText: "#f8fafc",
+        welcomeBg: "#17130f",
+        welcomeCard: "rgba(31, 26, 21, 0.9)",
+        welcomeAccent: "#fbbf24",
+        welcomeAccent2: "#fb7185",
+        welcomeDot: "rgba(251, 191, 36, 0.26)",
+        welcomeFooter: "#78350f",
     },
 };
 
@@ -122,6 +134,12 @@ export function applyAppearancePrefs(prefs: AppearancePrefs): AppearancePrefs {
     root.style.setProperty("--viventory-active-tab", palette.activeTab);
     root.style.setProperty("--viventory-control", palette.control);
     root.style.setProperty("--viventory-control-text", palette.controlText);
+    root.style.setProperty("--viventory-welcome-bg", palette.welcomeBg);
+    root.style.setProperty("--viventory-welcome-card", palette.welcomeCard);
+    root.style.setProperty("--viventory-welcome-accent", palette.welcomeAccent);
+    root.style.setProperty("--viventory-welcome-accent-2", palette.welcomeAccent2);
+    root.style.setProperty("--viventory-welcome-dot", palette.welcomeDot);
+    root.style.setProperty("--viventory-welcome-footer", palette.welcomeFooter);
     root.style.setProperty("--viventory-font-size", `${normalized.fontSize}px`);
 
     document.body.style.background = palette.bg;

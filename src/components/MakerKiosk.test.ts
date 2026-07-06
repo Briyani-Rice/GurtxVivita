@@ -9,6 +9,10 @@ assert.match(source, /quickPrompts/, "Maker kiosk should provide quick-start pro
 assert.match(source, /kind === "safety"/, "Maker kiosk should render safety sections distinctly");
 assert.match(source, /minHeight:\s*56/, "Touch targets should be large enough for tablet use");
 assert.match(source, /fontSize:\s*16/, "Child-facing body text should be larger than the 14pt minimum");
-assert.match(appSource, /new MakerKioskTab\(\)/, "Maker Bot should be the first default tab");
+assert.match(
+    appSource,
+    /new welcomeTab\(\),\s*new MakerKioskTab\(\)/,
+    "Welcome should be the first default tab, with Maker Bot still available",
+);
 
 console.log("MakerKiosk source checks passed");

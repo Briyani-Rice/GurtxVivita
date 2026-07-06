@@ -25,6 +25,12 @@
   --viventory-active-tab: #cce8f4;
   --viventory-control: #1f1f1f;
   --viventory-control-text: #ffffff;
+  --viventory-welcome-bg: #fff7df;
+  --viventory-welcome-card: rgba(255, 255, 255, 0.9);
+  --viventory-welcome-accent: #f59e0b;
+  --viventory-welcome-accent-2: #ef6f4d;
+  --viventory-welcome-dot: rgba(78, 130, 160, 0.38);
+  --viventory-welcome-footer: #d97706;
   --viventory-font-size: 14px;
 
   font: 18px/145% var(--sans);

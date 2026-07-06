@@ -22,6 +22,9 @@ import {RoomMapTab} from "./components/RoomMapTab";
 import {UserViewTab} from "./components/UserViewTab";
 import { applyAppearancePrefs, loadAppearancePrefs } from "./components/Settings/appearancePreferences";
 import { MakerKioskTab } from "./components/MakerKiosk";
+import vivitaLogo from "./assets/vivita-logo.png";
+import vivitaSpaceImage from "./assets/vivita-space.png";
+import vivitaCommunityImage from "./assets/vivita-community.jpg";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -99,11 +102,35 @@ export class welcomeTab implements Tab {
         this.props = basicTabProps
     }
     loadContent(){
-        // useEffect(() => {
-        //     document.addEventListener('keydown',(_)=>{
-        //
-        //     })
-        // }, []);
+        const openTab = (name: string, tabFactory: () => Tab) => {
+            const existingIndex = welcomeTab.props.tabs.findIndex(tab => tab.name === name);
+
+            if (existingIndex !== -1) {
+                welcomeTab.props.setTabIndex(existingIndex);
+                return;
+            }
+
+            const newIndex = welcomeTab.props.handleNewTab();
+            welcomeTab.props.setTab(newIndex, tabFactory());
+        };
+
+        const buttonStyle = (variant: "primary" | "secondary" = "secondary"): React.CSSProperties => ({
+            minHeight: "44px",
+            padding: "0 18px",
+            border: variant === "primary" ? "none" : "1px solid var(--viventory-border)",
+            borderRadius: "999px",
+            background:
+                variant === "primary"
+                    ? "linear-gradient(135deg, var(--viventory-welcome-accent), var(--viventory-welcome-accent-2))"
+                    : "var(--viventory-surface)",
+            color: variant === "primary" ? "#1f1300" : "var(--viventory-text)",
+            fontWeight: 700,
+            cursor: "pointer",
+            boxShadow: variant === "primary" ? "0 14px 28px rgba(180, 83, 9, 0.24)" : "none",
+        });
+
+        const searchInputId = "welcome-search";
+
         return(
 
             <div
@@ -112,40 +139,106 @@ export class welcomeTab implements Tab {
                     width: "100%",
                     position: "relative",
                     boxSizing: "border-box",
-                    background: "#ffffff",
+                    background: "var(--viventory-welcome-bg)",
+                    color: "var(--viventory-text)",
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    paddingRight: "20%",
-                    paddingLeft: "20%",
-                    backgroundImage: "radial-gradient(gray 1px, transparent 1px)",
-                    backgroundSize: "16px 16px"
+                    backgroundImage:
+                        "radial-gradient(var(--viventory-welcome-dot) 1.3px, transparent 1.3px)",
+                    backgroundSize: "20px 20px"
                 }}
             >
-                <div>
+                <div
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        background:
+                            "linear-gradient(135deg, rgba(245, 158, 11, 0.26), transparent 38%, rgba(239, 111, 77, 0.18))",
+                        pointerEvents: "none",
+                    }}
+                />
+
+                <main
+                    style={{
+                        position: "relative",
+                        zIndex: 1,
+                        flex: 1,
+                        width: "100%",
+                        maxWidth: "1240px",
+                        margin: "0 auto",
+                        padding: "clamp(28px, 5vw, 72px)",
+                        boxSizing: "border-box",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+                        gap: "38px",
+                        alignItems: "center",
+                    }}
+                >
+                    <section style={{textAlign: "left"}}>
+                        <img
+                            src={vivitaLogo}
+                            alt="VIVITA"
+                            style={{
+                                width: "148px",
+                                height: "auto",
+                                display: "block",
+                                marginBottom: "24px",
+                            }}
+                        />
+                        <p
+                            style={{
+                                margin: "0 0 14px",
+                                color: "var(--viventory-welcome-accent)",
+                                fontSize: "14px",
+                                fontWeight: 800,
+                                letterSpacing: "0",
+                                textTransform: "uppercase",
+                            }}
+                        >
+                            Maker guide
+                        </p>
                     <h1 style={{
                         margin: 0,
-                        marginBottom: "50px",
-                        fontSize: "100px",
-                        fontWeight: 625,
-                        color: "#3b83a3",
+                            marginBottom: "18px",
+                            fontSize: "64px",
+                            lineHeight: 0.95,
+                            fontWeight: 800,
+                            letterSpacing: "0",
+                            color: "var(--viventory-text)",
                     }}>
-                        Viventory
+                            Welcome to VIVITA Singapore
                     </h1>
-                    <h2 style={{
-                        margin: 0,
-                        marginBottom: "50px",
-                        fontSize: "25px",
-                        fontWeight: 625,
-                        color: "#555555",
+                        <h2 style={{
+                            margin: "0 0 28px",
+                            maxWidth: "620px",
+                            fontSize: "28px",
+                            lineHeight: 1.22,
+                            fontWeight: 650,
+                            letterSpacing: "0",
+                            color: "var(--viventory-muted-text)",
                     }}>
-                        Enter text below to search.
-                    </h2>
+                            Our Vivistop @ 10 Kampong Eunos helps youths find tools, materials, and space to build ideas without waiting for permission.
+                        </h2>
+                        <form
+                            onSubmit={(event) => {
+                                event.preventDefault();
+                                const input = event.currentTarget.elements.namedItem(searchInputId) as HTMLInputElement | null;
+                                welcomeTab.props.handleMaterialSearch(input?.value ?? "");
+                            }}
+                            style={{
+                                display: "flex",
+                                gap: "12px",
+                                alignItems: "center",
+                                maxWidth: "640px",
+                                marginBottom: "16px",
+                            }}
+                        >
                     <input
+                                id={searchInputId}
+                                name={searchInputId}
                         type="search"
-                        placeholder="Search..."
+                                placeholder="Search materials, tools, or rooms..."
                         onKeyDown={(event) => {
                             if (event.key !== "Enter") {
                                 return;
@@ -155,41 +248,203 @@ export class welcomeTab implements Tab {
                         }}
                         style={{
                             width: "100%",
-                            height: "50px",
-                            padding: "22px",
-                            fontSize: "15px",
-                            fontWeight: "500",
+                                    minHeight: "54px",
+                                    padding: "0 20px",
+                                    fontSize: "17px",
+                                    fontWeight: 600,
                             fontFamily: "Libre Franklin, sans-serif",
-                            border: "none",
-                            borderRadius: "20px",
-                            background: "#000000",
-                            color: "#ffffff",
+                                    border: "1px solid var(--viventory-border)",
+                                    borderRadius: "999px",
+                                    background: "var(--viventory-surface)",
+                                    color: "var(--viventory-text)",
                             outline: "none",
                             boxSizing: "border-box",
                             transition: "all 120ms ease",
                         }}
                     />
-                </div>
+                            <button type="submit" style={buttonStyle("primary")}>
+                                Search
+                            </button>
+                        </form>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "10px",
+                                marginBottom: "28px",
+                            }}
+                        >
+                            {["Cardboard", "LEDs", "Hot glue", "Projector"].map(label => (
+                                <button
+                                    key={label}
+                                    onClick={() => welcomeTab.props.handleMaterialSearch(label)}
+                                    style={{
+                                        border: "1px solid var(--viventory-border)",
+                                        borderRadius: "999px",
+                                        background: "var(--viventory-welcome-card)",
+                                        color: "var(--viventory-text)",
+                                        padding: "9px 14px",
+                                        fontWeight: 650,
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                        <div style={{display: "flex", flexWrap: "wrap", gap: "12px"}}>
+                            <button
+                                onClick={() => openTab("Maker Bot", () => new MakerKioskTab())}
+                                style={buttonStyle("primary")}
+                            >
+                                Open Maker Bot
+                            </button>
+                            <button
+                                onClick={() => openTab("Room map", () => new RoomMapTab())}
+                                style={buttonStyle()}
+                            >
+                                Open Room Map
+                            </button>
+                        </div>
+                    </section>
+
+                    <aside
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                            gap: "16px",
+                            alignItems: "stretch",
+                        }}
+                    >
+                        <div
+                            style={{
+                                minHeight: "420px",
+                                borderRadius: "8px",
+                                overflow: "hidden",
+                                position: "relative",
+                                boxShadow: "0 28px 70px rgba(15, 23, 42, 0.24)",
+                                background: "var(--viventory-surface)",
+                            }}
+                        >
+                            <img
+                                src={vivitaSpaceImage}
+                                alt="VIVITA Singapore makerspace"
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    display: "block",
+                                }}
+                            />
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    left: "18px",
+                                    right: "18px",
+                                    bottom: "18px",
+                                    padding: "18px",
+                                    borderRadius: "8px",
+                                    background: "rgba(17, 24, 39, 0.78)",
+                                    color: "#ffffff",
+                                    textAlign: "left",
+                                }}
+                            >
+                                <h3 style={{margin: "0 0 8px", fontSize: "22px", letterSpacing: "0"}}>
+                                    Youth are our bosses
+                                </h3>
+                                <p style={{margin: 0, color: "rgba(255,255,255,0.86)", lineHeight: 1.45}}>
+                                    A guide for exploring tools, materials, and projects inside the makerspace.
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            style={{
+                                display: "grid",
+                                gap: "16px",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    background: "var(--viventory-welcome-card)",
+                                    border: "1px solid var(--viventory-border)",
+                                    borderRadius: "8px",
+                                    padding: "22px",
+                                    textAlign: "left",
+                                    backdropFilter: "blur(12px)",
+                                }}
+                            >
+                                <h2
+                                    style={{
+                                        margin: "0 0 14px",
+                                        color: "var(--viventory-text)",
+                                        fontSize: "28px",
+                                        fontWeight: 800,
+                                        letterSpacing: "0",
+                                    }}
+                                >
+                                    Make, test, share
+                                </h2>
+                                <p style={{margin: 0, color: "var(--viventory-muted-text)", lineHeight: 1.45}}>
+                                    Viventory connects the physical workshop to a digital inventory, so makers can quickly see what is available.
+                                </p>
+                            </div>
+                            <div
+                                style={{
+                                    background: "var(--viventory-welcome-accent)",
+                                    borderRadius: "8px",
+                                    padding: "22px",
+                                    color: "#1f1300",
+                                    textAlign: "left",
+                                }}
+                            >
+                                <div style={{fontSize: "38px", fontWeight: 850, lineHeight: 1}}>
+                                    10
+                                </div>
+                                <p style={{margin: "8px 0 0", color: "#1f1300", fontWeight: 750}}>
+                                    Kampong Eunos
+                                </p>
+                            </div>
+                            <div
+                                style={{
+                                    borderRadius: "8px",
+                                    overflow: "hidden",
+                                    minHeight: "132px",
+                                }}
+                            >
+                                <img
+                                    src={vivitaCommunityImage}
+                                    alt="VIVITA youth community"
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                        display: "block",
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </aside>
+                </main>
                 <footer
                     style={{
-                        position: "absolute",
-                        bottom: "0",
-                        left: "0",
                         width: "100%",
-                        background: "#3b83a3",
-                        padding: "20px 20px",
+                        background: "var(--viventory-welcome-footer)",
+                        padding: "18px 24px",
                         display: "flex",
                         justifyContent: "left",
                         alignItems: "center",
                         gap: "20px",
                         boxSizing: "border-box",
-                        height: "10px"
+                        minHeight: "58px",
+                        position: "relative",
+                        zIndex: 1,
                     }}
                 >
                     <h4 style={{
                         color: "white",
-                        fontSize: "15px",
-                        fontWeight: "375"
+                        fontSize: "16px",
+                        fontWeight: 650,
+                        margin: 0,
                     }}>
                         team gurt x vivita
                     </h4>
@@ -197,34 +452,18 @@ export class welcomeTab implements Tab {
                     <div style={{flexGrow:"1",}}/>
                     <button
                         onClick={() => {
-                            const existingIndex = welcomeTab.props.tabs.findIndex(
-                                tab => tab.name === "Settings"
-                            );
-
-                            if (existingIndex !== -1) {
-                                welcomeTab.props.setTabIndex(existingIndex);
-                            } else {
-                                const newIndex = welcomeTab.props.handleNewTab();
-                                welcomeTab.props.setTab(newIndex, new Settings());
-                            }
+                            openTab("Settings", () => new Settings());
                         }}
+                        style={buttonStyle()}
                     >
                         <BsGearFill /> Settings
                     </button>
 
                     <button
                         onClick={() => {
-                            const existingIndex = welcomeTab.props.tabs.findIndex(
-                                tab => tab.name === "Documentation"
-                            );
-
-                            if (existingIndex !== -1) {
-                                welcomeTab.props.setTabIndex(existingIndex);
-                            } else {
-                                const newIndex = welcomeTab.props.handleNewTab();
-                                welcomeTab.props.setTab(newIndex, new DocsView());
-                            }
+                            openTab("Documentation", () => new DocsView());
                         }}
+                        style={buttonStyle()}
                     >
                         <IoIosBook /> Docs
                     </button>
@@ -518,6 +757,7 @@ function App() {
     const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
 
     const [tabs, setTabs] = useState<Tab[]>([
+        new welcomeTab(),
         new MakerKioskTab(),
         new RoomMapTab(),
         new UserViewTab()

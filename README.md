@@ -17,7 +17,7 @@ The app is built as a Vite + React frontend with a Tauri desktop shell.
 
 ## Maker Bot
 
-The first screen is designed for a dedicated makerspace tablet. Children can use large quick-start buttons or type a question such as:
+The `Maker Bot` tab is designed for a dedicated makerspace tablet. Children can use large quick-start buttons or type a question such as:
 
 - `Where is the hot glue gun?`
 - `How do I use a micro:bit?`
