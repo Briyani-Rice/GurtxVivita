@@ -38,8 +38,10 @@ const styles: Record<string, CSSProperties> = {
         height: '100%',
         minHeight: 0,
         padding: 20,
-        background: '#f6f8fb',
-        color: '#111827',
+        background:
+            'radial-gradient(var(--viventory-welcome-dot) 1.2px, transparent 1.2px), linear-gradient(135deg, var(--viventory-welcome-bg), var(--viventory-bg))',
+        backgroundSize: '22px 22px, auto',
+        color: 'var(--viventory-text)',
         fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         overflow: 'hidden',
     },
@@ -52,9 +54,9 @@ const styles: Record<string, CSSProperties> = {
     },
     eyebrow: {
         margin: 0,
-        color: '#64748b',
+        color: 'var(--viventory-welcome-accent)',
         fontSize: 13,
-        fontWeight: 650,
+        fontWeight: 850,
         letterSpacing: 0,
         textTransform: 'uppercase',
     },
@@ -62,7 +64,7 @@ const styles: Record<string, CSSProperties> = {
         margin: '4px 0 0',
         fontSize: 28,
         lineHeight: 1.1,
-        fontWeight: 750,
+        fontWeight: 850,
         letterSpacing: 0,
     },
     stats: {
@@ -78,22 +80,22 @@ const styles: Record<string, CSSProperties> = {
         gap: 8,
         minHeight: 38,
         padding: '8px 11px',
-        border: '1px solid #dbe3ee',
+        border: '1px solid var(--viventory-border)',
         borderRadius: 8,
-        background: '#ffffff',
-        boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+        background: 'var(--viventory-welcome-card)',
+        boxShadow: '0 12px 28px rgba(15, 23, 42, 0.1)',
         fontSize: 14,
-        fontWeight: 650,
+        fontWeight: 750,
         whiteSpace: 'nowrap',
     },
     panelGroup: {
         height: 'calc(100% - 74px)',
         minHeight: 520,
-        border: '1px solid #dbe3ee',
+        border: '1px solid var(--viventory-border)',
         borderRadius: 8,
-        background: '#ffffff',
+        background: 'var(--viventory-surface)',
         overflow: 'hidden',
-        boxShadow: '0 12px 28px rgba(15, 23, 42, 0.08)',
+        boxShadow: '0 24px 60px rgba(15, 23, 42, 0.14)',
     },
     workspace: {
         display: 'grid',
@@ -103,8 +105,8 @@ const styles: Record<string, CSSProperties> = {
         minHeight: 0,
     },
     areaRail: {
-        borderRight: '1px solid #e2e8f0',
-        background: '#fbfcfe',
+        borderRight: '1px solid var(--viventory-border)',
+        background: 'var(--viventory-muted-surface)',
         padding: 14,
         overflow: 'auto',
     },
@@ -113,7 +115,7 @@ const styles: Record<string, CSSProperties> = {
         alignItems: 'center',
         gap: 8,
         margin: '0 0 10px',
-        color: '#475569',
+        color: 'var(--viventory-muted-text)',
         fontSize: 13,
         fontWeight: 750,
         letterSpacing: 0,
@@ -137,7 +139,7 @@ const styles: Record<string, CSSProperties> = {
         justifyContent: 'space-between',
         gap: 16,
         paddingBottom: 14,
-        borderBottom: '1px solid #e2e8f0',
+        borderBottom: '1px solid var(--viventory-border)',
     },
     paneTitle: {
         margin: 0,
@@ -147,7 +149,7 @@ const styles: Record<string, CSSProperties> = {
     },
     paneMeta: {
         margin: '4px 0 0',
-        color: '#64748b',
+        color: 'var(--viventory-muted-text)',
         fontSize: 14,
         lineHeight: 1.35,
     },
@@ -160,11 +162,11 @@ const styles: Record<string, CSSProperties> = {
         minHeight: 0,
     },
     materialCard: {
-        border: '1px solid #dde6f0',
+        border: '1px solid var(--viventory-border)',
         borderRadius: 8,
-        background: '#ffffff',
-        padding: 14,
-        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)',
+        background: 'var(--viventory-surface)',
+        padding: 16,
+        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
     },
     cardHeader: {
         display: 'flex',
@@ -180,7 +182,7 @@ const styles: Record<string, CSSProperties> = {
     },
     materialDescription: {
         margin: '6px 0 0',
-        color: '#64748b',
+        color: 'var(--viventory-muted-text)',
         fontSize: 13,
         lineHeight: 1.35,
     },
@@ -191,8 +193,8 @@ const styles: Record<string, CSSProperties> = {
         marginTop: 12,
         padding: '5px 8px',
         borderRadius: 8,
-        background: '#f1f5f9',
-        color: '#334155',
+        background: 'var(--viventory-muted-surface)',
+        color: 'var(--viventory-text)',
         fontSize: 13,
         fontWeight: 750,
     },
@@ -206,12 +208,12 @@ const styles: Record<string, CSSProperties> = {
         flexDirection: 'column',
         height: '100%',
         minHeight: 0,
-        background: '#fbfcfe',
+        background: 'var(--viventory-muted-surface)',
         overflow: 'hidden',
     },
     sideSection: {
         padding: 16,
-        borderBottom: '1px solid #e2e8f0',
+        borderBottom: '1px solid var(--viventory-border)',
     },
     sideScroll: {
         display: 'flex',
@@ -222,11 +224,11 @@ const styles: Record<string, CSSProperties> = {
         minHeight: 0,
     },
     requestCard: {
-        border: '1px solid #dde6f0',
+        border: '1px solid var(--viventory-border)',
         borderRadius: 8,
-        background: '#ffffff',
+        background: 'var(--viventory-surface)',
         padding: 12,
-        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)',
+        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
     },
     requestTop: {
         display: 'flex',
@@ -242,7 +244,7 @@ const styles: Record<string, CSSProperties> = {
     },
     requestMeta: {
         margin: '5px 0 0',
-        color: '#64748b',
+        color: 'var(--viventory-muted-text)',
         fontSize: 13,
         lineHeight: 1.35,
     },
@@ -258,9 +260,9 @@ const styles: Record<string, CSSProperties> = {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: 180,
-        border: '1px dashed #cbd5e1',
+        border: '1px dashed var(--viventory-border)',
         borderRadius: 8,
-        color: '#64748b',
+        color: 'var(--viventory-muted-text)',
         textAlign: 'center',
         padding: 20,
     },
@@ -269,24 +271,24 @@ const styles: Record<string, CSSProperties> = {
         alignItems: 'center',
         justifyContent: 'center',
         width: 12,
-        background: '#e8eef5',
-        color: '#64748b',
+        background: 'var(--viventory-welcome-accent)',
+        color: '#1f1300',
         cursor: 'col-resize',
-        borderLeft: '1px solid #dbe3ee',
-        borderRight: '1px solid #dbe3ee',
+        borderLeft: '1px solid var(--viventory-border)',
+        borderRight: '1px solid var(--viventory-border)',
     },
 };
 
 const makeAreaButtonStyle = (active: boolean): CSSProperties => ({
     width: '100%',
-    border: active ? '1px solid #2f80ed' : '1px solid #dbe3ee',
+    border: active ? '2px solid var(--viventory-tab-active-border)' : '1px solid var(--viventory-border)',
     borderRadius: 8,
-    background: active ? '#e8f2ff' : '#ffffff',
-    color: active ? '#1d4ed8' : '#334155',
+    background: active ? 'var(--viventory-active-tab)' : 'var(--viventory-surface)',
+    color: 'var(--viventory-text)',
     padding: '10px 11px',
     textAlign: 'left',
     cursor: 'pointer',
-    boxShadow: active ? '0 0 0 2px rgba(47, 128, 237, 0.12)' : '0 1px 2px rgba(15, 23, 42, 0.04)',
+    boxShadow: active ? '0 12px 28px rgba(15, 23, 42, 0.12)' : '0 1px 2px rgba(15, 23, 42, 0.04)',
 });
 
 const makeButtonStyle = (variant: 'primary' | 'ghost' | 'approve' | 'decline'): CSSProperties => {
@@ -306,24 +308,29 @@ const makeButtonStyle = (variant: 'primary' | 'ghost' | 'approve' | 'decline'): 
     };
 
     if (variant === 'primary') {
-        return { ...base, background: '#2563eb', borderColor: '#2563eb', color: '#ffffff' };
+        return {
+            ...base,
+            background: 'linear-gradient(135deg, var(--viventory-welcome-accent), var(--viventory-welcome-accent-2))',
+            borderColor: 'transparent',
+            color: '#1f1300'
+        };
     }
 
     if (variant === 'approve') {
-        return { ...base, background: '#ecfdf5', borderColor: '#bbf7d0', color: '#047857' };
+        return { ...base, background: 'rgba(34, 197, 94, 0.14)', borderColor: 'rgba(34, 197, 94, 0.28)', color: '#047857' };
     }
 
     if (variant === 'decline') {
         return { ...base, background: '#fff1f2', borderColor: '#fecdd3', color: '#be123c' };
     }
 
-    return { ...base, background: '#ffffff', borderColor: '#dbe3ee', color: '#475569', minWidth: 36, padding: 8 };
+    return { ...base, background: 'var(--viventory-surface)', borderColor: 'var(--viventory-border)', color: 'var(--viventory-text)', minWidth: 36, padding: 8 };
 };
 
 const makeStockPillStyle = (quantity: number): CSSProperties => ({
     ...styles.quantity,
-    background: quantity <= 0 ? '#fff1f2' : quantity <= 2 ? '#fff7ed' : '#f1f5f9',
-    color: quantity <= 0 ? '#be123c' : quantity <= 2 ? '#c2410c' : '#334155',
+    background: quantity <= 0 ? 'rgba(239, 111, 77, 0.14)' : quantity <= 2 ? 'rgba(245, 158, 11, 0.16)' : 'rgba(45, 120, 152, 0.12)',
+    color: quantity <= 0 ? 'var(--viventory-welcome-accent-2)' : quantity <= 2 ? 'var(--viventory-welcome-accent)' : 'var(--viventory-text)',
 });
 
 export function AdminView({
@@ -373,7 +380,7 @@ export function AdminView({
         <div style={styles.shell}>
             <div style={styles.header}>
                 <div>
-                    <p style={styles.eyebrow}>Admin View</p>
+                    <p style={styles.eyebrow}>Makerspace operations</p>
                     <h2 style={styles.title}>Inventory Workspace</h2>
                 </div>
 
@@ -417,10 +424,10 @@ export function AdminView({
                                             <div style={{ fontSize: 14, fontWeight: 750 }}>
                                                 {compartment.number}
                                             </div>
-                                            <div style={{ marginTop: 2, fontSize: 13, color: active ? '#1d4ed8' : '#64748b' }}>
+                                            <div style={{ marginTop: 2, fontSize: 13, color: 'var(--viventory-muted-text)' }}>
                                                 {compartment.name}
                                             </div>
-                                            <div style={{ marginTop: 8, fontSize: 12, color: '#64748b' }}>
+                                            <div style={{ marginTop: 8, fontSize: 12, color: 'var(--viventory-muted-text)' }}>
                                                 {areaMaterials.length} material{areaMaterials.length === 1 ? '' : 's'}
                                             </div>
                                         </button>
@@ -507,7 +514,9 @@ export function AdminView({
                                             </div>
 
                                             <div style={makeStockPillStyle(material.quantity)}>
-                                                {material.quantity <= 0 ? 'Out' : material.quantity} {material.quantity > 0 ? material.unit : ''}
+                                                {material.quantity <= 0
+                                                    ? 'Out of stock'
+                                                    : `Ready to lend: ${material.quantity} ${material.unit}`}
                                             </div>
                                         </article>
                                     ))
@@ -526,7 +535,7 @@ export function AdminView({
                         <section style={styles.sideSection}>
                             <p style={styles.sectionLabel}>
                                 <Inbox size={15} />
-                                Pending Requests
+                                Review queue
                             </p>
                             <p style={styles.paneMeta}>
                                 Review requests from the user view and update stock automatically when approved.
