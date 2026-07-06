@@ -47,14 +47,18 @@ function SettingsContent() {
                 display: "flex",
                 flexDirection: "row",
                 gap: "20px",
-                padding: "10px"
+                padding: "10px",
+                minHeight: "100%",
+                background: "var(--viventory-bg)",
+                color: "var(--viventory-text)",
+                fontSize: "var(--viventory-font-size)",
             }}
         >
             {/* Sidebar */}
             <div
                 style={{
                     width: "250px",
-                    borderRight: "1px solid #ccc",
+                    borderRight: "1px solid var(--viventory-border)",
                     paddingRight: "10px"
                 }}
             >
@@ -65,7 +69,10 @@ function SettingsContent() {
                     placeholder="Search..."
                     style={{
                         width: "100%",
-                        marginBottom: "10px"
+                        marginBottom: "10px",
+                        background: "var(--viventory-control)",
+                        color: "var(--viventory-control-text)",
+                        border: "1px solid var(--viventory-border)",
                     }}
                 />
 
@@ -90,11 +97,12 @@ function SettingsContent() {
                                     border:
                                         index === selectedIndex
                                             ? "2px solid black"
-                                            : "1px solid #ccc",
+                                            : "1px solid var(--viventory-border)",
                                     background:
                                         index === selectedIndex
-                                            ? "#eee"
-                                            : "white",
+                                            ? "var(--viventory-muted-surface)"
+                                            : "var(--viventory-surface)",
+                                    color: "var(--viventory-text)",
                                     cursor: "pointer"
                                 }}
                             >

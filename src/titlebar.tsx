@@ -41,7 +41,7 @@ export default function Titlebar({
                     fontSize: "15px",
                 }}
             >
-                Viventory
+                VIVITA Maker Guide
             </h3>
 
             <div className="title-main">

@@ -15,6 +15,17 @@
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
+  --viventory-bg: #f6f8fb;
+  --viventory-surface: #ffffff;
+  --viventory-muted-surface: #f1f5f9;
+  --viventory-text: #111827;
+  --viventory-muted-text: #64748b;
+  --viventory-border: #dbe3ee;
+  --viventory-tab: #dddddd;
+  --viventory-active-tab: #cce8f4;
+  --viventory-control: #1f1f1f;
+  --viventory-control-text: #ffffff;
+  --viventory-font-size: 14px;
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
@@ -51,7 +62,9 @@
 
 body {
   margin: 0;
-  background:white;
+  background: var(--viventory-bg);
+  color: var(--viventory-text);
+  font-size: var(--viventory-font-size);
 }
 
 h1,

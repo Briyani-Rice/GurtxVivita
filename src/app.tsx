@@ -20,6 +20,8 @@ import {CommandBar} from "./CommandBar";
 import LoginTab from "./components/LoginTab";
 import {RoomMapTab} from "./components/RoomMapTab";
 import {UserViewTab} from "./components/UserViewTab";
+import { applyAppearancePrefs, loadAppearancePrefs } from "./components/Settings/appearancePreferences";
+import { MakerKioskTab } from "./components/MakerKiosk";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -275,8 +277,9 @@ function RenderTabBarTab({
         justifyContent: "space-between",
         background:
             index === currentTabIndex
-                ? "#cce8f4"
-                : "#dddddd",
+                ? "var(--viventory-active-tab)"
+                : "var(--viventory-tab)",
+        color: "var(--viventory-text)",
 
         userSelect: "none" as const,
 
@@ -427,7 +430,7 @@ function RenderTabBar({
                         scrollbarWidth:"thin",
                         scrollbarGutter:"unset",
                         overflowY: "hidden",
-                        background: "#00000010",
+                        background: "var(--viventory-muted-surface)",
                         boxSizing: "border-box"
                     }}
                 >
@@ -515,12 +518,28 @@ function App() {
     const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
 
     const [tabs, setTabs] = useState<Tab[]>([
-        new welcomeTab(),
+        new MakerKioskTab(),
         new RoomMapTab(),
         new UserViewTab()
     ])
 
     const [tabIndex, setTabIndex] = useState<number>(0)
+
+    useEffect(() => {
+        const savedPrefs = loadAppearancePrefs();
+        applyAppearancePrefs(savedPrefs);
+
+        const mediaQuery = window.matchMedia?.("(prefers-color-scheme: dark)");
+        const handleSystemThemeChange = () => {
+            const currentPrefs = loadAppearancePrefs();
+            if (currentPrefs.theme === "system") {
+                applyAppearancePrefs(currentPrefs);
+            }
+        };
+
+        mediaQuery?.addEventListener("change", handleSystemThemeChange);
+        return () => mediaQuery?.removeEventListener("change", handleSystemThemeChange);
+    }, []);
 
     const handleNewTab = (): number => {
 
@@ -666,7 +685,10 @@ function App() {
                 height: "100vh",
                 width: "100vw",
                 overflow: "hidden",
-                boxSizing: "border-box"
+                boxSizing: "border-box",
+                background: "var(--viventory-bg)",
+                color: "var(--viventory-text)",
+                fontSize: "var(--viventory-font-size)",
             }}
         >
             {cmdBarVis && <CommandBar setVisibility={setCmdBarVis} />}

@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SettingsPage } from "../Settings";
 import { Language } from "../../../types";
+import {
+    AppearanceTheme,
+    applyAppearancePrefs,
+    loadAppearancePrefs,
+    saveAppearancePrefs,
+} from "../appearancePreferences";
 
 interface SearchableDropdownProps {
     enumObject: Record<string, string | number>;
@@ -47,10 +53,10 @@ export function SearchableDropdown({ enumObject, value, onSelect }: SearchableDr
                 style={{
                     width: "100%",
                     padding: "8px 12px",
-                    background: "#1f1f1f",
-                    border: "1px solid #333",
+                    background: "var(--viventory-control)",
+                    border: "1px solid var(--viventory-border)",
                     borderRadius: "6px",
-                    color: "white",
+                    color: "var(--viventory-control-text)",
                     textAlign: "left",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -68,8 +74,8 @@ export function SearchableDropdown({ enumObject, value, onSelect }: SearchableDr
                         top: "105%",
                         left: 0,
                         width: "100%",
-                        background: "#1f1f1f",
-                        border: "1px solid #333",
+                        background: "var(--viventory-control)",
+                        border: "1px solid var(--viventory-border)",
                         borderRadius: "6px",
                         boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
                         zIndex: 10,
@@ -86,10 +92,10 @@ export function SearchableDropdown({ enumObject, value, onSelect }: SearchableDr
                         style={{
                             width: "100%",
                             padding: "8px",
-                            background: "#151515",
+                            background: "var(--viventory-muted-surface)",
                             border: "none",
-                            borderBottom: "1px solid #333",
-                            color: "white",
+                            borderBottom: "1px solid var(--viventory-border)",
+                            color: "var(--viventory-text)",
                             fontSize: "13px",
                             outline: "none",
                             boxSizing: "border-box"
@@ -107,13 +113,13 @@ export function SearchableDropdown({ enumObject, value, onSelect }: SearchableDr
                                     style={{
                                         padding: "8px 12px",
                                         fontSize: "13px",
-                                        color: value === opt.value ? "#3498db" : "#bbb",
-                                        background: value === opt.value ? "#252525" : "transparent",
+                                        color: value === opt.value ? "#2f80ed" : "var(--viventory-control-text)",
+                                        background: value === opt.value ? "var(--viventory-muted-surface)" : "transparent",
                                         cursor: "pointer",
                                     }}
-                                    onMouseEnter={(e) => (e.currentTarget.style.background = "#252525")}
+                                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--viventory-muted-surface)")}
                                     onMouseLeave={(e) =>
-                                        (e.currentTarget.style.background = value === opt.value ? "#252525" : "transparent")
+                                        (e.currentTarget.style.background = value === opt.value ? "var(--viventory-muted-surface)" : "transparent")
                                     }
                                 >
                                     {opt.label}
@@ -131,10 +137,60 @@ export function SearchableDropdown({ enumObject, value, onSelect }: SearchableDr
     );
 }
 
+const COPY: Record<Language, {
+    title: string;
+    subtitle: string;
+    theme: string;
+    fontSize: string;
+    language: string;
+}> = {
+    [Language.English]: {
+        title: "Appearance",
+        subtitle: "Customize the app's appearance",
+        theme: "Theme",
+        fontSize: "Font size",
+        language: "Language",
+    },
+    [Language.Chinese]: {
+        title: "外观",
+        subtitle: "自定义应用外观",
+        theme: "主题",
+        fontSize: "字体大小",
+        language: "语言",
+    },
+    [Language.Japanese]: {
+        title: "外観",
+        subtitle: "アプリの外観を変更します",
+        theme: "テーマ",
+        fontSize: "フォントサイズ",
+        language: "言語",
+    },
+    [Language.Malay]: {
+        title: "Paparan",
+        subtitle: "Sesuaikan rupa aplikasi",
+        theme: "Tema",
+        fontSize: "Saiz fon",
+        language: "Bahasa",
+    },
+    [Language.Tamil]: {
+        title: "தோற்றம்",
+        subtitle: "செயலியின் தோற்றத்தை மாற்றவும்",
+        theme: "தீம்",
+        fontSize: "எழுத்தளவு",
+        language: "மொழி",
+    },
+};
+
 function AppearanceContent() {
-    const [active, setActive] = useState("light");
-    const [fontSize,setFontSize] = useState<number>(14);
-    const [language,setLanguage] = useState<Language>(Language.English);
+    const [prefs, setPrefs] = useState(() => loadAppearancePrefs());
+    const { theme: active, fontSize, language } = prefs;
+    const copy = COPY[language] ?? COPY[Language.English];
+
+    const updatePrefs = (nextPrefs: typeof prefs) => {
+        const saved = saveAppearancePrefs(nextPrefs);
+        applyAppearancePrefs(saved);
+        setPrefs(saved);
+    };
 
     const getTranslate = () => {
         switch (active) {
@@ -153,9 +209,10 @@ function AppearanceContent() {
             display:"flex",
             flexDirection:"column",
             gap:"10px",
+            color: "var(--viventory-text)",
         }}>
-            <h3>Appearance</h3>
-            <p>Customize the app's appearance</p>
+            <h3>{copy.title}</h3>
+            <p style={{ color: "var(--viventory-text)" }}>{copy.subtitle}</p>
             <label style={{
                 width:"100%",
                 display:"flex",
@@ -163,14 +220,14 @@ function AppearanceContent() {
                 gap:"50px",
                 alignItems:"center",
             }}>
-                <p>Theme</p>
+                <p style={{ color: "var(--viventory-text)" }}>{copy.theme}</p>
                 <div
                     style={{
                         position: "relative",
                         display: "flex",
                         width: "220px",
                         padding: "6px",
-                        background: "#1f1f1f",
+                        background: "var(--viventory-control)",
                         borderRadius: "999px",
                         fontFamily: "Arial, sans-serif",
                         userSelect: "none",
@@ -192,10 +249,10 @@ function AppearanceContent() {
                         }}
                     />
 
-                    {["light", "system", "dark"].map((mode) => (
+                    {(["light", "system", "dark"] as AppearanceTheme[]).map((mode) => (
                         <div
                             key={mode}
-                            onClick={() => setActive(mode)}
+                            onClick={() => updatePrefs({ ...prefs, theme: mode })}
                             style={{
                                 flex: 1,
                                 padding: "3px 0",
@@ -219,11 +276,11 @@ function AppearanceContent() {
                 gap:"36px",
                 alignItems:"center",
             }}>
-                <p>Font size</p>
+                <p style={{ color: "var(--viventory-text)" }}>{copy.fontSize}</p>
                 <input type="number" min="8" max="64" value={
                     fontSize.toString()
                 } onChange={(e)=>{
-                    setFontSize(Number(e.target.value));
+                    updatePrefs({ ...prefs, fontSize: Number(e.target.value) });
                 }}
                 style={{
                     width:"50px",
@@ -234,7 +291,8 @@ function AppearanceContent() {
                     zIndex: 2,
                     fontSize: "14px",
                     fontWeight: 600,
-                    color: "white",
+                    color: "var(--viventory-control-text)",
+                    background: "var(--viventory-control)",
                     textTransform: "capitalize",
                     aspectRatio:"2"
                 }}/>
@@ -245,11 +303,11 @@ function AppearanceContent() {
                 gap:"36px",
                 alignItems:"center",
             }}>
-                <p>Language</p>
+                <p style={{ color: "var(--viventory-text)" }}>{copy.language}</p>
                 <SearchableDropdown 
                     enumObject={Language}
                     value={language} 
-                    onSelect={setLanguage} 
+                    onSelect={(nextLanguage) => updatePrefs({ ...prefs, language: nextLanguage })}
                 />
             </label>
         </div>

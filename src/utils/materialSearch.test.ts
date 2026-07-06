@@ -3,7 +3,7 @@ import type { Material } from "../types";
 import {
     filterMaterialsBySearch,
     normalizeMaterialSearchQuery,
-} from "./materialSearch";
+} from "./materialSearch.ts";
 
 const materials: Material[] = [
     {
