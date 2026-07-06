@@ -5,13 +5,13 @@ const source = readFileSync(new URL("./AdminView.tsx", import.meta.url), "utf8")
 
 assert.match(
     source,
-    /react-resizable-panels/,
-    "AdminView should use the existing resizable panels dependency for adjustable layout",
+    /\.\/ui\/resizable/,
+    "AdminView should use the existing resizable panel wrapper for adjustable layout",
 );
 
 assert.match(
     source,
-    /PanelResizeHandle/,
+    /ResizableHandle/,
     "AdminView should expose a resize handle between admin panes",
 );
 
