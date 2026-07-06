@@ -34,6 +34,10 @@ const PALETTES = {
         welcomeAccent2: "#ef6f4d",
         welcomeDot: "rgba(78, 130, 160, 0.38)",
         welcomeFooter: "#d97706",
+        shellStart: "#f59e0b",
+        shellEnd: "#2d7898",
+        shellText: "#ffffff",
+        tabActiveBorder: "#f59e0b",
     },
     dark: {
         bg: "#111827",
@@ -52,6 +56,10 @@ const PALETTES = {
         welcomeAccent2: "#fb7185",
         welcomeDot: "rgba(251, 191, 36, 0.26)",
         welcomeFooter: "#78350f",
+        shellStart: "#78350f",
+        shellEnd: "#164e63",
+        shellText: "#fff7ed",
+        tabActiveBorder: "#fbbf24",
     },
 };
 
@@ -140,6 +148,10 @@ export function applyAppearancePrefs(prefs: AppearancePrefs): AppearancePrefs {
     root.style.setProperty("--viventory-welcome-accent-2", palette.welcomeAccent2);
     root.style.setProperty("--viventory-welcome-dot", palette.welcomeDot);
     root.style.setProperty("--viventory-welcome-footer", palette.welcomeFooter);
+    root.style.setProperty("--viventory-shell-start", palette.shellStart);
+    root.style.setProperty("--viventory-shell-end", palette.shellEnd);
+    root.style.setProperty("--viventory-shell-text", palette.shellText);
+    root.style.setProperty("--viventory-tab-active-border", palette.tabActiveBorder);
     root.style.setProperty("--viventory-font-size", `${normalized.fontSize}px`);
 
     document.body.style.background = palette.bg;

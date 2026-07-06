@@ -507,10 +507,10 @@ function RenderTabBarTab({
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        width: "180px",
-        padding: "5px 15px",
+        width: "190px",
+        padding: "7px 14px",
         borderRadius: "10px",
-        height: "25px",
+        height: "30px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -519,6 +519,15 @@ function RenderTabBarTab({
                 ? "var(--viventory-active-tab)"
                 : "var(--viventory-tab)",
         color: "var(--viventory-text)",
+        border:
+            index === currentTabIndex
+                ? "2px solid var(--viventory-tab-active-border)"
+                : "1px solid var(--viventory-border)",
+        boxShadow:
+            index === currentTabIndex
+                ? "0 10px 22px rgba(15, 23, 42, 0.14)"
+                : "none",
+        fontWeight: index === currentTabIndex ? 750 : 650,
 
         userSelect: "none" as const,
 
@@ -574,7 +583,7 @@ function RenderTabBarTab({
                     justifyContent: "center",
                     background:
                         isHovered
-                            ? "#ffffff75"
+                            ? "rgba(255,255,255,0.7)"
                             : "transparent",
                     borderRadius: "100%",
                     border: "1.5px solid transparent",
@@ -585,8 +594,8 @@ function RenderTabBarTab({
             >
                 {
                     isHovered
-                        ? <IoIosCloseCircle size={20} color="black" />
-                        : <IoIosCloseCircleOutline size={20} color="black" />
+                        ? <IoIosCloseCircle size={20} color="currentColor" />
+                        : <IoIosCloseCircleOutline size={20} color="currentColor" />
                 }
             </button>
         </div>
@@ -662,14 +671,15 @@ function RenderTabBar({
                         display: "flex",
                         alignItems: "center",
                         width: "100%",
-                        padding: "5px",
-                        height: "45px",
-                        gap: "5px",
+                        padding: "8px 10px",
+                        height: "54px",
+                        gap: "8px",
                         overflowX: "scroll",
                         scrollbarWidth:"thin",
                         scrollbarGutter:"unset",
                         overflowY: "hidden",
                         background: "var(--viventory-muted-surface)",
+                        borderBottom: "1px solid var(--viventory-border)",
                         boxSizing: "border-box"
                     }}
                 >
@@ -707,18 +717,19 @@ function RenderTabBar({
                             justifyContent: "center",
                             background:
                                 isHovered
-                                    ? "#00000025"
+                                    ? "var(--viventory-active-tab)"
                                     : "transparent",
                             borderRadius: "100%",
-                            border: "1.5px solid transparent",
+                            border: "1.5px solid var(--viventory-border)",
                             padding: "5px",
                             cursor: "pointer",
+                            color: "var(--viventory-text)",
                         }}
                     >
                         {
                             isHovered
-                                ? <MdAddCircle size={18} color="black" />
-                                : <MdAddCircleOutline size={18} color="black" />
+                                ? <MdAddCircle size={18} color="currentColor" />
+                                : <MdAddCircleOutline size={18} color="currentColor" />
                         }
                     </button>
                 </div>

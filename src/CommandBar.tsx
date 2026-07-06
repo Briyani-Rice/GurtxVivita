@@ -82,14 +82,17 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                 left: `${bounds.left}px`,
                 width: `${bounds.width}px`,
                 zIndex: 1000000000,
-                height: "200px",
-                background: "white",
+                height: "240px",
+                background: "var(--viventory-welcome-card)",
+                color: "var(--viventory-text)",
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                padding: "2.5px",
-                borderRadius: "5px",
-                border: "1px solid black",
+                padding: "8px",
+                borderRadius: "14px",
+                border: "1px solid var(--viventory-border)",
+                boxShadow: "0 24px 70px rgba(15, 23, 42, 0.28)",
+                backdropFilter: "blur(18px)",
             }}
         >
             <input
@@ -99,25 +102,30 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Search..."
                 style={{
-                    color:"black",
+                    color:"var(--viventory-text)",
                     fontFamily: "monospace",
-                    height: "20px",
-                    fontSize: "12.5px",
+                    height: "36px",
+                    fontSize: "14px",
                     outline: "none",
-                    border: "none",
-                    background: "transparent",
+                    border: "1px solid var(--viventory-border)",
+                    borderRadius: "10px",
+                    background: "var(--viventory-surface)",
                     flexShrink: 0,
                     boxShadow: "none",
+                    padding: "0 12px",
                 }}
             />
 
             <div
                 style={{
-                    background: "white",
+                    background: "transparent",
                     width: "100%",
                     flex: 1,
                     overflowY: "auto",
-                    gap: "2.5px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px",
+                    paddingTop: "8px",
                 }}
             >
                 {visCommands.map((value) => {
@@ -133,12 +141,12 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                                 textAlign: "left",
                                 fontFamily: "monospace",
                                 fontSize: "13px",
-                                padding: "0px",
-                                background: "transparent",
-                                border: "none",
-                                borderBottom: "1px solid black",
+                                padding: "9px 10px",
+                                background: "var(--viventory-surface)",
+                                border: "1px solid var(--viventory-border)",
+                                borderRadius: "10px",
                                 cursor: "pointer",
-                                color:"black"
+                                color:"var(--viventory-text)"
                             }}
                             onClick={()=>{
                                 value.onRun()

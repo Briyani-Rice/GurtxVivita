@@ -46,15 +46,7 @@ export default function Titlebar({
 
             <div className="title-main">
                 <Button
-                    style={{
-                        width: "100%",
-                        border: "none",
-                        borderRadius: "5px",
-                        fontFamily: "monospace",
-                        justifyContent: "left",
-                        color: "black",
-                        background: "white",
-                    }}
+                    className="command-button"
                     onClick={() => setCmdBarVis(true)}
                 >
                     &gt; Enter command
@@ -68,10 +60,10 @@ export default function Titlebar({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        background: "transparent",
-                        borderRadius: "5px",
-                        border: "1.5px solid transparent",
-                        padding: "5px",
+                        background: "rgba(255,255,255,0.14)",
+                        borderRadius: "999px",
+                        border: "1px solid rgba(255,255,255,0.22)",
+                        padding: "7px",
                         cursor: "pointer",
                     }}
                     onClick={() => {
@@ -86,7 +78,7 @@ export default function Titlebar({
                         }
                     }}
                 >
-                    <BsGearFill size={18} color="black" />
+                    <BsGearFill size={18} color="currentColor" />
                 </button>
             </div>
         </div>

@@ -31,6 +31,10 @@
   --viventory-welcome-accent-2: #ef6f4d;
   --viventory-welcome-dot: rgba(78, 130, 160, 0.38);
   --viventory-welcome-footer: #d97706;
+  --viventory-shell-start: #f59e0b;
+  --viventory-shell-end: #2d7898;
+  --viventory-shell-text: #ffffff;
+  --viventory-tab-active-border: #f59e0b;
   --viventory-font-size: 14px;
 
   font: 18px/145% var(--sans);

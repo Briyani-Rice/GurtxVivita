@@ -2,9 +2,10 @@
     display: flex;
     align-items: center;
     app-region: drag;
-    height: 35px;
-    background-color: #3b83a3;
-    color: white;
+    height: 42px;
+    background: linear-gradient(135deg, var(--viventory-shell-start), var(--viventory-shell-end));
+    color: var(--viventory-shell-text);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18);
 }
 
 /* LEFT */
@@ -15,6 +16,9 @@
     align-items: center;
     /* app-region: no-drag; */
     margin: 0;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.16);
 }
 
 /* CENTER */
@@ -25,6 +29,20 @@
     align-items: center;
     margin: 0;
     app-region: no-drag;
+}
+
+.command-button {
+    width: 100%;
+    min-height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.52);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    color: #1f2937;
+    font-family: var(--mono);
+    font-weight: 700;
+    justify-content: left;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 8px 18px rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(10px);
 }
 
 /* RIGHT */
@@ -38,6 +56,7 @@
 }
 .title-right button {
     app-region:no-drag;
+    color: var(--viventory-shell-text);
 }
 input[type="search"] {
     width: 100%;
