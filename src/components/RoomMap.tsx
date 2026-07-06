@@ -1,143 +1,341 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
-import { FloorElement } from "../types";
+import { useRef, useEffect, useState, useCallback } from "react";
+import type { FloorElement, Material } from "../types";
+import {
+    getAreaInventory,
+    getAreaInventoryTotal,
+} from "../utils/roomMapInventory";
 
-const STYLE: any = {
-    compartment: { bg: '#D2E7F3', border: '#60A5FA', text: '#1E3A8A' },
-    outofbounds: { bg: '#D1D5DB', border: '#9CA3AF', text: '#374151' },
-    stairs: { bg: '#F9F4CE', border: '#CA8A04', text: '#78350F' },
-    lift: { bg: '#E2CDEC', border: '#A855F7', text: '#6B21A8' },
-    chair: { bg: '#F4D4D3', border: '#F87171', text: '#991B1B' },
-    table: { bg: '#F9DFBC', border: '#FB923C', text: '#9A3412' },
-    workplace: { bg: '#E2CDEC', border: '#A855F7', text: '#6B21A8' },
+type RoomMapProps = {
+    floors?: Array<{
+        id: string;
+        name: string;
+        elements: FloorElement[];
+    }>;
+    materials?: Material[];
+    onCompartmentClick?: (areaId: string) => void;
+    selectedCompartment?: string | null;
+    isAdmin?: boolean;
+    floorplanImage?: string;
+    onFloorplanUpload?: (file: File) => void;
 };
 
-/* ---------------- CAMERA STATE ---------------- */
-function createCamera() {
+type CameraState = {
+    pan: { x: number; y: number };
+    zoom: number;
+    targetZoom: number;
+    velocity: { x: number; y: number };
+};
+
+type AreaRect = {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+};
+
+const PLAN_WIDTH = 1200;
+const PLAN_HEIGHT = 760;
+
+const STYLE: Record<string, { fill: string; stroke: string; text: string }> = {
+    compartment: { fill: "#f8fafc", stroke: "#111827", text: "#111827" },
+    workplace: { fill: "#fff7ed", stroke: "#f97316", text: "#9a3412" },
+    table: { fill: "#fef3c7", stroke: "#f59e0b", text: "#92400e" },
+    chair: { fill: "#e0f2fe", stroke: "#38bdf8", text: "#075985" },
+    stairs: { fill: "#ecfeff", stroke: "#06b6d4", text: "#155e75" },
+    lift: { fill: "#f5f3ff", stroke: "#8b5cf6", text: "#5b21b6" },
+    outofbounds: { fill: "#e5e7eb", stroke: "#6b7280", text: "#374151" },
+};
+
+function createCamera(): CameraState {
     return {
-        pan: { x: 0, y: 0 },
-        zoom: 1,
-        velocity: { x: 0, y: 0 }, // inertia
-        targetZoom: 1,
+        pan: { x: 40, y: 40 },
+        zoom: 0.95,
+        targetZoom: 0.95,
+        velocity: { x: 0, y: 0 },
     };
 }
 
-/* ---------------- RECT ---------------- */
-function elRect(el: FloorElement, W: number, H: number, cam: any) {
-    const s = 0.1;
+function worldToScreenRect(el: FloorElement, cam: CameraState): AreaRect {
     return {
-        x: cam.pan.x + (el.x / 100) * W * cam.zoom * s,
-        y: cam.pan.y + (el.y / 100) * H * cam.zoom * s,
-        w: (el.width / 100) * W * cam.zoom * s,
-        h: (el.height / 100) * H * cam.zoom * s,
+        x: cam.pan.x + el.x * cam.zoom,
+        y: cam.pan.y + el.y * cam.zoom,
+        w: el.width * cam.zoom,
+        h: el.height * cam.zoom,
     };
 }
 
-/* ---------------- GRID ---------------- */
-function drawGrid(ctx: CanvasRenderingContext2D, W: number, H: number, cam: any) {
-    const step = 40 * cam.zoom;
+function screenToWorld(x: number, y: number, cam: CameraState) {
+    return {
+        x: (x - cam.pan.x) / cam.zoom,
+        y: (y - cam.pan.y) / cam.zoom,
+    };
+}
+
+function drawBackground(ctx: CanvasRenderingContext2D, W: number, H: number) {
+    ctx.fillStyle = "#f8fafc";
+    ctx.fillRect(0, 0, W, H);
+}
+
+function drawPlanShell(ctx: CanvasRenderingContext2D, cam: CameraState) {
+    const x = cam.pan.x;
+    const y = cam.pan.y;
+    const z = cam.zoom;
 
     ctx.save();
-    ctx.strokeStyle = '#E5E7EB';
+    ctx.lineWidth = Math.max(2, 3 * z);
+    ctx.strokeStyle = "#111827";
+    ctx.fillStyle = "#ffffff";
+
+    ctx.beginPath();
+    ctx.rect(x + 96 * z, y + 150 * z, 960 * z, 430 * z);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#16a34a";
+    ctx.lineWidth = Math.max(2, 5 * z);
+    ctx.setLineDash([24 * z, 16 * z]);
+    ctx.strokeRect(x + 70 * z, y + 60 * z, 1040 * z, 610 * z);
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "#166534";
+    ctx.font = `${Math.max(12, 22 * z)}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText("GREEN BUFFER", x + 600 * z, y + 42 * z);
+
+    ctx.restore();
+}
+
+function drawShelves(ctx: CanvasRenderingContext2D, cam: CameraState) {
+    const shelves = [
+        { x: 180, y: 170, w: 190, h: 18, label: "VIVI-SHELVING" },
+        { x: 410, y: 170, w: 160, h: 18, label: "VIVI-SHELVING" },
+        { x: 570, y: 255, w: 150, h: 22, label: "VIVI-SHELVING" },
+        { x: 760, y: 300, w: 140, h: 22, label: "VIVI-SHELVING" },
+        { x: 760, y: 360, w: 140, h: 22, label: "VIVI-SHELVING" },
+        { x: 500, y: 480, w: 190, h: 22, label: "VIVI-SHELVING" },
+    ];
+
+    ctx.save();
+    ctx.font = `${Math.max(9, 10 * cam.zoom)}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    for (const shelf of shelves) {
+        const r = {
+            x: cam.pan.x + shelf.x * cam.zoom,
+            y: cam.pan.y + shelf.y * cam.zoom,
+            w: shelf.w * cam.zoom,
+            h: shelf.h * cam.zoom,
+        };
+
+        ctx.fillStyle = "#fff7ed";
+        ctx.strokeStyle = "#f97316";
+        ctx.lineWidth = Math.max(1, 1.5 * cam.zoom);
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.strokeRect(r.x, r.y, r.w, r.h);
+        ctx.fillStyle = "#9a3412";
+        ctx.fillText(shelf.label, r.x + r.w / 2, r.y + r.h / 2);
+    }
+
+    ctx.restore();
+}
+
+function drawFurniture(ctx: CanvasRenderingContext2D, cam: CameraState) {
+    const tables = [
+        { x: 190, y: 240, w: 42, h: 28 },
+        { x: 190, y: 300, w: 42, h: 28 },
+        { x: 190, y: 360, w: 42, h: 28 },
+        { x: 520, y: 535, w: 150, h: 46 },
+        { x: 705, y: 535, w: 150, h: 46 },
+        { x: 275, y: 250, w: 42, h: 170 },
+    ];
+
+    const chairs = [
+        { x: 170, y: 232 }, { x: 238, y: 232 },
+        { x: 170, y: 292 }, { x: 238, y: 292 },
+        { x: 170, y: 352 }, { x: 238, y: 352 },
+        { x: 400, y: 540 }, { x: 435, y: 540 }, { x: 470, y: 540 },
+        { x: 860, y: 185 }, { x: 900, y: 185 }, { x: 940, y: 185 },
+    ];
+
+    ctx.save();
+    ctx.lineWidth = Math.max(1, 1.25 * cam.zoom);
+
+    for (const table of tables) {
+        const r = {
+            x: cam.pan.x + table.x * cam.zoom,
+            y: cam.pan.y + table.y * cam.zoom,
+            w: table.w * cam.zoom,
+            h: table.h * cam.zoom,
+        };
+        ctx.fillStyle = "#fffbeb";
+        ctx.strokeStyle = "#f59e0b";
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.strokeRect(r.x, r.y, r.w, r.h);
+    }
+
+    for (const chair of chairs) {
+        const cx = cam.pan.x + chair.x * cam.zoom;
+        const cy = cam.pan.y + chair.y * cam.zoom;
+        ctx.fillStyle = "#e0f2fe";
+        ctx.strokeStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.roundRect(cx, cy, 20 * cam.zoom, 20 * cam.zoom, 5 * cam.zoom);
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+function drawStairs(ctx: CanvasRenderingContext2D, rect: AreaRect) {
+    ctx.save();
+    ctx.strokeStyle = "#06b6d4";
     ctx.lineWidth = 1;
 
-    const offsetX = cam.pan.x % step;
-    const offsetY = cam.pan.y % step;
-
-    for (let x = offsetX; x < W; x += step) {
+    const steps = 9;
+    for (let i = 1; i < steps; i += 1) {
+        const y = rect.y + (rect.h / steps) * i;
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, H);
-        ctx.stroke();
-    }
-
-    for (let y = offsetY; y < H; y += step) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(W, y);
+        ctx.moveTo(rect.x + 6, y);
+        ctx.lineTo(rect.x + rect.w - 6, y);
         ctx.stroke();
     }
 
     ctx.restore();
 }
 
-/* ---------------- DRAW ELEMENT ---------------- */
-function renderEl(ctx: any, el: FloorElement, r: any, cam: any, isSel: boolean, isHov: boolean) {
-    const s = STYLE[el.type] ?? STYLE.compartment;
+function drawElement(
+    ctx: CanvasRenderingContext2D,
+    el: FloorElement,
+    cam: CameraState,
+    isHovered: boolean,
+    isSelected: boolean,
+    materialCount: number
+) {
+    const style = STYLE[el.type] ?? STYLE.compartment;
+    const r = worldToScreenRect(el, cam);
 
     ctx.save();
 
-    ctx.fillStyle = s.bg;
+    ctx.fillStyle = style.fill;
+    ctx.strokeStyle = isSelected ? "#2563eb" : isHovered ? "#0ea5e9" : style.stroke;
+    ctx.lineWidth = isSelected ? 4 : isHovered ? 3 : 2;
     ctx.fillRect(r.x, r.y, r.w, r.h);
-
-    ctx.strokeStyle = isSel ? '#F59E0B' : isHov ? '#60A5FA' : s.border;
-    ctx.lineWidth = isSel ? 3 : 1.5;
     ctx.strokeRect(r.x, r.y, r.w, r.h);
 
-    // label (crisp)
-    ctx.fillStyle = s.text;
-    ctx.font = `${12}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(el.name ?? el.id, r.x + r.w / 2, r.y + r.h / 2);
+    if (el.type === "stairs") {
+        drawStairs(ctx, r);
+    }
+
+    ctx.fillStyle = style.text;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `${Math.max(11, 15 * cam.zoom)}px sans-serif`;
+    ctx.fillText(el.name ?? el.label ?? el.id, r.x + r.w / 2, r.y + r.h / 2 - 8);
+
+    if (materialCount > 0) {
+        ctx.font = `${Math.max(10, 12 * cam.zoom)}px sans-serif`;
+        ctx.fillStyle = "#2563eb";
+        ctx.fillText(`${materialCount} item${materialCount === 1 ? "" : "s"}`, r.x + r.w / 2, r.y + r.h / 2 + 13);
+    }
 
     ctx.restore();
 }
 
-/* ---------------- COMPONENT ---------------- */
-export function RoomMap({ floors = [], onCompartmentClick }: any) {
+function getPointerPosition(e: { clientX: number; clientY: number }, canvas: HTMLCanvasElement) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+    };
+}
 
+export function RoomMap({
+    floors = [],
+    materials = [],
+    onCompartmentClick,
+    selectedCompartment,
+}: RoomMapProps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
-
     const cam = useRef(createCamera());
-    const drag = useRef<any>(null);
-    const pinch = useRef<any>(null);
+    const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+    const pinch = useRef<{ dist: number; zoom: number } | null>(null);
 
-    const [cursor, setCursor] = useState('grab');
+    const [cursor, setCursor] = useState("grab");
+    const [hoveredAreaId, setHoveredAreaId] = useState<string | null>(null);
+    const [selectedAreaId, setSelectedAreaId] = useState<string | null>("tinkering-studio");
 
     const floor = floors[0] ?? null;
+    const selectedArea = floor?.elements.find(el => el.id === selectedAreaId) ?? null;
+    const selectedMaterials = getAreaInventory(materials, selectedAreaId ?? undefined);
 
-    /* ---------------- RENDER LOOP ---------------- */
+    useEffect(() => {
+        if (selectedCompartment !== undefined) {
+            setSelectedAreaId(selectedCompartment);
+        }
+    }, [selectedCompartment]);
+
+    const hitTest = useCallback((screenX: number, screenY: number) => {
+        if (!floor) {
+            return undefined;
+        }
+
+        const world = screenToWorld(screenX, screenY, cam.current);
+        return [...floor.elements].reverse().find(el =>
+            world.x >= el.x &&
+            world.x <= el.x + el.width &&
+            world.y >= el.y &&
+            world.y <= el.y + el.height
+        );
+    }, [floor]);
+
     const draw = useCallback(() => {
-        const canvas = canvasRef.current!;
-        const ctx = canvas.getContext('2d')!;
-        const W = canvas.width;
-        const H = canvas.height;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
         const c = cam.current;
 
-        ctx.clearRect(0, 0, W, H);
-
-        ctx.fillStyle = '#F9FAFB';
-        ctx.fillRect(0, 0, W, H);
-
-        drawGrid(ctx, W, H, c);
+        drawBackground(ctx, width, height);
+        drawPlanShell(ctx, c);
+        drawShelves(ctx, c);
+        drawFurniture(ctx, c);
 
         if (floor) {
             for (const el of floor.elements) {
-                const r = elRect(el, W, H, c);
-                renderEl(ctx, el, r, c, false, false);
+                drawElement(
+                    ctx,
+                    el,
+                    c,
+                    hoveredAreaId === el.id,
+                    selectedAreaId === el.id,
+                    getAreaInventoryTotal(materials, el.id)
+                );
             }
         }
-    }, [floor]);
+    }, [floor, hoveredAreaId, materials, selectedAreaId]);
 
-    /* ---------------- HIGH DPI + RESIZE ---------------- */
     useEffect(() => {
-        const canvas = canvasRef.current!;
-        const container = containerRef.current!;
+        const canvas = canvasRef.current;
+        const container = containerRef.current;
+        if (!canvas || !container) return;
 
         const resize = () => {
             const dpr = window.devicePixelRatio || 1;
             const rect = container.getBoundingClientRect();
+            const ctx = canvas.getContext("2d");
 
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            canvas.style.width = rect.width + 'px';
-            canvas.style.height = rect.height + 'px';
+            canvas.width = Math.max(1, rect.width * dpr);
+            canvas.height = Math.max(1, rect.height * dpr);
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
 
-            const ctx = canvas.getContext('2d')!;
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
+            ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
             draw();
         };
 
@@ -148,22 +346,16 @@ export function RoomMap({ floors = [], onCompartmentClick }: any) {
         return () => ro.disconnect();
     }, [draw]);
 
-    /* ---------------- ANIMATION LOOP (SMOOTH) ---------------- */
     useEffect(() => {
-        let raf: number;
+        let raf = 0;
 
         const loop = () => {
             const c = cam.current;
-
-            // inertia
             c.pan.x += c.velocity.x;
             c.pan.y += c.velocity.y;
-
-            c.velocity.x *= 0.9;
-            c.velocity.y *= 0.9;
-
-            // smooth zoom
-            c.zoom += (c.targetZoom - c.zoom) * 0.15;
+            c.velocity.x *= 0.82;
+            c.velocity.y *= 0.82;
+            c.zoom += (c.targetZoom - c.zoom) * 0.18;
 
             draw();
             raf = requestAnimationFrame(loop);
@@ -173,216 +365,244 @@ export function RoomMap({ floors = [], onCompartmentClick }: any) {
         return () => cancelAnimationFrame(raf);
     }, [draw]);
 
-    /* ---------------- HIT TEST ---------------- */
-    const hitTest = (x: number, y: number) => {
-        const canvas = canvasRef.current!;
-        const c = cam.current;
-
-        return floor?.elements.find((el:FloorElement) => {
-            const r = elRect(el, canvas.width, canvas.height, c);
-            return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
-        });
+    const selectArea = (area: FloorElement | undefined) => {
+        if (!area) return;
+        setSelectedAreaId(area.id);
+        onCompartmentClick?.(area.id);
     };
 
-    const getPos = (e: any) => {
-        const canvas = canvasRef.current!;
-        const rect = canvas.getBoundingClientRect();
-
-        const x = (e.clientX - rect.left);
-        const y = (e.clientY - rect.top);
-
-        return { x, y };
+    const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        drag.current = { x: e.clientX, y: e.clientY, moved: false };
+        setCursor("grabbing");
     };
 
-    /* ---------------- MOUSE ---------------- */
-    const onMouseDown = (e: any) => {
-        drag.current = {
-            x: e.clientX,
-            y: e.clientY,
-        };
-
-        const pos = getPos(e);
-        const hit = hitTest(pos.x, pos.y);
-
-        if (hit?.type === 'compartment') {
-            onCompartmentClick?.(hit.id);
-        }
-
-        setCursor('grabbing');
-    };
-
-    const onMouseMove = (e: any) => {
-        const c = cam.current;
+    const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
         if (drag.current) {
             const dx = e.clientX - drag.current.x;
             const dy = e.clientY - drag.current.y;
 
-            c.velocity.x = dx;
-            c.velocity.y = dy;
+            if (Math.abs(dx) + Math.abs(dy) > 2) {
+                drag.current.moved = true;
+            }
 
-            drag.current = { x: e.clientX, y: e.clientY };
+            cam.current.velocity.x = dx;
+            cam.current.velocity.y = dy;
+            drag.current.x = e.clientX;
+            drag.current.y = e.clientY;
             return;
         }
 
-        const pos = getPos(e);
+        const pos = getPointerPosition(e, canvas);
         const hit = hitTest(pos.x, pos.y);
-
-        setCursor(hit ? 'pointer' : 'grab');
+        setHoveredAreaId(hit?.id ?? null);
+        setCursor(hit ? "pointer" : "grab");
     };
 
-    const onMouseUp = () => {
+    const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        const canvas = canvasRef.current;
+        const wasDragging = drag.current?.moved;
         drag.current = null;
-        setCursor('grab');
+        setCursor("grab");
+
+        if (!canvas || wasDragging) return;
+
+        const pos = getPointerPosition(e, canvas);
+        selectArea(hitTest(pos.x, pos.y));
     };
 
-    /* ---------------- WHEEL ZOOM ---------------- */
-    const onWheel = (e: any) => {
+    const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
         e.preventDefault();
-
-        const c = cam.current;
         const scale = e.deltaY > 0 ? 0.9 : 1.1;
-
-        const newZoom = Math.max(0.05, Math.min(6, c.targetZoom * scale));
-
-        c.targetZoom = newZoom;
+        cam.current.targetZoom = Math.max(0.45, Math.min(2.5, cam.current.targetZoom * scale));
     };
 
-    /* ---------------- PINCH ZOOM ---------------- */
-    const onTouchStart = (e: any) => {
+    const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
         if (e.touches.length === 2) {
-            const [a, b] = e.touches;
-            const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-
+            const a = e.touches[0];
+            const b = e.touches[1];
             pinch.current = {
-                dist,
+                dist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
                 zoom: cam.current.targetZoom,
             };
+            return;
+        }
+
+        const touch = e.touches[0];
+        if (touch) {
+            drag.current = { x: touch.clientX, y: touch.clientY, moved: false };
         }
     };
 
-    const onTouchMove = (e: any) => {
+    const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
         if (e.touches.length === 2 && pinch.current) {
-            e.preventDefault();
-
-            const [a, b] = e.touches;
+            const a = e.touches[0];
+            const b = e.touches[1];
             const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+            cam.current.targetZoom = Math.max(0.45, Math.min(2.5, pinch.current.zoom * (dist / pinch.current.dist)));
+            return;
+        }
 
-            const scale = dist / pinch.current.dist;
-
-            cam.current.targetZoom = Math.max(
-                0.05,
-                Math.min(6, pinch.current.zoom * scale)
-            );
+        const touch = e.touches[0];
+        if (touch && drag.current) {
+            const dx = touch.clientX - drag.current.x;
+            const dy = touch.clientY - drag.current.y;
+            drag.current.moved = true;
+            cam.current.velocity.x = dx;
+            cam.current.velocity.y = dy;
+            drag.current.x = touch.clientX;
+            drag.current.y = touch.clientY;
         }
     };
 
-    const onTouchEnd = () => {
+    const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
+        const canvas = canvasRef.current;
+        const wasDragging = drag.current?.moved;
         pinch.current = null;
+        drag.current = null;
+
+        if (!canvas || wasDragging || e.changedTouches.length === 0) return;
+
+        const touch = e.changedTouches[0];
+        const pos = getPointerPosition(touch, canvas);
+        selectArea(hitTest(pos.x, pos.y));
     };
-    useEffect(() => {
-        const canvas = canvasRef.current!;
-        const c = cam.current;
 
-        const onWheel = (e: WheelEvent) => {
-            e.preventDefault();
-
-            const scale = e.deltaY > 0 ? 0.9 : 1.1;
-            c.targetZoom = Math.max(0.05, Math.min(6, c.targetZoom * scale));
-        };
-
-        const onTouchMove = (e: TouchEvent) => {
-            if (e.touches.length !== 2 || !pinch.current) return;
-
-            e.preventDefault();
-
-            const [a, b] = e.touches;
-            const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-
-            const scale = dist / pinch.current.dist;
-
-            c.targetZoom = Math.max(
-                0.05,
-                Math.min(6, pinch.current.zoom * scale)
-            );
-        };
-
-        canvas.addEventListener('wheel', onWheel, { passive: false });
-        canvas.addEventListener('touchmove', onTouchMove, { passive: false });
-
-        return () => {
-            canvas.removeEventListener('wheel', onWheel);
-            canvas.removeEventListener('touchmove', onTouchMove);
-        };
-    }, []);
-
-    /* ---------------- UI ---------------- */
     return (
-        <div style={{ display: 'flex', width: '100%', height: '100%' }}>
+        <div style={{ display: "flex", width: "100%", height: "100%", background: "#f8fafc" }}>
             <div
                 ref={containerRef}
                 style={{
                     flex: 1,
-                    position: 'relative',
-                    width: '100%',
-                    height: '100%',
+                    position: "relative",
+                    minWidth: 0,
+                    height: "100%",
                     cursor,
                 }}
             >
                 <canvas
                     ref={canvasRef}
                     style={{
-                        position: 'absolute',
+                        position: "absolute",
                         inset: 0,
-                        width: '100%',
-                        height: '100%',
-                        touchAction: 'none',
-                        display: 'block',
+                        width: "100%",
+                        height: "100%",
+                        touchAction: "none",
+                        display: "block",
                     }}
-                    onMouseDown={onMouseDown}
-                    onMouseMove={onMouseMove}
-                    onMouseUp={onMouseUp}
-                    onTouchStart={onTouchStart}
-                    onTouchEnd={onTouchEnd}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={() => {
+                        drag.current = null;
+                        setHoveredAreaId(null);
+                        setCursor("grab");
+                    }}
+                    onWheel={handleWheel}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                 />
-                <div
-                    style={{
-                        position: 'absolute',
-                        right: 12,
-                        bottom: 12,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 6,
-                        zIndex: 10,
-                    }}
-                >
-                    <button onClick={() => cam.current.targetZoom = Math.min(6, cam.current.targetZoom * 1.2)} style={btn}>
-                        +
-                    </button>
 
-                    <button onClick={() => cam.current.targetZoom = Math.max(0.05, cam.current.targetZoom * 0.8)} style={btn}>
-                        -
-                    </button>
-
+                <div style={zoomControls}>
+                    <button onClick={() => cam.current.targetZoom = Math.min(2.5, cam.current.targetZoom * 1.18)} style={buttonStyle}>+</button>
+                    <button onClick={() => cam.current.targetZoom = Math.max(0.45, cam.current.targetZoom * 0.84)} style={buttonStyle}>-</button>
                     <button
                         onClick={() => {
-                            cam.current.pan = { x: 0, y: 0 };
-                            cam.current.targetZoom = 1;
+                            cam.current.pan = { x: 40, y: 40 };
+                            cam.current.targetZoom = 0.95;
                         }}
-                        style={btn}
+                        style={buttonStyle}
                     >
                         Reset
                     </button>
                 </div>
             </div>
+
+            <aside style={detailPanel}>
+                <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase" }}>
+                    Selected area
+                </div>
+                <h2 style={{ margin: "6px 0 4px", fontSize: 22, lineHeight: 1.15 }}>
+                    {selectedArea?.name ?? "Select an area"}
+                </h2>
+                <div style={{ color: "#475569", fontSize: 13 }}>
+                    {selectedMaterials.length} material type{selectedMaterials.length === 1 ? "" : "s"} stored here
+                </div>
+
+                <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 10 }}>
+                    {selectedMaterials.length > 0 ? selectedMaterials.map(material => (
+                        <div key={material.id} style={materialRow}>
+                            <div>
+                                <div style={{ fontWeight: 700 }}>{material.name}</div>
+                                <div style={{ color: "#64748b", fontSize: 12 }}>{material.description}</div>
+                            </div>
+                            <div style={quantityPill}>
+                                {material.quantity} {material.unit}
+                            </div>
+                        </div>
+                    )) : (
+                        <div style={{ color: "#64748b", fontSize: 14 }}>
+                            No materials are assigned to this area yet.
+                        </div>
+                    )}
+                </div>
+            </aside>
         </div>
     );
 }
-const btn: React.CSSProperties = {
-    padding: '6px 10px',
-    fontSize: 12,
-    border: '1px solid #d1d5db',
-    background: 'white',
+
+const zoomControls: React.CSSProperties = {
+    position: "absolute",
+    right: 12,
+    bottom: 12,
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+};
+
+const buttonStyle: React.CSSProperties = {
+    minWidth: 54,
+    height: 34,
+    border: "1px solid #cbd5e1",
+    background: "#ffffff",
     borderRadius: 6,
-    cursor: 'pointer',
+    cursor: "pointer",
+    fontWeight: 700,
+};
+
+const detailPanel: React.CSSProperties = {
+    width: 320,
+    borderLeft: "1px solid #dbe3ea",
+    background: "#ffffff",
+    padding: 18,
+    boxSizing: "border-box",
+    overflowY: "auto",
+};
+
+const materialRow: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: "10px 0",
+    borderBottom: "1px solid #e2e8f0",
+};
+
+const quantityPill: React.CSSProperties = {
+    flexShrink: 0,
+    border: "1px solid #bfdbfe",
+    background: "#eff6ff",
+    color: "#1d4ed8",
+    borderRadius: 6,
+    padding: "4px 8px",
+    fontSize: 12,
+    fontWeight: 700,
+};
+
+export const ROOM_MAP_PLAN_SIZE = {
+    width: PLAN_WIDTH,
+    height: PLAN_HEIGHT,
 };

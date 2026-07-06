@@ -1,7 +1,7 @@
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
-import {invoke} from "@tauri-apps/api/core";
+import { loadDocsMarkdownFileContent } from "./Docs/docsFileApi"
 export class File {
     path: string;
     contents:string | undefined = "";
@@ -16,7 +16,7 @@ export class File {
 
     async refresh(): Promise<void> {
         try {
-            const result = await invoke<string>('load_file_content',{file_path:this.path});
+            const result = await loadDocsMarkdownFileContent(this.path);
             console.log(result)
             this.contents = result;
         } catch (e) {

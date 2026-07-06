@@ -2,7 +2,7 @@ import { ReactNode } from "react"
 import { Tab } from "../../types"
 import { File, renderMdFile } from "../FileHelper"
 import { useState, useEffect } from "react"
-import {invoke} from "@tauri-apps/api/core";
+import { getDocsMarkdownFiles } from "./docsFileApi"
 
 class DocsView implements Tab {
     id: string = crypto.randomUUID()
@@ -18,15 +18,29 @@ function DocsContent() {
     const [files, setFiles] = useState<File[]>([])
     const [selected, setSelected] = useState<number>(0)
     const [query, setQuery] = useState("")
+    const [error, setError] = useState("")
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         async function loadFiles() {
-            // @ts-ignore
-            const paths: string[] = await invoke<String[]>('get_md_files')
-            const fileObjects: File[] = await Promise.all(paths.map(path => File.create(path)))
-            // @ts-ignore
-            await Promise.all(fileObjects.map(file => file.ready))
-            setFiles(fileObjects)
+            try {
+                setLoading(true)
+                setError("")
+
+                const paths = await getDocsMarkdownFiles()
+                const fileObjects = await Promise.all(paths.map(path => File.create(path)))
+
+                setFiles(fileObjects)
+
+                if (fileObjects.length === 0) {
+                    setError("No documentation files were found.")
+                }
+            } catch (err) {
+                setFiles([])
+                setError(`Unable to load documentation: ${err}`)
+            } finally {
+                setLoading(false)
+            }
         }
 
         loadFiles()
@@ -106,7 +120,19 @@ function DocsContent() {
                 overflowY: "auto",
                 background: "#ffffff"
             }}>
-                {filtered[selected] && (
+                {loading ? (
+                    <div>Loading documentation...</div>
+                ) : error ? (
+                    <div style={{
+                        color: "#b00020",
+                        background: "#fff5f5",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        border: "1px solid #ffc9c9"
+                    }}>
+                        {error}
+                    </div>
+                ) : filtered[selected] && (
                     filtered[selected].err ? (
                         <div style={{
                             color: "#b00020",
