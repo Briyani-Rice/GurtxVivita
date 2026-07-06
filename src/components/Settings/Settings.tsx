@@ -47,9 +47,12 @@ function SettingsContent() {
                 display: "flex",
                 flexDirection: "row",
                 gap: "20px",
-                padding: "10px",
+                padding: "20px",
                 minHeight: "100%",
-                background: "var(--viventory-bg)",
+                boxSizing: "border-box",
+                background:
+                    "radial-gradient(var(--viventory-welcome-dot) 1.2px, transparent 1.2px), linear-gradient(135deg, var(--viventory-welcome-bg), var(--viventory-bg))",
+                backgroundSize: "22px 22px, auto",
                 color: "var(--viventory-text)",
                 fontSize: "var(--viventory-font-size)",
             }}
@@ -57,21 +60,38 @@ function SettingsContent() {
             {/* Sidebar */}
             <div
                 style={{
-                    width: "250px",
+                    width: "280px",
                     borderRight: "1px solid var(--viventory-border)",
-                    paddingRight: "10px"
+                    paddingRight: "18px"
                 }}
             >
-                <h2>Settings</h2>
+                <p
+                    style={{
+                        margin: "0 0 8px",
+                        color: "var(--viventory-welcome-accent)",
+                        fontSize: "13px",
+                        fontWeight: 850,
+                        textTransform: "uppercase",
+                        letterSpacing: 0,
+                    }}
+                >
+                    Control room
+                </p>
+                <h2 style={{ margin: "0 0 16px", fontSize: "34px", fontWeight: 850, letterSpacing: 0 }}>
+                    Settings
+                </h2>
 
                 <input
                     type="search"
                     placeholder="Search..."
                     style={{
                         width: "100%",
-                        marginBottom: "10px",
-                        background: "var(--viventory-control)",
-                        color: "var(--viventory-control-text)",
+                        marginBottom: "14px",
+                        minHeight: "42px",
+                        borderRadius: "999px",
+                        padding: "0 14px",
+                        background: "var(--viventory-surface)",
+                        color: "var(--viventory-text)",
                         border: "1px solid var(--viventory-border)",
                     }}
                 />
@@ -92,18 +112,19 @@ function SettingsContent() {
                                 }
                                 style={{
                                     textAlign: "left",
-                                    padding: "8px",
-                                    borderRadius: "5px",
+                                    padding: "12px 14px",
+                                    borderRadius: "8px",
                                     border:
                                         index === selectedIndex
-                                            ? "2px solid black"
+                                            ? "2px solid var(--viventory-tab-active-border)"
                                             : "1px solid var(--viventory-border)",
                                     background:
                                         index === selectedIndex
-                                            ? "var(--viventory-muted-surface)"
+                                            ? "var(--viventory-active-tab)"
                                             : "var(--viventory-surface)",
                                     color: "var(--viventory-text)",
-                                    cursor: "pointer"
+                                    cursor: "pointer",
+                                    fontWeight: 750,
                                 }}
                             >
                                 {page.name}
@@ -116,7 +137,9 @@ function SettingsContent() {
             {/* Content */}
             <div
                 style={{
-                    flex: 1
+                    flex: 1,
+                    minWidth: 0,
+                    padding: "8px 0 0",
                 }}
             >
                 {

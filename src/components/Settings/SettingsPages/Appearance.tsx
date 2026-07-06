@@ -146,7 +146,7 @@ const COPY: Record<Language, {
 }> = {
     [Language.English]: {
         title: "Appearance",
-        subtitle: "Customize the app's appearance",
+        subtitle: "Make the app feel right for the workshop",
         theme: "Theme",
         fontSize: "Font size",
         language: "Language",
@@ -206,13 +206,27 @@ function AppearanceContent() {
     return (
         <div
         style={{
-            display:"flex",
-            flexDirection:"column",
-            gap:"10px",
+            display:"grid",
+            gridTemplateColumns: "minmax(320px, 520px) minmax(260px, 360px)",
+            gap:"22px",
             color: "var(--viventory-text)",
         }}>
-            <h3>{copy.title}</h3>
-            <p style={{ color: "var(--viventory-text)" }}>{copy.subtitle}</p>
+            <section
+                style={{
+                    border: "1px solid var(--viventory-border)",
+                    borderRadius: 8,
+                    background: "var(--viventory-welcome-card)",
+                    padding: 24,
+                    boxShadow: "0 18px 42px rgba(15, 23, 42, 0.12)",
+                    backdropFilter: "blur(14px)",
+                }}
+            >
+            <h3 style={{ margin: "0 0 8px", fontSize: 32, fontWeight: 850, letterSpacing: 0 }}>
+                {copy.title}
+            </h3>
+            <p style={{ margin: "0 0 22px", color: "var(--viventory-muted-text)", fontSize: 17 }}>
+                {copy.subtitle}
+            </p>
             <label style={{
                 width:"100%",
                 display:"flex",
@@ -242,7 +256,7 @@ function AppearanceContent() {
                             left: "6px",
                             width: "calc((100% - 12px) / 3)",
                             height: "calc(100% - 12px)",
-                            background: "white",
+                            background: "var(--viventory-welcome-accent)",
                             borderRadius: "999px",
                             transition: "transform 0.3s ease",
                             transform: `translateX(${getTranslate()})`,
@@ -261,7 +275,7 @@ function AppearanceContent() {
                                 zIndex: 2,
                                 fontSize: "14px",
                                 fontWeight: 600,
-                                color: active === mode ? "black" : "#bbb",
+                                color: active === mode ? "#1f1300" : "var(--viventory-muted-text)",
                                 textTransform: "capitalize",
                             }}
                         >
@@ -310,6 +324,27 @@ function AppearanceContent() {
                     onSelect={(nextLanguage) => updatePrefs({ ...prefs, language: nextLanguage })}
                 />
             </label>
+            </section>
+            <aside
+                style={{
+                    borderRadius: 8,
+                    padding: 22,
+                    background: "linear-gradient(135deg, var(--viventory-welcome-accent), var(--viventory-welcome-accent-2))",
+                    color: "#1f1300",
+                    minHeight: 220,
+                    boxShadow: "0 18px 42px rgba(180, 83, 9, 0.22)",
+                }}
+            >
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 850, textTransform: "uppercase" }}>
+                    Preview card
+                </p>
+                <h3 style={{ margin: "18px 0 10px", fontSize: 28, letterSpacing: 0 }}>
+                    VIVITA Maker Guide
+                </h3>
+                <p style={{ margin: 0, color: "#1f1300", lineHeight: 1.45 }}>
+                    Theme, font size, and language changes apply immediately across the workspace.
+                </p>
+            </aside>
         </div>
     );
 }
