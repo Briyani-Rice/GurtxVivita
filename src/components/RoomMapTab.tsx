@@ -1,24 +1,27 @@
-import { Tab } from "../types.ts";
+import type { Tab } from "../types.ts";
 import { RoomMap } from "./RoomMap";
-import {
-    vivitaFloor,
-    vivitaMaterials,
-} from "./roomMapData";
+import { useInventory } from "./InventoryProvider";
 
-export class RoomMapTab implements Tab {
-    id = crypto.randomUUID();
-    name = "Room map";
-    content = (
+function RoomMapTabContent() {
+    const inventory = useInventory();
+
+    return (
         <div style={{ width: "100%", height: "100%" }}>
             <RoomMap
-                floors={[vivitaFloor]}
-                materials={vivitaMaterials}
+                floors={inventory.floors}
+                materials={inventory.materials}
                 onCompartmentClick={(areaId) => {
                     console.log("Selected room map area:", areaId);
                 }}
             />
         </div>
     );
+}
+
+export class RoomMapTab implements Tab {
+    id = crypto.randomUUID();
+    name = "Room map";
+    content = <RoomMapTabContent />;
 }
 
 export default RoomMapTab;

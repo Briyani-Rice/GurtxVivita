@@ -16,13 +16,13 @@ import type { Tab } from "../types";
 import heroImage from "../assets/hero.png";
 import {
     answerMakerQuery,
-    makerspaceItems,
     projectIdeas,
     type MakerAnswer,
     type MakerAnswerSection,
     type MakerItem,
     type MakerProjectIdea,
 } from "./makerspaceData";
+import { useInventory } from "./InventoryProvider";
 
 type ChatMessage = {
     id: string;
@@ -356,6 +356,8 @@ function AssistantAnswer({ answer }: { answer: MakerAnswer }) {
 }
 
 export function MakerKiosk() {
+    const inventory = useInventory();
+    const makerItems = inventory.makerItems;
     const [input, setInput] = useState("");
     const conversationEndRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<ChatMessage[]>(() => [
@@ -363,13 +365,13 @@ export function MakerKiosk() {
             id: makeId(),
             role: "assistant",
             text: "Hi, I am VIVI Bot. I can help you find materials, learn how to use tools safely, and choose something to make.",
-            answer: answerMakerQuery("", makerspaceItems, projectIdeas),
+            answer: answerMakerQuery("", makerItems, projectIdeas),
         },
     ]);
 
     const featuredItems = useMemo(
-        () => makerspaceItems.filter(item => ["hot-glue-gun", "microbit", "cardboard", "leds"].includes(item.id)),
-        [],
+        () => makerItems.filter(item => ["hot-glue-gun", "microbit", "cardboard", "leds"].includes(item.id)),
+        [makerItems],
     );
 
     useEffect(() => {
@@ -380,7 +382,7 @@ export function MakerKiosk() {
         const query = prompt.trim();
         if (!query) return;
 
-        const answer = answerMakerQuery(query, makerspaceItems, projectIdeas);
+        const answer = answerMakerQuery(query, makerItems, projectIdeas);
         setMessages(prev => [
             ...prev,
             { id: makeId(), role: "child", text: query },

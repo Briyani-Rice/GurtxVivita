@@ -1,36 +1,43 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const source = readFileSync(new URL("./AdminViewTab.tsx", import.meta.url), "utf8");
+const adminTabSource = readFileSync(new URL("./AdminViewTab.tsx", import.meta.url), "utf8");
+const providerSource = readFileSync(new URL("./InventoryProvider.tsx", import.meta.url), "utf8");
 
 assert.match(
-    source,
+    providerSource,
     /listMaterialRecords/,
-    "AdminViewTab should load materials from PocketBase",
+    "Shared inventory provider should load materials from PocketBase",
 );
 
 assert.match(
-    source,
+    providerSource,
     /createMaterialRecord/,
-    "AdminViewTab should create materials through PocketBase",
+    "Shared inventory provider should create materials through PocketBase",
 );
 
 assert.match(
-    source,
+    providerSource,
     /updateMaterialRecord/,
-    "AdminViewTab should update materials through PocketBase",
+    "Shared inventory provider should update materials through PocketBase",
 );
 
 assert.match(
-    source,
+    providerSource,
     /deleteMaterialRecord/,
-    "AdminViewTab should delete materials through PocketBase",
+    "Shared inventory provider should delete materials through PocketBase",
 );
 
 assert.match(
-    source,
+    providerSource,
     /useEffect/,
-    "AdminViewTab should load saved PocketBase records when the admin tab mounts",
+    "Shared inventory provider should load saved PocketBase records when the app mounts",
+);
+
+assert.match(
+    adminTabSource,
+    /useInventory\(\)/,
+    "AdminViewTab should consume the shared inventory provider",
 );
 
 console.log("AdminViewTab PocketBase source checks passed");

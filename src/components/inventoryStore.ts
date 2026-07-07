@@ -191,7 +191,7 @@ export function materialToMakerItem(
     compartments: Compartment[] = inventoryCompartments,
 ): MakerItem {
     const compartment = compartments.find(entry => entry.id === material.compartmentId);
-    const zone = compartment?.name ?? material.compartmentId || "Unassigned area";
+    const zone = compartment?.name ?? (material.compartmentId || "Unassigned area");
     const shelf = compartment?.number ? `${compartment.number} inventory` : "Inventory";
 
     return {

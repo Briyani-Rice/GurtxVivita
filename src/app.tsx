@@ -26,6 +26,7 @@ import vivitaLogo from "./assets/vivita-logo.png";
 import vivitaSpaceImage from "./assets/vivita-space.png";
 import vivitaCommunityImage from "./assets/vivita-community.jpg";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { InventoryProvider } from "./components/InventoryProvider";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -985,6 +986,7 @@ function App() {
         }
     };
     return (
+        <InventoryProvider>
         <main
             style={{
                 display: "flex",
@@ -1030,6 +1032,7 @@ function App() {
                 {RenderTab(tabs, tabIndex)}
             </div>
         </main>
+        </InventoryProvider>
     )
 }
 
