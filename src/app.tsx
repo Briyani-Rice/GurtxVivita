@@ -118,7 +118,7 @@ export class welcomeTab implements Tab {
             minHeight: "44px",
             padding: "0 18px",
             border: variant === "primary" ? "none" : "1px solid var(--viventory-border)",
-            borderRadius: "999px",
+            borderRadius: "6px",
             background:
                 variant === "primary"
                     ? "linear-gradient(135deg, var(--viventory-welcome-accent), var(--viventory-welcome-accent-2))"
@@ -254,7 +254,7 @@ export class welcomeTab implements Tab {
                                     fontWeight: 600,
                             fontFamily: "Libre Franklin, sans-serif",
                                     border: "1px solid var(--viventory-border)",
-                                    borderRadius: "999px",
+                                    borderRadius: "6px",
                                     background: "var(--viventory-surface)",
                                     color: "var(--viventory-text)",
                             outline: "none",
@@ -280,7 +280,7 @@ export class welcomeTab implements Tab {
                                     onClick={() => welcomeTab.props.handleMaterialSearch(label)}
                                     style={{
                                         border: "1px solid var(--viventory-border)",
-                                        borderRadius: "999px",
+                                        borderRadius: "6px",
                                         background: "var(--viventory-welcome-card)",
                                         color: "var(--viventory-text)",
                                         padding: "9px 14px",

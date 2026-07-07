@@ -150,7 +150,7 @@ const styles: Record<string, React.CSSProperties> = {
     assistantBubble: {
         alignSelf: "flex-start",
         maxWidth: "86%",
-        borderRadius: "22px 22px 22px 6px",
+        borderRadius: "6px",
         border: `1px solid ${palette.line}`,
         background: "rgba(255,255,255,0.94)",
         padding: 16,
@@ -161,7 +161,7 @@ const styles: Record<string, React.CSSProperties> = {
     childBubble: {
         alignSelf: "flex-end",
         maxWidth: "76%",
-        borderRadius: "22px 22px 6px 22px",
+        borderRadius: "6px",
         background: palette.sky,
         color: "#ffffff",
         padding: "13px 15px",

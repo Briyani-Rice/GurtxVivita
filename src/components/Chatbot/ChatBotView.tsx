@@ -531,8 +531,8 @@ export function ChatBotView({
                                         <div style={{
                                             padding: "11px 15px", fontSize: 13.5, lineHeight: 1.65, wordBreak: "break-word",
                                             ...(msg.role === "user"
-                                                    ? { background: C.userBubble, border: `1px solid ${C.userBdr}`, color: C.userText, borderRadius: "18px 18px 5px 18px", whiteSpace: "pre-wrap" }
-                                                    : { background: C.asstBubble, border: `1px solid ${C.asstBdr}`, color: C.asstText, borderRadius: "18px 18px 18px 5px" }
+                                                    ? { background: C.userBubble, border: `1px solid ${C.userBdr}`, color: C.userText, borderRadius: "6px", whiteSpace: "pre-wrap" }
+                                                    : { background: C.asstBubble, border: `1px solid ${C.asstBdr}`, color: C.asstText, borderRadius: "6px" }
                                             ),
                                         }}>
                                             {msg.role === "assistant" ? renderMarkdown(msg.content) : msg.content}
@@ -567,7 +567,7 @@ export function ChatBotView({
                                     <div style={{ width: 32, height: 32, borderRadius: "50%", background: C.avatarBg, border: `1px solid ${C.headerBdr}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                         <Bot size={15} color={C.avatarIcon} />
                                     </div>
-                                    <div style={{ padding: "13px 18px", borderRadius: "18px 18px 18px 5px", background: C.asstBubble, border: `1px solid ${C.asstBdr}`, display: "flex", gap: 6, alignItems: "center" }}>
+                                    <div style={{ padding: "13px 18px", borderRadius: "6px", background: C.asstBubble, border: `1px solid ${C.asstBdr}`, display: "flex", gap: 6, alignItems: "center" }}>
                                         {[0, 0.18, 0.36].map((delay, i) => (
                                             <span key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: C.dotColor, display: "inline-block", animation: `vvchat-dot 1.1s ease ${delay}s infinite` }} />
                                         ))}

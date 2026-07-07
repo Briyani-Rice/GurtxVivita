@@ -96,7 +96,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                 display: "flex",
                 flexDirection: "column",
                 padding: "8px",
-                borderRadius: "14px",
+                borderRadius: "6px",
                 border: "1px solid var(--viventory-border)",
                 boxShadow: "0 24px 70px rgba(15, 23, 42, 0.28)",
                 backdropFilter: "blur(18px)",
@@ -115,7 +115,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                     fontSize: "14px",
                     outline: "none",
                     border: "1px solid var(--viventory-border)",
-                    borderRadius: "10px",
+                    borderRadius: "4px",
                     background: "var(--viventory-surface)",
                     flexShrink: 0,
                     boxShadow: "none",
@@ -151,7 +151,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                                 padding: "9px 10px",
                                 background: "var(--viventory-surface)",
                                 border: "1px solid var(--viventory-border)",
-                                borderRadius: "10px",
+                                borderRadius: "4px",
                                 cursor: "pointer",
                                 color:"var(--viventory-text)"
                             }}

@@ -61,7 +61,7 @@ export default function Titlebar({
                         alignItems: "center",
                         justifyContent: "center",
                         background: "rgba(255,255,255,0.14)",
-                        borderRadius: "999px",
+                        borderRadius: "6px",
                         border: "1px solid rgba(255,255,255,0.22)",
                         padding: "7px",
                         cursor: "pointer",

@@ -46,7 +46,7 @@ export function LoginView({ onLogin }: LoginProps) {
 
                 {/* ── Logo / branding ── */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-md border border-gray-100 mb-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-md bg-white shadow-md border border-gray-100 mb-4">
                         <Package className="w-8 h-8 text-blue-600" />
                     </div>
                     <h1 className="vivitaFont text-4xl font-bold text-gray-900 tracking-tight">
@@ -56,7 +56,7 @@ export function LoginView({ onLogin }: LoginProps) {
                 </div>
 
                 {/* ── Card ── */}
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+                <div className="bg-white rounded-md shadow-xl border border-gray-100 p-8">
                     <h2 className="text-lg font-semibold text-gray-800 mb-6">Sign in to continue</h2>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,7 +72,7 @@ export function LoginView({ onLogin }: LoginProps) {
                                 value={username}
                                 onChange={e => { setUsername(e.target.value); setError(''); }}
                                 placeholder="Enter your username"
-                                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                                className="w-full px-4 py-2.5 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                             />
                         </div>
 
@@ -88,7 +88,7 @@ export function LoginView({ onLogin }: LoginProps) {
                                     value={password}
                                     onChange={e => { setPassword(e.target.value); setError(''); }}
                                     placeholder="Enter your password"
-                                    className="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-2.5 pr-10 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                                 />
                                 <button
                                     type="button"
@@ -102,7 +102,7 @@ export function LoginView({ onLogin }: LoginProps) {
 
                         {/* Error */}
                         {error && (
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-red-50 border border-red-200">
                                 <span className="text-red-500 text-sm">⚠</span>
                                 <p className="text-sm text-red-600">{error}</p>
                             </div>
@@ -112,10 +112,10 @@ export function LoginView({ onLogin }: LoginProps) {
                         <button
                             type="submit"
                             disabled={loading || !username.trim() || !password}
-                            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                         >
                             {loading ? (
-                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-sm animate-spin" />
                             ) : (
                                 <LogIn className="w-4 h-4" />
                             )}
@@ -129,13 +129,13 @@ export function LoginView({ onLogin }: LoginProps) {
                         <div className="flex gap-2">
                             <button
                                 onClick={() => fillDemo('user')}
-                                className="flex-1 py-2 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors"
+                                className="flex-1 py-2 rounded-md border border-blue-200 bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors"
                             >
                                 👤 User
                             </button>
                             <button
                                 onClick={() => fillDemo('admin')}
-                                className="flex-1 py-2 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 text-xs font-medium hover:bg-purple-100 transition-colors"
+                                className="flex-1 py-2 rounded-md border border-purple-200 bg-purple-50 text-purple-700 text-xs font-medium hover:bg-purple-100 transition-colors"
                             >
                                 🛡 Admin
                             </button>

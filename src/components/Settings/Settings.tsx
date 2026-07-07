@@ -88,7 +88,7 @@ function SettingsContent() {
                         width: "100%",
                         marginBottom: "14px",
                         minHeight: "42px",
-                        borderRadius: "999px",
+                        borderRadius: "6px",
                         padding: "0 14px",
                         background: "var(--viventory-surface)",
                         color: "var(--viventory-text)",

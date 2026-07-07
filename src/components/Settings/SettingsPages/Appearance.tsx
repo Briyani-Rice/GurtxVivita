@@ -242,7 +242,7 @@ function AppearanceContent() {
                         width: "220px",
                         padding: "6px",
                         background: "var(--viventory-control)",
-                        borderRadius: "999px",
+                        borderRadius: "6px",
                         fontFamily: "Arial, sans-serif",
                         userSelect: "none",
                         aspectRatio:"7"
@@ -257,7 +257,7 @@ function AppearanceContent() {
                             width: "calc((100% - 12px) / 3)",
                             height: "calc(100% - 12px)",
                             background: "var(--viventory-welcome-accent)",
-                            borderRadius: "999px",
+                            borderRadius: "4px",
                             transition: "transform 0.3s ease",
                             transform: `translateX(${getTranslate()})`,
                         }}
@@ -298,7 +298,7 @@ function AppearanceContent() {
                 }}
                 style={{
                     width:"50px",
-                    borderRadius:"25px",
+                    borderRadius:"4px",
                     padding: "3px 0",
                     textAlign: "center",
                     cursor: "pointer",
