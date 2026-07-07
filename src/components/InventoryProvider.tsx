@@ -12,6 +12,7 @@ import {
     inventoryCompartments,
     inventoryFloors,
     mergeMakerItems,
+    normalizeMaterialArea,
     starterMaterials,
     starterRequests,
 } from "./inventoryStore";
@@ -72,7 +73,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         listMaterialRecords()
             .then(savedMaterials => {
                 if (isMounted && savedMaterials.length > 0) {
-                    setMaterials(savedMaterials);
+                    setMaterials(savedMaterials.map(normalizeMaterialArea));
                 }
             })
             .catch(error => {
@@ -94,7 +95,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         addMaterial: async (material) => {
             try {
                 const savedMaterial = await createMaterialRecord(material);
-                setMaterials(prev => [savedMaterial, ...prev]);
+                setMaterials(prev => [normalizeMaterialArea(savedMaterial), ...prev]);
             } catch (error) {
                 showSyncError("add", error);
             }
@@ -103,7 +104,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             try {
                 const savedMaterial = await updateMaterialRecord(id, material);
                 setMaterials(prev => prev.map(existing =>
-                    existing.id === id ? savedMaterial : existing
+                    existing.id === id ? normalizeMaterialArea(savedMaterial) : existing
                 ));
             } catch (error) {
                 showSyncError("update", error);
@@ -141,7 +142,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                         toMaterialInput(nextMaterial),
                     );
                     setMaterials(prev => prev.map(existing =>
-                        existing.id === material.id ? savedMaterial : existing
+                        existing.id === material.id ? normalizeMaterialArea(savedMaterial) : existing
                     ));
                 } catch (error) {
                     showSyncError("update", error);
