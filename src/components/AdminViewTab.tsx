@@ -53,7 +53,7 @@ const initialFloors: FloorData[] = [
                 height: 100,
                 number: "B201",
                 name: "Meeting Room",
-                color: "#fbbf24",
+                color: "#A1824F",
                 label: "Meeting",
             },
         ],
@@ -89,7 +89,7 @@ const initialCompartments: Compartment[] = [
         y: 60,
         width: 180,
         height: 100,
-        color: "#fbbf24",
+        color: "#A1824F",
     },
 ];
 

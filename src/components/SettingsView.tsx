@@ -559,7 +559,7 @@ function PreferencesTab({ floorCount, onChange }: { floorCount: number; onChange
                 background: PASTEL.yellow,
                 borderRadius: 10,
                 fontSize: 12,
-                color: '#78350f',
+                color: '#5E4B2E',
                 border: '1px solid rgb(220,210,160)',
             }}>
                 ✅ Preferences are saved automatically to your browser.
@@ -687,7 +687,7 @@ function AboutTab() {
                 background: PASTEL.peach,
                 borderRadius: 12,
                 fontSize: 12,
-                color: '#78350f',
+                color: '#5E4B2E',
                 border: '1px solid rgb(220,195,160)',
                 lineHeight: 1.6,
             }}>

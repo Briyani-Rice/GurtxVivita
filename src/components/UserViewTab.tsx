@@ -74,7 +74,7 @@ export class UserViewTab implements Tab {
                     height: 100,
                     number: "B201",
                     name: "Meeting Room",
-                    color: "#fbbf24",
+                    color: "#A1824F",
                     label: "Meeting",
                 },
                 {

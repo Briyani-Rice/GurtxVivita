@@ -138,10 +138,10 @@ export class welcomeTab implements Tab {
                 variant === "primary"
                     ? "linear-gradient(135deg, var(--viventory-welcome-accent), var(--viventory-welcome-accent-2))"
                     : "var(--viventory-surface)",
-            color: variant === "primary" ? "#1f1300" : "var(--viventory-text)",
+            color: variant === "primary" ? "var(--viventory-text)" : "var(--viventory-text)",
             fontWeight: 700,
             cursor: "pointer",
-            boxShadow: variant === "primary" ? "0 14px 28px rgba(180, 83, 9, 0.24)" : "none",
+            boxShadow: variant === "primary" ? "0 14px 28px rgba(36, 38, 43, 0.18)" : "none",
         });
 
         const searchInputId = "welcome-search";
@@ -169,7 +169,7 @@ export class welcomeTab implements Tab {
                         position: "absolute",
                         inset: 0,
                         background:
-                            "linear-gradient(135deg, rgba(245, 158, 11, 0.26), transparent 38%, rgba(239, 111, 77, 0.18))",
+                            "linear-gradient(135deg, rgba(51, 167, 181, 0.22), transparent 38%, rgba(161, 130, 79, 0.18))",
                         pointerEvents: "none",
                     }}
                 />

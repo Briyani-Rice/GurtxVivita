@@ -39,7 +39,7 @@ const PLAN_HEIGHT = 760;
 const STYLE: Record<string, { fill: string; stroke: string; text: string }> = {
     compartment: { fill: "#f8fafc", stroke: "#111827", text: "#111827" },
     workplace: { fill: "#fff7ed", stroke: "#f97316", text: "#9a3412" },
-    table: { fill: "#fef3c7", stroke: "#f59e0b", text: "#92400e" },
+    table: { fill: "#FFF5CB", stroke: "#A1824F", text: "#5E4B2E" },
     chair: { fill: "#e0f2fe", stroke: "#38bdf8", text: "#075985" },
     stairs: { fill: "#ecfeff", stroke: "#06b6d4", text: "#155e75" },
     lift: { fill: "#f5f3ff", stroke: "#8b5cf6", text: "#5b21b6" },
@@ -168,7 +168,7 @@ function drawFurniture(ctx: CanvasRenderingContext2D, cam: CameraState) {
             h: table.h * cam.zoom,
         };
         ctx.fillStyle = "#fffbeb";
-        ctx.strokeStyle = "#f59e0b";
+        ctx.strokeStyle = "#A1824F";
         ctx.fillRect(r.x, r.y, r.w, r.h);
         ctx.strokeRect(r.x, r.y, r.w, r.h);
     }

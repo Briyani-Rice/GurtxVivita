@@ -39,7 +39,7 @@ const styles: Record<string, CSSProperties> = {
         minHeight: 0,
         padding: 20,
         background:
-            'linear-gradient(180deg, rgba(245, 158, 11, 0.08), transparent 170px), var(--viventory-bg)',
+            'linear-gradient(180deg, rgba(51, 167, 181, 0.1), transparent 170px), var(--viventory-bg)',
         color: 'var(--viventory-text)',
         fontFamily: '"SF Pro Text", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
         overflow: 'hidden',
@@ -328,7 +328,7 @@ const makeButtonStyle = (variant: 'primary' | 'ghost' | 'approve' | 'decline'): 
 
 const makeStockPillStyle = (quantity: number): CSSProperties => ({
     ...styles.quantity,
-    background: quantity <= 0 ? 'rgba(239, 111, 77, 0.14)' : quantity <= 2 ? 'rgba(245, 158, 11, 0.16)' : 'rgba(45, 120, 152, 0.12)',
+    background: quantity <= 0 ? 'rgba(161, 130, 79, 0.16)' : quantity <= 2 ? 'rgba(255, 245, 203, 0.7)' : 'rgba(51, 167, 181, 0.12)',
     color: quantity <= 0 ? 'var(--viventory-welcome-accent-2)' : quantity <= 2 ? 'var(--viventory-welcome-accent)' : 'var(--viventory-text)',
 });
 

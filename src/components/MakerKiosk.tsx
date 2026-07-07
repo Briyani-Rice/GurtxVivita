@@ -39,20 +39,20 @@ const quickPrompts = [
 ];
 
 const palette = {
-    ink: "#1d2a32",
-    muted: "#5b6f7a",
-    pegboardText: "#4a2500",
-    sky: "#4e9cc4",
-    deepSky: "#2d7898",
-    sunny: "#ffcf53",
-    softYellow: "#fff5c7",
-    mint: "#cdeedb",
-    coral: "#ffb6a3",
-    paper: "#fffdf4",
-    panel: "#ffffff",
-    line: "#d9e8ee",
-    warning: "#fff1c2",
-    warningLine: "#d19a00",
+    ink: "#24262B",
+    muted: "#838998",
+    pegboardText: "#5E4B2E",
+    sky: "#33A7B5",
+    deepSky: "#277987",
+    sunny: "#FFF5CB",
+    softYellow: "#FFF5CB",
+    mint: "#A5D6D1",
+    coral: "#A1824F",
+    paper: "#FFFDF6",
+    panel: "#FFFDF6",
+    line: "#D7CFBF",
+    warning: "#FFF5CB",
+    warningLine: "#A1824F",
 };
 
 const styles: Record<string, React.CSSProperties> = {
@@ -62,7 +62,7 @@ const styles: Record<string, React.CSSProperties> = {
         display: "grid",
         gridTemplateColumns: "minmax(0, 1fr) 360px",
         background:
-            "radial-gradient(circle at 12px 12px, rgba(78,156,196,0.18) 2px, transparent 2px), linear-gradient(135deg, #fffdf4 0%, #f4fbff 46%, #fff7dc 100%)",
+            "radial-gradient(circle at 12px 12px, rgba(51,167,181,0.2) 2px, transparent 2px), linear-gradient(135deg, #FFF5CB 0%, #F6F4EA 44%, #DCEFEA 100%)",
         backgroundSize: "28px 28px, auto",
         color: palette.ink,
         overflow: "hidden",
@@ -87,9 +87,9 @@ const styles: Record<string, React.CSSProperties> = {
         width: 96,
         height: 96,
         borderRadius: 28,
-        background: `linear-gradient(145deg, ${palette.sunny}, #ffe99f)`,
+        background: `linear-gradient(145deg, ${palette.sunny}, ${palette.mint})`,
         border: "3px solid #fff",
-        boxShadow: "0 18px 34px rgba(45,120,152,0.18)",
+        boxShadow: "0 18px 34px rgba(36,38,43,0.16)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -137,7 +137,7 @@ const styles: Record<string, React.CSSProperties> = {
         cursor: "pointer",
         fontSize: 14,
         fontWeight: 750,
-        boxShadow: "0 8px 20px rgba(45,120,152,0.08)",
+        boxShadow: "0 8px 20px rgba(36,38,43,0.08)",
     },
     conversation: {
         flex: 1,
@@ -153,9 +153,9 @@ const styles: Record<string, React.CSSProperties> = {
         maxWidth: "86%",
         borderRadius: "6px",
         border: `1px solid ${palette.line}`,
-        background: "rgba(255,255,255,0.94)",
+        background: "rgba(255,253,246,0.94)",
         padding: 16,
-        boxShadow: "0 8px 22px rgba(45,120,152,0.08)",
+        boxShadow: "0 8px 22px rgba(36,38,43,0.08)",
         fontSize: 16,
         lineHeight: 1.45,
     },
@@ -164,9 +164,9 @@ const styles: Record<string, React.CSSProperties> = {
         maxWidth: "76%",
         borderRadius: "6px",
         background: palette.sky,
-        color: "#ffffff",
+        color: "#FFFDF6",
         padding: "13px 15px",
-        boxShadow: "0 8px 18px rgba(45,120,152,0.2)",
+        boxShadow: "0 8px 18px rgba(36,38,43,0.18)",
         fontSize: 16,
         lineHeight: 1.4,
         fontWeight: 650,
@@ -192,8 +192,8 @@ const styles: Record<string, React.CSSProperties> = {
         padding: 10,
         border: `1px solid ${palette.line}`,
         borderRadius: 6,
-        background: "rgba(255,255,255,0.92)",
-        boxShadow: "0 12px 28px rgba(45,120,152,0.1)",
+        background: "rgba(255,253,246,0.92)",
+        boxShadow: "0 12px 28px rgba(36,38,43,0.1)",
     },
     input: {
         minHeight: 56,
@@ -209,8 +209,8 @@ const styles: Record<string, React.CSSProperties> = {
         minWidth: 64,
         border: "none",
         borderRadius: 6,
-        background: palette.sunny,
-        color: "#5b3c00",
+        background: palette.mint,
+        color: palette.ink,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -220,7 +220,7 @@ const styles: Record<string, React.CSSProperties> = {
         minWidth: 0,
         minHeight: 0,
         borderLeft: `1px solid ${palette.line}`,
-        background: "rgba(255,255,255,0.72)",
+        background: "rgba(255,253,246,0.74)",
         backdropFilter: "blur(10px)",
         padding: 18,
         overflow: "auto",
@@ -232,14 +232,14 @@ const styles: Record<string, React.CSSProperties> = {
         borderRadius: 6,
         background: palette.panel,
         border: `1px solid ${palette.line}`,
-        boxShadow: "0 12px 30px rgba(45,120,152,0.1)",
+        boxShadow: "0 12px 30px rgba(36,38,43,0.1)",
         overflow: "hidden",
     },
     visualImage: {
         width: "100%",
         height: 150,
         objectFit: "contain",
-        background: `linear-gradient(135deg, ${palette.softYellow}, #e7f7ff)`,
+        background: `linear-gradient(135deg, ${palette.softYellow}, ${palette.mint})`,
         padding: 18,
         boxSizing: "border-box",
     },
@@ -264,7 +264,7 @@ const styles: Record<string, React.CSSProperties> = {
         gap: 6,
         width: "fit-content",
         borderRadius: 4,
-        background: "#eef8fc",
+        background: "rgba(165, 214, 209, 0.34)",
         color: palette.deepSky,
         padding: "4px 9px",
         fontSize: 12,
@@ -299,7 +299,7 @@ function formatSection(section: MakerAnswerSection) {
 
 function ProjectCard({ project }: { project: MakerProjectIdea }) {
     return (
-        <div style={{ ...styles.itemCard, background: "#fffdf4" }}>
+        <div style={{ ...styles.itemCard, background: palette.paper }}>
             <span style={styles.badge}>
                 <Lightbulb size={14} />
                 {project.difficulty}
@@ -323,7 +323,7 @@ function ItemCard({ item }: { item: MakerItem }) {
                 {item.quantity} {item.unit}
             </span>
             {item.safetyLevel === "adult" && (
-                <span style={{ ...styles.badge, background: palette.warning, color: "#8a5b00" }}>
+                <span style={{ ...styles.badge, background: palette.warning, color: palette.pegboardText }}>
                     <ShieldCheck size={14} />
                     Adult help
                 </span>
@@ -345,7 +345,7 @@ function AssistantAnswer({ answer }: { answer: MakerAnswer }) {
             {answer.suggestedPrompts.length > 0 && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
                     {answer.suggestedPrompts.map(prompt => (
-                        <span key={prompt} style={{ ...styles.badge, background: palette.mint, color: "#1f6f45" }}>
+                        <span key={prompt} style={{ ...styles.badge, background: palette.mint, color: palette.ink }}>
                             {prompt}
                         </span>
                     ))}
@@ -394,7 +394,7 @@ export function MakerKiosk() {
             <main style={styles.main}>
                 <header style={styles.header}>
                     <div style={styles.mascot} aria-label="VIVI Bot mascot">
-                        <Bot size={54} color="#5b3c00" />
+                        <Bot size={54} color={palette.ink} />
                         <Sparkles size={22} color={palette.deepSky} style={{ position: "absolute", right: 12, top: 10 }} />
                     </div>
                     <div>
