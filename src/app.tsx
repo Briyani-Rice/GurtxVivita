@@ -949,6 +949,11 @@ function App() {
                 setCmdBarVis((prev) => !prev);
             }
 
+            if (event.metaKey && event.ctrlKey && event.key.toLowerCase() === 'f') {
+                event.preventDefault();
+                void toggleFullscreen();
+            }
+
             if (event.metaKey && event.key.toLowerCase() === 't') {
                 event.preventDefault();
                 handleNewTab();
@@ -1002,6 +1007,7 @@ function App() {
                     handleNewTab={handleNewTab}
                     setTab={setTab}
                     setCmdBarVis={setCmdBarVis}
+                    onToggleFullscreen={toggleFullscreen}
                 />}
             <div
                 style={{

@@ -70,7 +70,7 @@ Run as a desktop app with Tauri:
 npm run tauri dev
 ```
 
-In the desktop app, press `F11` to toggle fullscreen mode. Fullscreen hides the custom top command/title bar so the app can run like a kiosk.
+In the desktop app, press `F11`, press `Control` + `Command` + `F`, or use the fullscreen button in the top bar to toggle fullscreen mode. Fullscreen hides the custom top command/title bar so the app can run like a kiosk.
 
 Build the frontend:
 
