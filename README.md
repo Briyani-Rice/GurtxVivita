@@ -76,11 +76,39 @@ Build the frontend:
 npm run build
 ```
 
+## PocketBase Materials Storage
+
+Admin material add, edit, delete, and request-approval stock updates are stored through PocketBase. By default, the app connects to:
+
+```text
+http://127.0.0.1:8090
+```
+
+To use another PocketBase server, create a local env file:
+
+```bash
+VITE_POCKETBASE_URL=https://your-pocketbase.example.com
+```
+
+Create a base collection named `materials` with these fields:
+
+```text
+name          text, required
+description   text
+quantity      number, required
+unit          text, required
+compartmentId text, required
+```
+
+For local prototype use, set the collection API rules to allow the admin app to list, view, create, update, and delete records. If PocketBase is not running, the admin view falls back to starter data and shows an error when staff try to save changes.
+
 ## Useful Checks
 
 The project currently uses small source-level regression checks plus the production build:
 
 ```bash
+node --experimental-strip-types src/services/pocketbaseMaterials.test.ts
+node --experimental-strip-types src/components/AdminViewTabPocketBase.test.ts
 node --experimental-strip-types src/utils/makerspaceAssistant.test.ts
 node --experimental-strip-types src/components/MakerKiosk.test.ts
 node --experimental-strip-types src/components/AdminView.test.ts

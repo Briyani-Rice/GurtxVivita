@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Compartment, FloorData, Material, MaterialRequest, Tab } from "../types.ts";
 import { AdminView } from "./AdminView";
+import {
+    createMaterialRecord,
+    deleteMaterialRecord,
+    listMaterialRecords,
+    updateMaterialRecord,
+    type MaterialInput,
+} from "../services/pocketbaseMaterials";
 
 const initialFloors: FloorData[] = [
     {
@@ -142,6 +149,37 @@ function AdminViewTabContent() {
     const [materials, setMaterials] = useState<Material[]>(initialMaterials);
     const [requests, setRequests] = useState<MaterialRequest[]>(initialRequests);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        listMaterialRecords()
+            .then(savedMaterials => {
+                if (isMounted) {
+                    setMaterials(savedMaterials);
+                }
+            })
+            .catch(error => {
+                console.warn("Unable to load PocketBase materials; using starter data.", error);
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const showSyncError = (action: string, error: unknown) => {
+        console.error(`Unable to ${action} material in PocketBase`, error);
+        alert(`Unable to ${action} material. Check that PocketBase is running and the materials collection exists.`);
+    };
+
+    const toMaterialInput = (material: Material): MaterialInput => ({
+        name: material.name,
+        description: material.description,
+        quantity: material.quantity,
+        unit: material.unit,
+        compartmentId: material.compartmentId,
+    });
+
     return (
         <AdminView
             floors={floors}
@@ -149,38 +187,57 @@ function AdminViewTabContent() {
             compartments={initialCompartments}
             materials={materials}
             requests={requests}
-            onAddMaterial={(material) => {
-                setMaterials(prev => [
-                    ...prev,
-                    {
-                        ...material,
-                        id: crypto.randomUUID(),
-                        createdAt: new Date().toISOString(),
-                    },
-                ]);
+            onAddMaterial={async (material) => {
+                try {
+                    const savedMaterial = await createMaterialRecord(material);
+                    setMaterials(prev => [savedMaterial, ...prev]);
+                } catch (error) {
+                    showSyncError("add", error);
+                }
             }}
-            onEditMaterial={(id, material) => {
-                setMaterials(prev => prev.map(existing =>
-                    existing.id === id
-                        ? { ...existing, ...material }
-                        : existing
-                ));
+            onEditMaterial={async (id, material) => {
+                try {
+                    const savedMaterial = await updateMaterialRecord(id, material);
+                    setMaterials(prev => prev.map(existing =>
+                        existing.id === id ? savedMaterial : existing
+                    ));
+                } catch (error) {
+                    showSyncError("update", error);
+                }
             }}
-            onDeleteMaterial={(id) => {
-                setMaterials(prev => prev.filter(material => material.id !== id));
+            onDeleteMaterial={async (id) => {
+                try {
+                    await deleteMaterialRecord(id);
+                    setMaterials(prev => prev.filter(material => material.id !== id));
+                } catch (error) {
+                    showSyncError("delete", error);
+                }
             }}
-            onApproveRequest={(id) => {
+            onApproveRequest={async (id) => {
                 const request = requests.find(request => request.id === id);
 
                 if (request) {
-                    setMaterials(prev => prev.map(material =>
-                        material.id === request.materialId
-                            ? {
-                                ...material,
-                                quantity: Math.max(0, material.quantity - request.requestedQuantity),
-                            }
-                            : material
-                    ));
+                    const material = materials.find(material => material.id === request.materialId);
+
+                    if (material) {
+                        const nextMaterial = {
+                            ...material,
+                            quantity: Math.max(0, material.quantity - request.requestedQuantity),
+                        };
+
+                        try {
+                            const savedMaterial = await updateMaterialRecord(
+                                material.id,
+                                toMaterialInput(nextMaterial),
+                            );
+                            setMaterials(prev => prev.map(existing =>
+                                existing.id === material.id ? savedMaterial : existing
+                            ));
+                        } catch (error) {
+                            showSyncError("update", error);
+                            return;
+                        }
+                    }
                 }
 
                 setRequests(prev => prev.map(existingRequest =>
