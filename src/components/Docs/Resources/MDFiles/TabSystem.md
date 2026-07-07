@@ -6,6 +6,8 @@ In the tab system, you can add new tabs and switch between open views.
 
 ## Shortcuts
 
-`Ctrl+T` - new Tab
-
-`⌥+⌘+I` - open Dev Tools
+| Shortcut | Action |
+| --- | --- |
+| `⌘T` | New tab |
+| `⌘W` | Close current tab |
+| `⌥⌘I` | Open Dev Tools |

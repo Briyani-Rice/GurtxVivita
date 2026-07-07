@@ -42,7 +42,21 @@ export class SearchCommand implements Command {
     id: string = crypto.randomUUID()
     args: CommandArgument[] = [new CommandArgument("Item",CommandArgumentType.String)]
     name: string = "Search"
-    onRun: () => void = ()=>{}
+    onRun: () => void = ()=>{
+        const existingIndex = SearchCommand.bt.tabs.findIndex(tab => tab.name === "Welcome")
+
+        if (existingIndex !== -1) {
+            SearchCommand.bt.setTabIndex(existingIndex)
+            return
+        }
+
+        const newIndex = SearchCommand.bt.handleNewTab()
+        SearchCommand.bt.setTab(newIndex, new welcomeTab())
+    }
+    static bt:BasicTabProps
+    static receive (bt0: BasicTabProps):void{
+        SearchCommand.bt=bt0;
+    }
 }
 
 export class HelpCommand implements Command {
@@ -919,10 +933,30 @@ function App() {
         handleClosingTab,
         handleMaterialSearch
     })
+    SearchCommand.receive({
+        tabs,
+        setTabs,
+        tabIndex,
+        setTabIndex,
+        handleNewTab,
+        setTab,
+        handleClosingTab,
+        handleMaterialSearch
+    })
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.metaKey && event.key === 'y') {
                 setCmdBarVis((prev) => !prev);
+            }
+
+            if (event.metaKey && event.key.toLowerCase() === 't') {
+                event.preventDefault();
+                handleNewTab();
+            }
+
+            if (event.metaKey && event.key.toLowerCase() === 'w') {
+                event.preventDefault();
+                handleClosingTab(tabIndex);
             }
 
             if (event.key === 'F11') {
@@ -933,7 +967,7 @@ function App() {
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isFullscreen]);
+    }, [handleNewTab, handleClosingTab, isFullscreen, tabIndex]);
 
     const toggleFullscreen = async () => {
         try {

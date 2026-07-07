@@ -41,6 +41,7 @@ const quickPrompts = [
 const palette = {
     ink: "#1d2a32",
     muted: "#5b6f7a",
+    pegboardText: "#4a2500",
     sky: "#4e9cc4",
     deepSky: "#2d7898",
     sunny: "#ffcf53",
@@ -123,7 +124,7 @@ const styles: Record<string, React.CSSProperties> = {
     },
     promptButton: {
         minHeight: 56,
-        borderRadius: 18,
+        borderRadius: 6,
         border: `1px solid ${palette.line}`,
         background: palette.panel,
         color: palette.ink,
@@ -178,7 +179,7 @@ const styles: Record<string, React.CSSProperties> = {
     safety: {
         border: `2px solid ${palette.warningLine}`,
         background: palette.warning,
-        borderRadius: 18,
+        borderRadius: 6,
         padding: 13,
         display: "flex",
         gap: 10,
@@ -190,7 +191,7 @@ const styles: Record<string, React.CSSProperties> = {
         gap: 10,
         padding: 10,
         border: `1px solid ${palette.line}`,
-        borderRadius: 24,
+        borderRadius: 6,
         background: "rgba(255,255,255,0.92)",
         boxShadow: "0 12px 28px rgba(45,120,152,0.1)",
     },
@@ -207,7 +208,7 @@ const styles: Record<string, React.CSSProperties> = {
         minHeight: 56,
         minWidth: 64,
         border: "none",
-        borderRadius: 18,
+        borderRadius: 6,
         background: palette.sunny,
         color: "#5b3c00",
         display: "flex",
@@ -228,7 +229,7 @@ const styles: Record<string, React.CSSProperties> = {
         gap: 14,
     },
     visualPanel: {
-        borderRadius: 26,
+        borderRadius: 6,
         background: palette.panel,
         border: `1px solid ${palette.line}`,
         boxShadow: "0 12px 30px rgba(45,120,152,0.1)",
@@ -251,7 +252,7 @@ const styles: Record<string, React.CSSProperties> = {
     itemCard: {
         border: `1px solid ${palette.line}`,
         background: palette.panel,
-        borderRadius: 18,
+        borderRadius: 6,
         padding: 12,
         display: "flex",
         flexDirection: "column",
@@ -262,7 +263,7 @@ const styles: Record<string, React.CSSProperties> = {
         alignItems: "center",
         gap: 6,
         width: "fit-content",
-        borderRadius: 999,
+        borderRadius: 4,
         background: "#eef8fc",
         color: palette.deepSky,
         padding: "4px 9px",
@@ -476,7 +477,7 @@ export function MakerKiosk() {
                         <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
                             {["White Space", "Tinkering Studio", "Pegboard Storage", "VIVISTUDIO"].map(zone => (
                                 <div key={zone} style={{ display: "flex", alignItems: "center", gap: 8, color: palette.muted, fontSize: 14 }}>
-                                    <span style={{ width: 10, height: 10, borderRadius: 999, background: palette.sky }} />
+                                    <span style={{ width: 10, height: 10, borderRadius: 2, background: palette.sky }} />
                                     {zone}
                                 </div>
                             ))}

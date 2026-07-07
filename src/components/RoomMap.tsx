@@ -46,6 +46,8 @@ const STYLE: Record<string, { fill: string; stroke: string; text: string }> = {
     outofbounds: { fill: "#e5e7eb", stroke: "#6b7280", text: "#374151" },
 };
 
+const PEGBOARD_TEXT = "#4a2500";
+
 function createCamera(): CameraState {
     return {
         pan: { x: 40, y: 40 },
@@ -251,11 +253,32 @@ function drawElement(
         }
     }
 
-    ctx.fillStyle = style.text;
+    const label = el.name ?? el.label ?? el.id;
+    const labelX = r.x + r.w / 2;
+    const labelY = r.y + r.h / 2 - 8;
+    const labelFontSize = Math.max(11, 15 * cam.zoom);
+
+    ctx.font = `${labelFontSize}px sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `${Math.max(11, 15 * cam.zoom)}px sans-serif`;
-    ctx.fillText(el.name ?? el.label ?? el.id, r.x + r.w / 2, r.y + r.h / 2 - 8);
+
+    if (el.id === "pegboard-storage") {
+        const metrics = ctx.measureText(label);
+        const padX = Math.max(6, 7 * cam.zoom);
+        const padY = Math.max(4, 5 * cam.zoom);
+        ctx.fillStyle = "rgba(255, 253, 244, 0.92)";
+        ctx.fillRect(
+            labelX - metrics.width / 2 - padX,
+            labelY - labelFontSize / 2 - padY,
+            metrics.width + padX * 2,
+            labelFontSize + padY * 2,
+        );
+    }
+
+    ctx.fillStyle = el.id === "pegboard-storage" ? PEGBOARD_TEXT : style.text;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, labelX, labelY);
 
     if (materialCount > 0) {
         ctx.font = `${Math.max(10, 12 * cam.zoom)}px sans-serif`;
