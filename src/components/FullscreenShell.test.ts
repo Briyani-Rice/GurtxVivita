@@ -37,6 +37,12 @@ assert.match(
 
 assert.match(
     source,
+    /!isFullscreen &&\s*<Titlebar[\s\S]*<AppCommandEntry setCmdBarVis=\{setCmdBarVis\} \/>/,
+    "Command entry should remain visible after the fullscreen-hidden titlebar",
+);
+
+assert.match(
+    source,
     /setFullscreen\(!currentlyFullscreen\)/,
     "Fullscreen toggle should update the native Tauri window",
 );

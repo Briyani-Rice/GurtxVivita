@@ -26,9 +26,15 @@ assert.match(
 );
 
 assert.match(
+    appSource,
+    /className="command-button"/,
+    "App shell command entry should use the polished command button class",
+);
+
+assert.doesNotMatch(
     titlebarSource,
     /className="command-button"/,
-    "Titlebar command entry should use the polished command button class",
+    "Titlebar should not own the command entry hidden by fullscreen",
 );
 
 assert.match(

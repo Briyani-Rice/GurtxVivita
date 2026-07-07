@@ -3,7 +3,6 @@ import { BsGearFill } from "react-icons/bs";
 import { Maximize2 } from "lucide-react";
 import { Tab } from "./types";
 import Settings from "./components/Settings/Settings";
-import { Button } from "./components/ui/button";
 import { useEffect, useState } from "react";
 import { platform } from "@tauri-apps/plugin-os";
 
@@ -12,7 +11,6 @@ type Props = {
     setTabIndex: any;
     handleNewTab: () => number;
     setTab: (index: number, tab: Tab) => void;
-    setCmdBarVis: (b: boolean) => void;
     onToggleFullscreen: () => void;
 };
 
@@ -21,7 +19,6 @@ export default function Titlebar({
                                      setTabIndex,
                                      handleNewTab,
                                      setTab,
-                                     setCmdBarVis,
                                      onToggleFullscreen,
                                  }: Props) {
     const [leftPadding, setLeftPadding] = useState(0);
@@ -46,15 +43,6 @@ export default function Titlebar({
             >
                 VIVITA Maker Guide
             </h3>
-
-            <div className="title-main">
-                <Button
-                    className="command-button"
-                    onClick={() => setCmdBarVis(true)}
-                >
-                    &gt; Enter command
-                </Button>
-            </div>
 
             <div className="title-right">
                 <button

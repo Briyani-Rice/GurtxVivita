@@ -779,6 +779,39 @@ function RenderTab(
     )
 }
 
+function AppCommandEntry({ setCmdBarVis }: { setCmdBarVis: (visible: boolean) => void }) {
+    return (
+        <div
+            style={{
+                minHeight: "42px",
+                display: "grid",
+                gridTemplateColumns: "minmax(120px, 1fr) minmax(260px, 520px) minmax(120px, 1fr)",
+                alignItems: "center",
+                padding: "6px 18px",
+                boxSizing: "border-box",
+                background: "linear-gradient(135deg, var(--viventory-shell-start), var(--viventory-shell-end))",
+                borderBottom: "1px solid var(--viventory-border)",
+                color: "var(--viventory-shell-text)",
+                flexShrink: 0,
+            }}
+        >
+            <div />
+            <button
+                className="command-button"
+                type="button"
+                onClick={() => setCmdBarVis(true)}
+                style={{
+                    width: "100%",
+                    justifyContent: "flex-start",
+                }}
+            >
+                &gt; Enter command
+            </button>
+            <div />
+        </div>
+    );
+}
+
 function App() {
 
     const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
@@ -1008,9 +1041,9 @@ function App() {
                     setTabIndex={setTabIndex}
                     handleNewTab={handleNewTab}
                     setTab={setTab}
-                    setCmdBarVis={setCmdBarVis}
                     onToggleFullscreen={toggleFullscreen}
                 />}
+            <AppCommandEntry setCmdBarVis={setCmdBarVis} />
             <div
                 style={{
                     flex: 1,
