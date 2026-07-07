@@ -3,6 +3,7 @@ import React, {useEffect, useRef, useState} from 'react'
 import ReactDOM from 'react-dom/client'
 //@ts-ignore
 import './style.css'
+import Titlebar from "./titlebar"
 import {Command, CommandArgument, CommandArgumentType, Tab} from "./types"
 import "react-icons/io"
 import {IoIosBook, IoIosCloseCircle, IoIosCloseCircleOutline} from 'react-icons/io'
@@ -943,6 +944,13 @@ function App() {
         >
             {cmdBarVis && <CommandBar setVisibility={setCmdBarVis} />}
 
+            <Titlebar
+                tabs={tabs}
+                setTabIndex={setTabIndex}
+                handleNewTab={handleNewTab}
+                setTab={setTab}
+                setCmdBarVis={setCmdBarVis}
+            />
             <div
                 style={{
                     flex: 1,

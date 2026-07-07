@@ -76,15 +76,12 @@ function createWindow() {
         minWidth: 800,
         minHeight: 600,
         title: "GurtxVivita",
+        frame: false,
         webPreferences: {
             preload: path.join(__dirname, "../dist-electron/preload.js"),
             nodeIntegration: true,
             contextIsolation: true
         },
-        ...(process.platform === "darwin"
-            ? { titleBarStyle: "hiddenInset" }
-            : { titleBarStyle: "hidden" }),
-        ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
         icon: app.isPackaged
             ? path.join(process.resourcesPath, "assets/GurtXVivita_Logo_1024x1024.png")
             : path.join(__dirname, "../public/GurtXVivita_Logo_1024x1024.png")
