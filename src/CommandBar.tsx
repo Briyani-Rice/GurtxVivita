@@ -38,7 +38,14 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                     left: rect.left,
                     width: rect.width,
                 });
+                return;
             }
+
+            const width = Math.min(560, Math.max(320, window.innerWidth - 48));
+            setBounds({
+                left: Math.max(24, (window.innerWidth - width) / 2),
+                width,
+            });
         };
 
         updateBounds();
