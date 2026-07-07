@@ -1,0 +1,34 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+
+function readPngSize(path: string): { width: number; height: number } {
+    const buffer = readFileSync(path);
+    assert.equal(buffer.toString("ascii", 1, 4), "PNG", `${path} should be a PNG file`);
+
+    return {
+        width: buffer.readUInt32BE(16),
+        height: buffer.readUInt32BE(20),
+    };
+}
+
+function sha256(path: string): string {
+    return createHash("sha256").update(readFileSync(path)).digest("hex");
+}
+
+const sourceLogo = "public/GurtXVivita_Logo.png";
+
+assert.equal(
+    sha256(sourceLogo),
+    "079117dfde0a216e38c1b966929527db10ecb36a0082859987ee5b168efa1adc",
+    "public app logo should match the supplied GxV logo image",
+);
+
+assert.deepEqual(readPngSize(sourceLogo), { width: 988, height: 988 });
+assert.deepEqual(readPngSize("public/GurtXVivita_Logo_1024x1024.png"), { width: 1024, height: 1024 });
+assert.deepEqual(readPngSize("src-tauri/icons/icon.png"), { width: 512, height: 512 });
+assert.deepEqual(readPngSize("src-tauri/icons/32x32.png"), { width: 32, height: 32 });
+assert.deepEqual(readPngSize("src-tauri/icons/128x128.png"), { width: 128, height: 128 });
+assert.deepEqual(readPngSize("src-tauri/icons/128x128@2x.png"), { width: 256, height: 256 });
+
+console.log("AppLogoAsset.test.ts passed");
