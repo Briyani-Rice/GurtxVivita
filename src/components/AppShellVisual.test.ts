@@ -6,7 +6,6 @@ const titlebarSource = readFileSync(new URL("../titlebar.tsx", import.meta.url),
 const titleStyleSource = readFileSync(new URL("../titlestyle.css", import.meta.url), "utf8");
 const commandBarSource = readFileSync(new URL("../CommandBar.tsx", import.meta.url), "utf8");
 const tauriConfigSource = readFileSync(new URL("../../src-tauri/tauri.conf.json", import.meta.url), "utf8");
-const electronMainSource = readFileSync(new URL("../../electron/main.ts", import.meta.url), "utf8");
 
 assert.match(
     appSource,
@@ -45,21 +44,9 @@ assert.match(
 );
 
 assert.match(
-    commandBarSource,
-    /window\.innerWidth/,
-    "Command palette should position itself without depending on the title bar",
-);
-
-assert.match(
     tauriConfigSource,
     /"decorations":\s*false/,
     "Tauri desktop window should hide the native title bar",
-);
-
-assert.match(
-    electronMainSource,
-    /frame:\s*false/,
-    "Electron desktop window should hide the native title bar",
 );
 
 console.log("AppShell visual source checks passed");

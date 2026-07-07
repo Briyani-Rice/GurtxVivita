@@ -7,25 +7,6 @@ export type TauriInvoke = <T>(
     args?: Record<string, unknown>
 ) => Promise<T>;
 
-export type ElectronDocsApi = {
-    getMdFiles?: () => Promise<string[]> | string[];
-    loadFileContent?: (path: string) => Promise<string | String> | string | String;
-};
-
-declare global {
-    interface Window {
-        electron?: ElectronDocsApi;
-    }
-}
-
-function getElectronDocsApi(): ElectronDocsApi | undefined {
-    if (typeof window === "undefined") {
-        return undefined;
-    }
-
-    return window.electron;
-}
-
 const bundledMarkdownFiles = import.meta.glob("./Resources/MDFiles/*.md", {
     query: "?raw",
     import: "default",
@@ -36,14 +17,9 @@ function getBundledMarkdownPaths(bundledDocs: BundledDocs): string[] {
 }
 
 export async function getDocsMarkdownFiles(
-    electronApi: ElectronDocsApi | undefined = getElectronDocsApi(),
     tauriInvoke: TauriInvoke = invoke,
     bundledDocs: BundledDocs = bundledMarkdownFiles
 ): Promise<string[]> {
-    if (electronApi?.getMdFiles) {
-        return Promise.resolve(electronApi.getMdFiles());
-    }
-
     const bundledPaths = getBundledMarkdownPaths(bundledDocs);
 
     if (bundledPaths.length > 0) {
@@ -55,15 +31,9 @@ export async function getDocsMarkdownFiles(
 
 export async function loadDocsMarkdownFileContent(
     path: string,
-    electronApi: ElectronDocsApi | undefined = getElectronDocsApi(),
     tauriInvoke: TauriInvoke = invoke,
     bundledDocs: BundledDocs = bundledMarkdownFiles
 ): Promise<string> {
-    if (electronApi?.loadFileContent) {
-        const content = await Promise.resolve(electronApi.loadFileContent(path));
-        return String(content);
-    }
-
     if (bundledDocs[path]) {
         return Promise.resolve(bundledDocs[path]());
     }
