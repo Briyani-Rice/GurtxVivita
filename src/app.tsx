@@ -25,6 +25,7 @@ import { MakerKioskTab } from "./components/MakerKiosk";
 import vivitaLogo from "./assets/vivita-logo.png";
 import vivitaSpaceImage from "./assets/vivita-space.png";
 import vivitaCommunityImage from "./assets/vivita-community.jpg";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -766,6 +767,7 @@ function RenderTab(
 function App() {
 
     const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
+    const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
 
     const [tabs, setTabs] = useState<Tab[]>([
         new welcomeTab(),
@@ -922,11 +924,27 @@ function App() {
             if (event.metaKey && event.key === 'y') {
                 setCmdBarVis((prev) => !prev);
             }
+
+            if (event.key === 'F11') {
+                event.preventDefault();
+                void toggleFullscreen();
+            }
         };
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [isFullscreen]);
+
+    const toggleFullscreen = async () => {
+        try {
+            const window = getCurrentWindow();
+            const currentlyFullscreen = await window.isFullscreen();
+            await window.setFullscreen(!currentlyFullscreen);
+            setIsFullscreen(!currentlyFullscreen);
+        } catch (error) {
+            console.warn("Fullscreen is only available in the Tauri desktop app.", error);
+        }
+    };
     return (
         <main
             style={{
@@ -944,13 +962,13 @@ function App() {
         >
             {cmdBarVis && <CommandBar setVisibility={setCmdBarVis} />}
 
-            <Titlebar
-                tabs={tabs}
-                setTabIndex={setTabIndex}
-                handleNewTab={handleNewTab}
-                setTab={setTab}
-                setCmdBarVis={setCmdBarVis}
-            />
+            {!isFullscreen && <Titlebar
+                    tabs={tabs}
+                    setTabIndex={setTabIndex}
+                    handleNewTab={handleNewTab}
+                    setTab={setTab}
+                    setCmdBarVis={setCmdBarVis}
+                />}
             <div
                 style={{
                     flex: 1,
