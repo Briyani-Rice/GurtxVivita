@@ -17,8 +17,8 @@ assert.match(
 
 assert.match(
     source,
-    /Ready to lend/,
-    "Admin material cards should use clearer stock status language",
+    /In stock/,
+    "Admin material cards should use direct stock status language",
 );
 
 assert.match(
@@ -31,6 +31,24 @@ assert.doesNotMatch(
     source,
     /background:\s*'#f6f8fb'/,
     "Admin View should not force the old flat background",
+);
+
+assert.match(
+    source,
+    /"SF Pro Text"/,
+    "Admin View should use a quieter native app font stack",
+);
+
+assert.doesNotMatch(
+    source,
+    /borderRadius:\s*999/,
+    "Admin View should avoid bubbly pill controls",
+);
+
+assert.doesNotMatch(
+    source,
+    /linear-gradient\(135deg, var\(--viventory-welcome-accent\)/,
+    "Admin primary actions should use flatter styling",
 );
 
 console.log("AdminView visual source checks passed");

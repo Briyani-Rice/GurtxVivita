@@ -39,10 +39,9 @@ const styles: Record<string, CSSProperties> = {
         minHeight: 0,
         padding: 20,
         background:
-            'radial-gradient(var(--viventory-welcome-dot) 1.2px, transparent 1.2px), linear-gradient(135deg, var(--viventory-welcome-bg), var(--viventory-bg))',
-        backgroundSize: '22px 22px, auto',
+            'linear-gradient(180deg, rgba(245, 158, 11, 0.08), transparent 170px), var(--viventory-bg)',
         color: 'var(--viventory-text)',
-        fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontFamily: '"SF Pro Text", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
         overflow: 'hidden',
     },
     header: {
@@ -56,7 +55,7 @@ const styles: Record<string, CSSProperties> = {
         margin: 0,
         color: 'var(--viventory-welcome-accent)',
         fontSize: 13,
-        fontWeight: 850,
+        fontWeight: 750,
         letterSpacing: 0,
         textTransform: 'uppercase',
     },
@@ -64,7 +63,7 @@ const styles: Record<string, CSSProperties> = {
         margin: '4px 0 0',
         fontSize: 28,
         lineHeight: 1.1,
-        fontWeight: 850,
+        fontWeight: 750,
         letterSpacing: 0,
     },
     stats: {
@@ -81,21 +80,21 @@ const styles: Record<string, CSSProperties> = {
         minHeight: 38,
         padding: '8px 11px',
         border: '1px solid var(--viventory-border)',
-        borderRadius: 8,
+        borderRadius: 4,
         background: 'var(--viventory-welcome-card)',
-        boxShadow: '0 12px 28px rgba(15, 23, 42, 0.1)',
+        boxShadow: '0 8px 18px rgba(15, 23, 42, 0.08)',
         fontSize: 14,
-        fontWeight: 750,
+        fontWeight: 700,
         whiteSpace: 'nowrap',
     },
     panelGroup: {
         height: 'calc(100% - 74px)',
         minHeight: 520,
         border: '1px solid var(--viventory-border)',
-        borderRadius: 8,
+        borderRadius: 4,
         background: 'var(--viventory-surface)',
         overflow: 'hidden',
-        boxShadow: '0 24px 60px rgba(15, 23, 42, 0.14)',
+        boxShadow: '0 18px 42px rgba(15, 23, 42, 0.1)',
     },
     workspace: {
         display: 'grid',
@@ -117,7 +116,7 @@ const styles: Record<string, CSSProperties> = {
         margin: '0 0 10px',
         color: 'var(--viventory-muted-text)',
         fontSize: 13,
-        fontWeight: 750,
+        fontWeight: 700,
         letterSpacing: 0,
         textTransform: 'uppercase',
     },
@@ -144,7 +143,7 @@ const styles: Record<string, CSSProperties> = {
     paneTitle: {
         margin: 0,
         fontSize: 22,
-        fontWeight: 750,
+        fontWeight: 700,
         letterSpacing: 0,
     },
     paneMeta: {
@@ -163,10 +162,10 @@ const styles: Record<string, CSSProperties> = {
     },
     materialCard: {
         border: '1px solid var(--viventory-border)',
-        borderRadius: 8,
+        borderRadius: 4,
         background: 'var(--viventory-surface)',
         padding: 16,
-        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
+        boxShadow: '0 8px 22px rgba(15, 23, 42, 0.06)',
     },
     cardHeader: {
         display: 'flex',
@@ -177,7 +176,7 @@ const styles: Record<string, CSSProperties> = {
     materialName: {
         margin: 0,
         fontSize: 16,
-        fontWeight: 750,
+        fontWeight: 700,
         lineHeight: 1.2,
     },
     materialDescription: {
@@ -192,11 +191,11 @@ const styles: Record<string, CSSProperties> = {
         gap: 6,
         marginTop: 12,
         padding: '5px 8px',
-        borderRadius: 8,
+        borderRadius: 4,
         background: 'var(--viventory-muted-surface)',
         color: 'var(--viventory-text)',
         fontSize: 13,
-        fontWeight: 750,
+        fontWeight: 700,
     },
     cardActions: {
         display: 'flex',
@@ -225,10 +224,10 @@ const styles: Record<string, CSSProperties> = {
     },
     requestCard: {
         border: '1px solid var(--viventory-border)',
-        borderRadius: 8,
+        borderRadius: 4,
         background: 'var(--viventory-surface)',
         padding: 12,
-        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
+        boxShadow: '0 8px 22px rgba(15, 23, 42, 0.06)',
     },
     requestTop: {
         display: 'flex',
@@ -239,7 +238,7 @@ const styles: Record<string, CSSProperties> = {
     requestName: {
         margin: 0,
         fontSize: 15,
-        fontWeight: 750,
+        fontWeight: 700,
         lineHeight: 1.25,
     },
     requestMeta: {
@@ -261,7 +260,7 @@ const styles: Record<string, CSSProperties> = {
         justifyContent: 'center',
         minHeight: 180,
         border: '1px dashed var(--viventory-border)',
-        borderRadius: 8,
+        borderRadius: 4,
         color: 'var(--viventory-muted-text)',
         textAlign: 'center',
         padding: 20,
@@ -282,13 +281,13 @@ const styles: Record<string, CSSProperties> = {
 const makeAreaButtonStyle = (active: boolean): CSSProperties => ({
     width: '100%',
     border: active ? '2px solid var(--viventory-tab-active-border)' : '1px solid var(--viventory-border)',
-    borderRadius: 8,
+    borderRadius: 4,
     background: active ? 'var(--viventory-active-tab)' : 'var(--viventory-surface)',
     color: 'var(--viventory-text)',
     padding: '10px 11px',
     textAlign: 'left',
     cursor: 'pointer',
-    boxShadow: active ? '0 12px 28px rgba(15, 23, 42, 0.12)' : '0 1px 2px rgba(15, 23, 42, 0.04)',
+    boxShadow: active ? '0 8px 18px rgba(15, 23, 42, 0.1)' : '0 1px 2px rgba(15, 23, 42, 0.04)',
 });
 
 const makeButtonStyle = (variant: 'primary' | 'ghost' | 'approve' | 'decline'): CSSProperties => {
@@ -297,7 +296,7 @@ const makeButtonStyle = (variant: 'primary' | 'ghost' | 'approve' | 'decline'): 
         alignItems: 'center',
         justifyContent: 'center',
         gap: 7,
-        borderRadius: 8,
+        borderRadius: 4,
         border: '1px solid transparent',
         minHeight: 36,
         padding: '8px 11px',
@@ -310,8 +309,8 @@ const makeButtonStyle = (variant: 'primary' | 'ghost' | 'approve' | 'decline'): 
     if (variant === 'primary') {
         return {
             ...base,
-            background: 'linear-gradient(135deg, var(--viventory-welcome-accent), var(--viventory-welcome-accent-2))',
-            borderColor: 'transparent',
+            background: 'var(--viventory-welcome-accent)',
+            borderColor: 'var(--viventory-welcome-accent)',
             color: '#1f1300'
         };
     }
@@ -421,7 +420,7 @@ export function AdminView({
                                             onClick={() => setSelectedElement(compartment.id)}
                                             style={makeAreaButtonStyle(active)}
                                         >
-                                            <div style={{ fontSize: 14, fontWeight: 750 }}>
+                                            <div style={{ fontSize: 14, fontWeight: 700 }}>
                                                 {compartment.number}
                                             </div>
                                             <div style={{ marginTop: 2, fontSize: 13, color: 'var(--viventory-muted-text)' }}>
@@ -516,7 +515,7 @@ export function AdminView({
                                             <div style={makeStockPillStyle(material.quantity)}>
                                                 {material.quantity <= 0
                                                     ? 'Out of stock'
-                                                    : `Ready to lend: ${material.quantity} ${material.unit}`}
+                                                    : `In stock: ${material.quantity} ${material.unit}`}
                                             </div>
                                         </article>
                                     ))

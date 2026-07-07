@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Material, Compartment } from '../types';
+import type { CSSProperties } from 'react';
 
 interface MaterialDialogProps {
     isOpen: boolean;
@@ -10,6 +11,108 @@ interface MaterialDialogProps {
     compartments: Compartment[];
     selectedCompartmentId?: string;
 }
+
+const styles: Record<string, CSSProperties> = {
+    overlay: {
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+        background: 'rgba(15, 23, 42, 0.52)',
+    },
+    panel: {
+        width: 'min(100%, 440px)',
+        maxHeight: 'calc(100vh - 40px)',
+        overflow: 'auto',
+        border: '1px solid var(--viventory-border)',
+        borderRadius: 6,
+        background: 'var(--viventory-surface)',
+        color: 'var(--viventory-text)',
+        boxShadow: '0 22px 60px rgba(15, 23, 42, 0.24)',
+        padding: 22,
+        fontFamily: '"SF Pro Text", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+    },
+    header: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 16,
+        marginBottom: 16,
+    },
+    title: {
+        margin: 0,
+        fontSize: 19,
+        lineHeight: 1.2,
+        fontWeight: 700,
+    },
+    closeButton: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 32,
+        height: 32,
+        border: '1px solid var(--viventory-border)',
+        borderRadius: 4,
+        background: 'var(--viventory-surface)',
+        color: 'var(--viventory-muted-text)',
+        cursor: 'pointer',
+    },
+    form: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+    },
+    grid: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 12,
+    },
+    label: {
+        display: 'block',
+        marginBottom: 5,
+        color: 'var(--viventory-muted-text)',
+        fontSize: 13,
+        fontWeight: 650,
+    },
+    field: {
+        boxSizing: 'border-box',
+        width: '100%',
+        border: '1px solid var(--viventory-border)',
+        borderRadius: 4,
+        background: 'var(--viventory-surface)',
+        color: 'var(--viventory-text)',
+        padding: '9px 10px',
+        font: 'inherit',
+        outline: 'none',
+    },
+    actions: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 10,
+        paddingTop: 6,
+    },
+    secondaryButton: {
+        minHeight: 38,
+        border: '1px solid var(--viventory-border)',
+        borderRadius: 4,
+        background: 'var(--viventory-surface)',
+        color: 'var(--viventory-text)',
+        fontWeight: 650,
+        cursor: 'pointer',
+    },
+    primaryButton: {
+        minHeight: 38,
+        border: '1px solid var(--viventory-welcome-accent)',
+        borderRadius: 4,
+        background: 'var(--viventory-welcome-accent)',
+        color: '#1f1300',
+        fontWeight: 700,
+        cursor: 'pointer',
+    },
+};
 
 export function MaterialDialog({
                                    isOpen,
@@ -56,23 +159,25 @@ export function MaterialDialog({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-gray-900">
+        <div style={styles.overlay} role="presentation">
+            <div style={styles.panel} role="dialog" aria-modal="true" aria-labelledby="material-dialog-title">
+                <div style={styles.header}>
+                    <h2 id="material-dialog-title" style={styles.title}>
                         {material ? 'Edit Material' : 'Add Material'}
                     </h2>
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="p-1 rounded-md hover:bg-gray-100 text-gray-600"
+                        style={styles.closeButton}
+                        aria-label="Close material dialog"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} style={styles.form}>
                     <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="name" style={styles.label}>
                             Material Name *
                         </label>
                         <input
@@ -81,28 +186,28 @@ export function MaterialDialog({
                             required
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            style={styles.field}
                             placeholder="e.g., Cardboard, Coloured Paper"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="description" style={styles.label}>
                             Description
                         </label>
                         <textarea
                             id="description"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            style={styles.field}
                             placeholder="Additional details..."
                             rows={3}
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div style={styles.grid}>
                         <div>
-                            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="quantity" style={styles.label}>
                                 Quantity *
                             </label>
                             <input
@@ -112,19 +217,19 @@ export function MaterialDialog({
                                 min="0"
                                 value={formData.quantity}
                                 onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                style={styles.field}
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="unit" style={styles.label}>
                                 Unit *
                             </label>
                             <select
                                 id="unit"
                                 value={formData.unit}
                                 onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                style={styles.field}
                             >
                                 <option value="pcs">pcs</option>
                                 <option value="kg">kg</option>
@@ -140,7 +245,7 @@ export function MaterialDialog({
                     </div>
 
                     <div>
-                        <label htmlFor="compartment" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="compartment" style={styles.label}>
                             Compartment *
                         </label>
                         <select
@@ -148,7 +253,7 @@ export function MaterialDialog({
                             required
                             value={formData.compartmentId}
                             onChange={(e) => setFormData({ ...formData, compartmentId: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            style={styles.field}
                         >
                             <option value="">Select compartment...</option>
                             {compartments.map((comp) => (
@@ -159,17 +264,17 @@ export function MaterialDialog({
                         </select>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div style={styles.actions}>
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                            style={styles.secondaryButton}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                            style={styles.primaryButton}
                         >
                             {material ? 'Update' : 'Add'}
                         </button>
