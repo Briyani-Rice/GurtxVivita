@@ -789,7 +789,7 @@ function AppCommandEntry({ setCmdBarVis }: { setCmdBarVis: (visible: boolean) =>
                 alignItems: "center",
                 padding: "6px 18px",
                 boxSizing: "border-box",
-                background: "linear-gradient(135deg, var(--viventory-shell-start), var(--viventory-shell-end))",
+                background: "linear-gradient(135deg, var(--viventory-shell-start) 0%, var(--viventory-shell-mid) 46%, var(--viventory-shell-end) 100%)",
                 borderBottom: "1px solid var(--viventory-border)",
                 color: "var(--viventory-shell-text)",
                 flexShrink: 0,

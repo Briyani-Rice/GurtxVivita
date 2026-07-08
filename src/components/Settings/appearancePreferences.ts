@@ -34,8 +34,9 @@ const PALETTES = {
         welcomeAccent2: "#A5D6D1",
         welcomeDot: "rgba(51, 167, 181, 0.24)",
         welcomeFooter: "#24262B",
-        shellStart: "#24262B",
-        shellEnd: "#A1824F",
+        shellStart: "#ff7a1a",
+        shellMid: "#f59e0b",
+        shellEnd: "#33A7B5",
         shellText: "#FFFDF6",
         tabActiveBorder: "#A1824F",
     },
@@ -56,8 +57,9 @@ const PALETTES = {
         welcomeAccent2: "#33A7B5",
         welcomeDot: "rgba(165, 214, 209, 0.22)",
         welcomeFooter: "#0F141A",
-        shellStart: "#161D26",
-        shellEnd: "#A1824F",
+        shellStart: "#c2410c",
+        shellMid: "#b45309",
+        shellEnd: "#25636b",
         shellText: "#FFFDF6",
         tabActiveBorder: "#A5D6D1",
     },
@@ -149,6 +151,7 @@ export function applyAppearancePrefs(prefs: AppearancePrefs): AppearancePrefs {
     root.style.setProperty("--viventory-welcome-dot", palette.welcomeDot);
     root.style.setProperty("--viventory-welcome-footer", palette.welcomeFooter);
     root.style.setProperty("--viventory-shell-start", palette.shellStart);
+    root.style.setProperty("--viventory-shell-mid", palette.shellMid);
     root.style.setProperty("--viventory-shell-end", palette.shellEnd);
     root.style.setProperty("--viventory-shell-text", palette.shellText);
     root.style.setProperty("--viventory-tab-active-border", palette.tabActiveBorder);

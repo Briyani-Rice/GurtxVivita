@@ -28,15 +28,25 @@ for (const color of vivitaSiteColors) {
     );
 }
 
-assert.doesNotMatch(
+assert.match(
     styleCss,
-    /--viventory-shell-start:\s*#f59e0b/i,
-    "shell should no longer use the old orange-heavy start color",
+    /--viventory-shell-start:\s*#ff7a1a/i,
+    "shell should use a vivid VIVITA orange start color",
 );
-assert.doesNotMatch(
+assert.match(
+    styleCss,
+    /--viventory-shell-mid:\s*#f59e0b/i,
+    "shell should keep a warm golden middle color",
+);
+assert.match(
+    styleCss,
+    /--viventory-shell-end:\s*#33A7B5/i,
+    "shell should end on the VIVITA teal accent instead of a dull brown",
+);
+assert.match(
     appearancePrefs,
-    /shellStart:\s*"#f59e0b"/i,
-    "appearance preferences should not restore the old orange-heavy shell",
+    /shellStart:\s*"#ff7a1a"/i,
+    "appearance preferences should restore the warmer shell start color",
 );
 
 console.log("VivitaPalette.test.ts passed");
