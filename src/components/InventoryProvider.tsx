@@ -34,6 +34,7 @@ type InventoryContextValue = {
 };
 
 const InventoryContext = createContext<InventoryContextValue | null>(null);
+const LOCAL_MATERIAL_ID_PREFIX = "local-";
 
 function toMaterialInput(material: Material): MaterialInput {
     return {
@@ -43,6 +44,18 @@ function toMaterialInput(material: Material): MaterialInput {
         unit: material.unit,
         compartmentId: material.compartmentId,
     };
+}
+
+function createLocalMaterial(material: MaterialInput): Material {
+    return {
+        ...material,
+        id: `${LOCAL_MATERIAL_ID_PREFIX}${crypto.randomUUID()}`,
+        createdAt: new Date().toISOString(),
+    };
+}
+
+function isLocalMaterial(id: string): boolean {
+    return id.startsWith(LOCAL_MATERIAL_ID_PREFIX);
 }
 
 function makeRequest(material: Material, quantity: number, reason: string): MaterialRequest {
@@ -60,6 +73,11 @@ function makeRequest(material: Material, quantity: number, reason: string): Mate
 function showSyncError(action: string, error: unknown) {
     console.error(`Unable to ${action} material in PocketBase`, error);
     alert(`Unable to ${action} material. Check that PocketBase is running and the materials collection exists.`);
+}
+
+function showLocalSyncWarning(action: string, error: unknown) {
+    console.warn(`Unable to ${action} material in PocketBase; saved locally for this session.`, error);
+    alert(`PocketBase is not available. The material was saved locally for this session, but it will not sync until PocketBase is running.`);
 }
 
 export function InventoryProvider({ children }: { children: React.ReactNode }) {
@@ -97,25 +115,56 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 const savedMaterial = await createMaterialRecord(material);
                 setMaterials(prev => [normalizeMaterialArea(savedMaterial), ...prev]);
             } catch (error) {
-                showSyncError("add", error);
+                setMaterials(prev => [normalizeMaterialArea(createLocalMaterial(material)), ...prev]);
+                showLocalSyncWarning("add", error);
             }
         },
         editMaterial: async (id, material) => {
+            if (isLocalMaterial(id)) {
+                setMaterials(prev => prev.map(existing =>
+                    existing.id === id
+                        ? normalizeMaterialArea({
+                            ...existing,
+                            ...material,
+                        })
+                        : existing
+                ));
+                return;
+            }
+
             try {
                 const savedMaterial = await updateMaterialRecord(id, material);
                 setMaterials(prev => prev.map(existing =>
                     existing.id === id ? normalizeMaterialArea(savedMaterial) : existing
                 ));
             } catch (error) {
+                setMaterials(prev => prev.map(existing =>
+                    existing.id === id
+                        ? normalizeMaterialArea({
+                            ...existing,
+                            ...material,
+                        })
+                        : existing
+                ));
                 showSyncError("update", error);
             }
         },
         deleteMaterial: async (id) => {
-            try {
-                await deleteMaterialRecord(id);
+            const removeMaterial = () => {
                 setMaterials(prev => prev.filter(material => material.id !== id));
                 setRequests(prev => prev.filter(request => request.materialId !== id));
+            };
+
+            if (isLocalMaterial(id)) {
+                removeMaterial();
+                return;
+            }
+
+            try {
+                await deleteMaterialRecord(id);
+                removeMaterial();
             } catch (error) {
+                removeMaterial();
                 showSyncError("delete", error);
             }
         },
@@ -136,6 +185,11 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                     quantity: Math.max(0, material.quantity - request.requestedQuantity),
                 };
 
+                if (isLocalMaterial(material.id)) {
+                    setMaterials(prev => prev.map(existing =>
+                        existing.id === material.id ? normalizeMaterialArea(nextMaterial) : existing
+                    ));
+                } else {
                 try {
                     const savedMaterial = await updateMaterialRecord(
                         material.id,
@@ -147,6 +201,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 } catch (error) {
                     showSyncError("update", error);
                     return;
+                }
                 }
             }
 
