@@ -30,23 +30,38 @@ for (const color of vivitaSiteColors) {
 
 assert.match(
     styleCss,
-    /--viventory-shell-start:\s*#ff7a1a/i,
-    "shell should use a vivid VIVITA orange start color",
+    /--viventory-bg:\s*#ffffff/i,
+    "light mode base background should be full white",
 );
 assert.match(
     styleCss,
-    /--viventory-shell-mid:\s*#f59e0b/i,
-    "shell should keep a warm golden middle color",
+    /--viventory-shell-start:\s*#dbd3ab/i,
+    "light mode shell should use the requested beige title bar",
 );
 assert.match(
     styleCss,
-    /--viventory-shell-end:\s*#33A7B5/i,
-    "shell should end on the VIVITA teal accent instead of a dull brown",
+    /--viventory-shell-mid:\s*#dbd3ab/i,
+    "light mode shell should stay solid beige through the middle",
+);
+assert.match(
+    styleCss,
+    /--viventory-shell-end:\s*#dbd3ab/i,
+    "light mode shell should stay solid beige at the end",
 );
 assert.match(
     appearancePrefs,
-    /shellStart:\s*"#ff7a1a"/i,
-    "appearance preferences should restore the warmer shell start color",
+    /bg:\s*"#ffffff"/i,
+    "appearance preferences should set light mode app background to full white",
+);
+assert.match(
+    appearancePrefs,
+    /shellStart:\s*"#dbd3ab"/i,
+    "appearance preferences should use the requested light title bar color",
+);
+assert.match(
+    appearancePrefs,
+    /dark:\s*{[\s\S]*shellStart:\s*"#161D26"[\s\S]*shellMid:\s*"#24262B"[\s\S]*shellEnd:\s*"#32353C"/i,
+    "dark mode title bar should align with the dark settings surfaces",
 );
 
 console.log("VivitaPalette.test.ts passed");

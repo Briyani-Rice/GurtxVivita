@@ -18,8 +18,8 @@ const DEFAULT_PREFS: AppearancePrefs = {
 
 const PALETTES = {
     light: {
-        bg: "#F6F4EA",
-        surface: "#FFFDF6",
+        bg: "#ffffff",
+        surface: "#ffffff",
         mutedSurface: "#ECE8DA",
         text: "#24262B",
         mutedText: "#838998",
@@ -34,10 +34,10 @@ const PALETTES = {
         welcomeAccent2: "#A5D6D1",
         welcomeDot: "rgba(51, 167, 181, 0.24)",
         welcomeFooter: "#24262B",
-        shellStart: "#ff7a1a",
-        shellMid: "#f59e0b",
-        shellEnd: "#33A7B5",
-        shellText: "#FFFDF6",
+        shellStart: "#dbd3ab",
+        shellMid: "#dbd3ab",
+        shellEnd: "#dbd3ab",
+        shellText: "#24262B",
         tabActiveBorder: "#A1824F",
     },
     dark: {
@@ -57,9 +57,9 @@ const PALETTES = {
         welcomeAccent2: "#33A7B5",
         welcomeDot: "rgba(165, 214, 209, 0.22)",
         welcomeFooter: "#0F141A",
-        shellStart: "#c2410c",
-        shellMid: "#b45309",
-        shellEnd: "#25636b",
+        shellStart: "#161D26",
+        shellMid: "#24262B",
+        shellEnd: "#32353C",
         shellText: "#FFFDF6",
         tabActiveBorder: "#A5D6D1",
     },
