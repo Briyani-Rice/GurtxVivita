@@ -98,10 +98,18 @@ const icon = parseRgbaPng(new URL("../../src-tauri/icons/icon.png", import.meta.
 assert.equal(icon.width, 512);
 assert.equal(icon.height, 512);
 
-assert.equal(alphaAt(icon, 0, 0), 0, "top-left corner should be transparent for a round app icon");
-assert.equal(alphaAt(icon, icon.width - 1, 0), 0, "top-right corner should be transparent for a round app icon");
-assert.equal(alphaAt(icon, 0, icon.height - 1), 0, "bottom-left corner should be transparent for a round app icon");
-assert.equal(alphaAt(icon, icon.width - 1, icon.height - 1), 0, "bottom-right corner should be transparent for a round app icon");
+assert.equal(alphaAt(icon, 0, 0), 0, "top-left corner should be transparent for a rounded-square app icon");
+assert.equal(alphaAt(icon, icon.width - 1, 0), 0, "top-right corner should be transparent for a rounded-square app icon");
+assert.equal(alphaAt(icon, 0, icon.height - 1), 0, "bottom-left corner should be transparent for a rounded-square app icon");
+assert.equal(alphaAt(icon, icon.width - 1, icon.height - 1), 0, "bottom-right corner should be transparent for a rounded-square app icon");
+assert.equal(alphaAt(icon, Math.floor(icon.width / 2), 0), 255, "top edge should stay opaque so the icon is not circular");
+assert.equal(alphaAt(icon, Math.floor(icon.width / 2), icon.height - 1), 255, "bottom edge should stay opaque so the icon is not circular");
+assert.equal(alphaAt(icon, 0, Math.floor(icon.height / 2)), 255, "left edge should stay opaque so the icon is not circular");
+assert.equal(alphaAt(icon, icon.width - 1, Math.floor(icon.height / 2)), 255, "right edge should stay opaque so the icon is not circular");
+assert.equal(alphaAt(icon, 70, 20), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
+assert.equal(alphaAt(icon, icon.width - 71, 20), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
+assert.equal(alphaAt(icon, 70, icon.height - 21), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
+assert.equal(alphaAt(icon, icon.width - 71, icon.height - 21), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
 assert.equal(alphaAt(icon, Math.floor(icon.width / 2), Math.floor(icon.height / 2)), 255);
 
 console.log("AppIconShape.test.ts passed");
