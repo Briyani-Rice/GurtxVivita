@@ -998,6 +998,13 @@ function App() {
                 handleClosingTab(tabIndex);
             }
 
+            if (event.ctrlKey && event.key === 'Tab' && tabs.length > 0) {
+                event.preventDefault();
+                const direction = event.shiftKey ? -1 : 1;
+                const nextIndex = (tabIndex + direction + tabs.length) % tabs.length;
+                setTabIndex(nextIndex);
+            }
+
             if (event.key === 'F11') {
                 event.preventDefault();
                 void toggleFullscreen();
@@ -1006,7 +1013,7 @@ function App() {
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [handleNewTab, handleClosingTab, isFullscreen, tabIndex]);
+    }, [handleNewTab, handleClosingTab, isFullscreen, tabIndex, tabs.length]);
 
     const toggleFullscreen = async () => {
         try {
