@@ -50,6 +50,24 @@ After login, the app opens `Admin View`, where staff can:
 - Decline requests.
 - See out-of-stock items.
 
+## Firebase Google Login
+
+The login screen also supports Firebase Authentication with Google sign-in. In Firebase Console, create a web app and enable the Google provider under Authentication.
+
+Create a local env file with your Firebase web app values:
+
+```bash
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_ADMIN_EMAILS=admin@example.com,another-admin@example.com
+```
+
+Only Google accounts listed in `VITE_FIREBASE_ADMIN_EMAILS` open `Admin View`; other Google accounts sign in as basic users. The demo username/password login remains available for local prototype use.
+
 ## Running The App
 
 Install dependencies:

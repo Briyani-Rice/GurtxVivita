@@ -104,9 +104,7 @@ const styles: Styles = {
         flex: 1,
         overflow: 'auto',
         padding: 20,
-        background:
-            'radial-gradient(var(--viventory-welcome-dot) 1.2px, transparent 1.2px), linear-gradient(135deg, var(--viventory-welcome-bg), var(--viventory-bg))',
-        backgroundSize: '22px 22px, auto'
+        background: 'var(--viventory-bg)'
     },
 
     materialsHero: {

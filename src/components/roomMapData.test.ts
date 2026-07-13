@@ -30,4 +30,41 @@ assert.ok(
     "Pegboard storage should have inventory assigned"
 );
 
+assert.equal(
+    vivitaMaterials.length,
+    905,
+    "VIVITA inventory export should import every named material row",
+);
+
+assert.ok(
+    vivitaMaterials.some(material =>
+        material.name === "Lionsforge Laser Cutter" &&
+        material.quantity === 1 &&
+        material.compartmentId === "tinkering-studio" &&
+        material.description.includes("Category: Machine") &&
+        material.description.includes("Where to find it: Tinkering Studio")
+    ),
+    "Imported machine rows should retain quantity, category, and location details",
+);
+
+assert.ok(
+    vivitaMaterials.some(material =>
+        material.name === "Caulking Gun" &&
+        material.quantity === 1 &&
+        material.compartmentId === "pegboard-storage" &&
+        material.description.includes("Used for: plastic, wood")
+    ),
+    "Imported hand-tool rows should retain tool usage details",
+);
+
+assert.ok(
+    vivitaMaterials.some(material =>
+        material.name === "Corrugated Paper Roll" &&
+        material.quantity === 0 &&
+        material.compartmentId === "vivi-shelving" &&
+        material.description.includes("Stock status: In Stock")
+    ),
+    "Blank quantity rows should import as zero while retaining stock status",
+);
+
 console.log("roomMapData tests passed");

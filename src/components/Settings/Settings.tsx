@@ -50,9 +50,7 @@ function SettingsContent() {
                 padding: "20px",
                 minHeight: "100%",
                 boxSizing: "border-box",
-                background:
-                    "radial-gradient(var(--viventory-welcome-dot) 1.2px, transparent 1.2px), linear-gradient(135deg, var(--viventory-welcome-bg), var(--viventory-bg))",
-                backgroundSize: "22px 22px, auto",
+                background: "var(--viventory-bg)",
                 color: "var(--viventory-text)",
                 fontSize: "var(--viventory-font-size)",
             }}

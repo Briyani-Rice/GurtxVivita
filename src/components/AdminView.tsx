@@ -38,8 +38,7 @@ const styles: Record<string, CSSProperties> = {
         height: '100%',
         minHeight: 0,
         padding: 20,
-        background:
-            'linear-gradient(180deg, rgba(51, 167, 181, 0.1), transparent 170px), var(--viventory-bg)',
+        background: 'var(--viventory-bg)',
         color: 'var(--viventory-text)',
         fontFamily: '"SF Pro Text", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
         overflow: 'hidden',

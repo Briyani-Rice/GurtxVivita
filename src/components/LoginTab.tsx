@@ -3,6 +3,7 @@ import {BasicTabProps} from "../app";
 import React, {useEffect, useState} from "react";
 import { Eye, EyeClosed } from "lucide-react";
 import AdminViewTab from "./AdminViewTab";
+import { signInWithGoogle, type FirebaseLoginResult } from "../services/firebaseAuth";
 
 type LoginTabContentProps = BasicTabProps & {
     actL: number;
@@ -35,6 +36,29 @@ function LoginTabContent({
     const [password, setPassword] = useState("");
     const [note, setNote] = useState("");
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
+
+    const completeLogin = (res: { perms?: UserPerms }, localUser?: User | null) => {
+        const isAdmin = res?.perms === UserPerms.Staff || localUser?.getPerms() === UserPerms.Staff;
+        const tabsWithoutLogin = tabs.filter((_, index) => index !== actL);
+
+        setNote("Login successful!");
+
+        if (isAdmin) {
+            const existingAdminIndex = tabsWithoutLogin.findIndex(tab => tab.name === "Admin View");
+
+            if (existingAdminIndex !== -1) {
+                setTabs(tabsWithoutLogin);
+                setTabIndex(existingAdminIndex);
+            } else {
+                setTabs([...tabsWithoutLogin, new AdminViewTab()]);
+                setTabIndex(tabsWithoutLogin.length);
+            }
+        } else {
+            setTabs(tabsWithoutLogin);
+            setTabIndex(0);
+        }
+    };
 
     const handleLogin = async () => {
         try {
@@ -66,31 +90,34 @@ function LoginTabContent({
                 return;
             }
 
-            const isAdmin = res?.perms === UserPerms.Staff || localUser?.getPerms() === UserPerms.Staff;
-            const tabsWithoutLogin = tabs.filter((_, index) => index !== actL);
-
-            setNote("Login successful!");
-
-            if (isAdmin) {
-                const existingAdminIndex = tabsWithoutLogin.findIndex(tab => tab.name === "Admin View");
-
-                if (existingAdminIndex !== -1) {
-                    setTabs(tabsWithoutLogin);
-                    setTabIndex(existingAdminIndex);
-                } else {
-                    setTabs([...tabsWithoutLogin, new AdminViewTab()]);
-                    setTabIndex(tabsWithoutLogin.length);
-                }
-            } else {
-                setTabs(tabsWithoutLogin);
-                setTabIndex(0);
-            }
+            completeLogin(res, localUser);
 
         } catch (err) {
             console.error(err);
             setNote("Unexpected error occurred.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        try {
+            setGoogleLoading(true);
+            setNote("");
+
+            const res: FirebaseLoginResult = await signInWithGoogle();
+
+            if (!res.success) {
+                setNote(res.note);
+                return;
+            }
+
+            completeLogin(res);
+        } catch (err) {
+            console.error(err);
+            setNote("Google login failed.");
+        } finally {
+            setGoogleLoading(false);
         }
     };
 
@@ -230,6 +257,21 @@ function LoginTabContent({
                     }}
                 >
                     {loading ? "Logging in..." : "Login"}
+                </button>
+
+                <button
+                    onClick={handleGoogleLogin}
+                    disabled={googleLoading || loading}
+                    style={{
+                        width: "100%",
+                        marginTop: "10px",
+                        padding: "10px",
+                        cursor: "pointer",
+                        border: "1px solid #ddd",
+                        background: "#fff",
+                    }}
+                >
+                    {googleLoading ? "Opening Google..." : "Continue with Google"}
                 </button>
 
                 {/* Status */}

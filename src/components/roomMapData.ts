@@ -1,4 +1,5 @@
-import type { FloorData, Material } from "../types";
+import type { FloorData } from "../types";
+import { vivitaInventoryMaterials } from "./vivitaInventoryMaterials.ts";
 
 export const vivitaFloor: FloorData = {
     id: "level-1",
@@ -97,68 +98,4 @@ export const vivitaFloor: FloorData = {
     ],
 };
 
-export const vivitaMaterials: Material[] = [
-    {
-        id: "mat-1",
-        name: "HDMI Cable",
-        description: "2m HDMI cable",
-        quantity: 12,
-        unit: "pcs",
-        compartmentId: "white-space",
-        createdAt: "2026-05-25T10:00:00Z",
-    },
-    {
-        id: "mat-2",
-        name: "Laptop",
-        description: "Dell Latitude laptops",
-        quantity: 6,
-        unit: "units",
-        compartmentId: "tinkering-studio",
-        createdAt: "2026-05-25T10:10:00Z",
-    },
-    {
-        id: "mat-3",
-        name: "Craft Tools",
-        description: "Shared tinkering tool sets",
-        quantity: 18,
-        unit: "sets",
-        compartmentId: "worktables",
-        createdAt: "2026-05-25T10:20:00Z",
-    },
-    {
-        id: "mat-4",
-        name: "Pegboard Parts",
-        description: "Connectors, fasteners, and display samples",
-        quantity: 42,
-        unit: "pcs",
-        compartmentId: "pegboard-storage",
-        createdAt: "2026-05-25T10:25:00Z",
-    },
-    {
-        id: "mat-5",
-        name: "Ethernet Cable",
-        description: "Cat 6 networking cable",
-        quantity: 25,
-        unit: "pcs",
-        compartmentId: "vivi-shelving",
-        createdAt: "2026-05-25T10:20:00Z",
-    },
-    {
-        id: "mat-6",
-        name: "Projector",
-        description: "Portable presentation projector",
-        quantity: 1,
-        unit: "unit",
-        compartmentId: "white-space",
-        createdAt: "2026-05-25T10:30:00Z",
-    },
-    {
-        id: "mat-7",
-        name: "Camera Tripod",
-        description: "Photography studio tripod",
-        quantity: 3,
-        unit: "pcs",
-        compartmentId: "vivistudio",
-        createdAt: "2026-05-25T10:40:00Z",
-    },
-];
+export const vivitaMaterials = vivitaInventoryMaterials;

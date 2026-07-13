@@ -10,7 +10,6 @@ const appearancePrefs = readFileSync(
 const vivitaSiteColors = [
     "#24262B",
     "#A1824F",
-    "#FFF5CB",
     "#A5D6D1",
     "#33A7B5",
 ];
@@ -35,18 +34,28 @@ assert.match(
 );
 assert.match(
     styleCss,
-    /--viventory-shell-start:\s*#dbd3ab/i,
-    "light mode shell should use the requested beige title bar",
+    /--viventory-muted-surface:\s*#ffffff/i,
+    "light mode muted surfaces should be full white",
 );
 assert.match(
     styleCss,
-    /--viventory-shell-mid:\s*#dbd3ab/i,
-    "light mode shell should stay solid beige through the middle",
+    /--viventory-welcome-bg:\s*#ffffff/i,
+    "light mode welcome background should be full white",
 );
 assert.match(
     styleCss,
-    /--viventory-shell-end:\s*#dbd3ab/i,
-    "light mode shell should stay solid beige at the end",
+    /--viventory-shell-start:\s*#ffffff/i,
+    "light mode shell should start with a full white background",
+);
+assert.match(
+    styleCss,
+    /--viventory-shell-mid:\s*#ffffff/i,
+    "light mode shell should stay full white through the middle",
+);
+assert.match(
+    styleCss,
+    /--viventory-shell-end:\s*#ffffff/i,
+    "light mode shell should stay full white at the end",
 );
 assert.match(
     appearancePrefs,
@@ -55,8 +64,18 @@ assert.match(
 );
 assert.match(
     appearancePrefs,
-    /shellStart:\s*"#dbd3ab"/i,
-    "appearance preferences should use the requested light title bar color",
+    /mutedSurface:\s*"#ffffff"/i,
+    "appearance preferences should set light muted surfaces to full white",
+);
+assert.match(
+    appearancePrefs,
+    /welcomeBg:\s*"#ffffff"/i,
+    "appearance preferences should set the light welcome background to full white",
+);
+assert.match(
+    appearancePrefs,
+    /shellStart:\s*"#ffffff"/i,
+    "appearance preferences should use a full white light title bar",
 );
 assert.match(
     appearancePrefs,

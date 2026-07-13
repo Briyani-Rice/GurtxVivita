@@ -160,17 +160,13 @@ export class welcomeTab implements Tab {
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
-                    backgroundImage:
-                        "radial-gradient(var(--viventory-welcome-dot) 1.3px, transparent 1.3px)",
-                    backgroundSize: "20px 20px"
                 }}
             >
                 <div
                     style={{
                         position: "absolute",
                         inset: 0,
-                        background:
-                            "linear-gradient(135deg, rgba(51, 167, 181, 0.22), transparent 38%, rgba(161, 130, 79, 0.18))",
+                        background: "transparent",
                         pointerEvents: "none",
                     }}
                 />
