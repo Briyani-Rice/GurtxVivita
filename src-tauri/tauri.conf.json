@@ -15,7 +15,9 @@
         "title": "gurtxvivita",
         "width": 800,
         "height": 600,
-        "decorations": false
+        "titleBarStyle": "Overlay",
+        "acceptFirstMouse": true,
+        "hiddenTitle": true
       }
     ],
     "security": {
