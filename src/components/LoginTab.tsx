@@ -173,7 +173,7 @@ function LoginTabContent({
                 </p>
 
                 {/* Username */}
-                <div style={{ marginBottom: "16px" }}>
+                <div style={{ marginBottom: "16px", color:"black" }}>
                     <label htmlFor="username">Username</label>
                     <br />
                     <input
@@ -191,12 +191,13 @@ function LoginTabContent({
                             outline: "none",
                             fontFamily: "monospace",
                             padding: "4px 0",
+                            color:"black"
                         }}
                     />
                 </div>
 
                 {/* Password */}
-                <div style={{ marginBottom: "16px" }}>
+                <div style={{ marginBottom: "16px",color:"black" }}>
                     <label htmlFor="password">Password</label>
                     <br />
 
@@ -222,6 +223,7 @@ function LoginTabContent({
                                 outline: "none",
                                 fontFamily: "monospace",
                                 padding: "4px 0",
+                                color:"black"
                             }}
                         />
 
@@ -269,6 +271,7 @@ function LoginTabContent({
                         cursor: "pointer",
                         border: "1px solid #ddd",
                         background: "#fff",
+                        color:"black"
                     }}
                 >
                     {googleLoading ? "Opening Google..." : "Continue with Google"}
