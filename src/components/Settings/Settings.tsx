@@ -75,9 +75,18 @@ function SettingsContent() {
                 >
                     Control room
                 </p>
-                <h2 style={{ margin: "0 0 16px", fontSize: "34px", fontWeight: 850, letterSpacing: 0 }}>
-                    Settings
+                <h2
+                    style={{
+                        margin: "0 0 16px",
+                        fontSize: "34px",
+                        fontWeight: 850,
+                        letterSpacing: 0,
+                        color: "var(--viventory-text)",
+                 }}
+                >
+                Settings
                 </h2>
+
 
                 <input
                     type="search"
