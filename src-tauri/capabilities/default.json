@@ -16,5 +16,6 @@
     "os:default",
     "core:window:default",
     "core:window:allow-start-dragging"
+
   ]
 }
