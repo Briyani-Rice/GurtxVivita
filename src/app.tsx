@@ -27,6 +27,20 @@ import vivitaSpaceImage from "./assets/vivita-space.png";
 import vivitaCommunityImage from "./assets/vivita-community.jpg";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { InventoryProvider } from "./components/InventoryProvider";
+import {
+  collection,
+  onSnapshot,
+  QuerySnapshot,
+  DocumentData,
+} from "firebase/firestore";
+import { db } from "./firebase/firebase"; // adjust path if needed
+
+interface StuffItem {
+  id: string;
+  // Add your Firestore fields here
+  name: string;
+  quantity: number;
+}
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -37,6 +51,10 @@ export type BasicTabProps = {
     setTab: (index: number, tab: Tab) => void;
     handleClosingTab: (index: number) => void;
     handleMaterialSearch: (query: string) => void;
+    
+    
+
+
 }
 
 export class SearchCommand implements Command {
@@ -58,6 +76,8 @@ export class SearchCommand implements Command {
     static receive (bt0: BasicTabProps):void{
         SearchCommand.bt=bt0;
     }
+
+
 }
 
 export class HelpCommand implements Command {
@@ -74,6 +94,8 @@ export class HelpCommand implements Command {
     static receive (bt0: BasicTabProps):void{
         HelpCommand.bt=bt0;
     }
+
+
 }
 
 
@@ -87,6 +109,7 @@ export class SettingCommand implements Command {
         HelpCommand.bt.setTabs(nw)
         HelpCommand.bt.setTabIndex(nw.length-1)
     }
+
 }
 
 
@@ -100,6 +123,7 @@ export class LoginCommand implements Command {
         HelpCommand.bt.setTabs(nw)
         HelpCommand.bt.setTabIndex(nw.length-1)
     }
+
 }
 
 export var commands:Command[] = [new SearchCommand(),new HelpCommand(),new SettingCommand(),new LoginCommand()]
@@ -482,6 +506,8 @@ export class welcomeTab implements Tab {
                 </footer>
             </div>)
     }
+    
+
 }
 //@ts-ignore
 type RenderTabBarTabProps = {
@@ -809,6 +835,28 @@ function AppCommandEntry({ setCmdBarVis }: { setCmdBarVis: (visible: boolean) =>
 }
 
 function App() {
+
+
+
+    const [list, setList] = useState<StuffItem[]>([]);
+
+    useEffect(() => {
+        const unsubscribe = onSnapshot(collection(db, "stuff"), (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<StuffItem, "id">),
+      }));
+
+        setList(data);
+    });
+
+    return () => unsubscribe();
+    }, []);
+
+
+
+
+
 
     const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
     const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
