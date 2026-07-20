@@ -1,6 +1,6 @@
 # TODO
 ## Programming side
-- [ ] Add in the rest of tabs like room-map and work on welcome page as well as the rest of the tabs
+- [x] Add in the rest of tabs like room-map and work on welcome page as well as the rest of the tabs
 - [ ] Add in proper documentation
 - [ ] Add in command bar
 ## Designing side
