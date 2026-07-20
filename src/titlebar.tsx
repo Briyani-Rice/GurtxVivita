@@ -1,6 +1,5 @@
 import "./titlestyle.css";
 import { BsGearFill } from "react-icons/bs";
-import { Maximize2 } from "lucide-react";
 import { Tab } from "./types";
 import Settings from "./components/Settings/Settings";
 import { useEffect, useState } from "react";
@@ -19,7 +18,6 @@ export default function Titlebar({
                                      setTabIndex,
                                      handleNewTab,
                                      setTab,
-                                     onToggleFullscreen,
                                  }: Props) {
     const [leftPadding, setLeftPadding] = useState(0);
 
@@ -33,36 +31,25 @@ export default function Titlebar({
     }, []);
 
     return (
-        <div className="title">
+        <div
+            data-tauri-drag-region
+            className="title"
+            style={{ userSelect: "none" }}it
+        >
             <h3
+                data-tauri-drag-region
                 className="title-text"
                 style={{
                     paddingLeft: `${leftPadding}px`,
                     fontSize: "15px",
+                    margin: 0,
+                    pointerEvents: "none"
                 }}
             >
                 VIVITA Maker Guide
             </h3>
 
             <div className="title-right">
-                <button
-                    title="fullscreen"
-                    aria-label="Toggle fullscreen"
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "rgba(255,255,255,0.14)",
-                        borderRadius: "6px",
-                        border: "1px solid rgba(255,255,255,0.22)",
-                        padding: "7px",
-                        cursor: "pointer",
-                        marginRight: "8px",
-                    }}
-                    onClick={onToggleFullscreen}
-                >
-                    <Maximize2 size={18} color="currentColor" />
-                </button>
                 <button
                     title="settings"
                     style={{

@@ -291,7 +291,7 @@ function AppearanceContent() {
                 alignItems:"center",
             }}>
                 <p style={{ color: "var(--viventory-text)" }}>{copy.fontSize}</p>
-                <input type="number" min="8" max="64" value={
+                <input type="number" min="8" max="24" value={
                     fontSize.toString()
                 } onChange={(e)=>{
                     updatePrefs({ ...prefs, fontSize: Number(e.target.value) });
