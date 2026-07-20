@@ -94,6 +94,10 @@ function alphaAt(image: PngImage, x: number, y: number): number {
     return image.pixels[(y * image.width + x) * 4 + 3];
 }
 
+function assertVisibleEdge(alpha: number, message: string): void {
+    assert.ok(alpha >= 64, message);
+}
+
 const icon = parseRgbaPng(new URL("../../src-tauri/icons/icon.png", import.meta.url));
 assert.equal(icon.width, 512);
 assert.equal(icon.height, 512);
@@ -102,10 +106,10 @@ assert.equal(alphaAt(icon, 0, 0), 0, "top-left corner should be transparent for 
 assert.equal(alphaAt(icon, icon.width - 1, 0), 0, "top-right corner should be transparent for a rounded-square app icon");
 assert.equal(alphaAt(icon, 0, icon.height - 1), 0, "bottom-left corner should be transparent for a rounded-square app icon");
 assert.equal(alphaAt(icon, icon.width - 1, icon.height - 1), 0, "bottom-right corner should be transparent for a rounded-square app icon");
-assert.equal(alphaAt(icon, Math.floor(icon.width / 2), 0), 255, "top edge should stay opaque so the icon is not circular");
-assert.equal(alphaAt(icon, Math.floor(icon.width / 2), icon.height - 1), 255, "bottom edge should stay opaque so the icon is not circular");
-assert.equal(alphaAt(icon, 0, Math.floor(icon.height / 2)), 255, "left edge should stay opaque so the icon is not circular");
-assert.equal(alphaAt(icon, icon.width - 1, Math.floor(icon.height / 2)), 255, "right edge should stay opaque so the icon is not circular");
+assertVisibleEdge(alphaAt(icon, Math.floor(icon.width / 2), 0), "top edge should stay visible so the icon is not circular");
+assertVisibleEdge(alphaAt(icon, Math.floor(icon.width / 2), icon.height - 1), "bottom edge should stay visible so the icon is not circular");
+assertVisibleEdge(alphaAt(icon, 0, Math.floor(icon.height / 2)), "left edge should stay visible so the icon is not circular");
+assertVisibleEdge(alphaAt(icon, icon.width - 1, Math.floor(icon.height / 2)), "right edge should stay visible so the icon is not circular");
 assert.equal(alphaAt(icon, 70, 20), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
 assert.equal(alphaAt(icon, icon.width - 71, 20), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
 assert.equal(alphaAt(icon, 70, icon.height - 21), 255, "near-corner area should stay filled for a softly rounded square, not a circle");

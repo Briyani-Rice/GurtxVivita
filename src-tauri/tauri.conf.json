@@ -17,7 +17,9 @@
         "height": 600,
         "titleBarStyle": "Overlay",
         "acceptFirstMouse": true,
-        "hiddenTitle": true
+        "hiddenTitle": true,
+        "decorations": false,
+        "transparent": true
       }
     ],
     "security": {

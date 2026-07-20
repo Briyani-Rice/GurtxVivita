@@ -1,5 +1,6 @@
 /*@import "tailwindcss";*/
 :root {
+  --app-window-radius: 12px;
   --text: #000000;
   --text-h: #08060d;
   --bg: #dddddd;
@@ -73,9 +74,18 @@
 
 body {
   margin: 0;
-  background: var(--viventory-bg);
+  background: transparent;
   color: var(--viventory-text);
   font-size: var(--viventory-font-size);
+}
+
+html {
+  background: transparent;
+}
+
+.app-shell {
+  border-radius: var(--app-window-radius);
+  overflow: hidden;
 }
 
 h1,

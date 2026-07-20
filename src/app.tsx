@@ -1072,6 +1072,7 @@ function App() {
     return (
         <InventoryProvider>
         <main
+            className="app-shell"
             style={{
                 display: "flex",
                 flexDirection: "column",

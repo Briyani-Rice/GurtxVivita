@@ -3,7 +3,13 @@ import {BasicTabProps} from "../app";
 import React, {useEffect, useState} from "react";
 import { Eye, EyeClosed } from "lucide-react";
 import AdminViewTab from "./AdminViewTab";
-import { signInWithGoogle, type FirebaseLoginResult } from "../services/firebaseAuth";
+import { UserViewTab } from "./UserViewTab";
+import {
+    consumeGoogleRedirectResult,
+    isFirebaseAuthConfigured,
+    signInWithGoogle,
+    type FirebaseLoginResult,
+} from "../services/firebaseAuth";
 
 type LoginTabContentProps = BasicTabProps & {
     actL: number;
@@ -37,6 +43,7 @@ function LoginTabContent({
     const [note, setNote] = useState("");
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
+    const firebaseConfigured = isFirebaseAuthConfigured();
 
     const completeLogin = (res: { perms?: UserPerms }, localUser?: User | null) => {
         const isAdmin = res?.perms === UserPerms.Staff || localUser?.getPerms() === UserPerms.Staff;
@@ -55,8 +62,15 @@ function LoginTabContent({
                 setTabIndex(tabsWithoutLogin.length);
             }
         } else {
-            setTabs(tabsWithoutLogin);
-            setTabIndex(0);
+            const existingUserIndex = tabsWithoutLogin.findIndex(tab => tab.name === "User View");
+
+            if (existingUserIndex !== -1) {
+                setTabs(tabsWithoutLogin);
+                setTabIndex(existingUserIndex);
+            } else {
+                setTabs([...tabsWithoutLogin, new UserViewTab()]);
+                setTabIndex(tabsWithoutLogin.length);
+            }
         }
     };
 
@@ -115,7 +129,7 @@ function LoginTabContent({
             completeLogin(res);
         } catch (err) {
             console.error(err);
-            setNote("Google login failed.");
+            setNote(err instanceof Error ? `Google login failed: ${err.message}` : "Google login failed.");
         } finally {
             setGoogleLoading(false);
         }
@@ -124,6 +138,17 @@ function LoginTabContent({
     useEffect(() => {
         const run = async () => {
             try {
+                const redirectResult = await consumeGoogleRedirectResult();
+
+                if (redirectResult?.success) {
+                    completeLogin(redirectResult);
+                    return;
+                }
+
+                if (redirectResult && !redirectResult.success) {
+                    setNote(redirectResult.note);
+                }
+
                 // @ts-ignore
                 const usrname = await window.user?.getCUsrname();
 
@@ -263,18 +288,28 @@ function LoginTabContent({
 
                 <button
                     onClick={handleGoogleLogin}
-                    disabled={googleLoading || loading}
+                    disabled={googleLoading || loading || !firebaseConfigured}
+                    title={
+                        firebaseConfigured
+                            ? "Sign in with Google"
+                            : "Add Firebase Vite environment variables to enable Google login"
+                    }
                     style={{
                         width: "100%",
                         marginTop: "10px",
                         padding: "10px",
-                        cursor: "pointer",
+                        cursor: firebaseConfigured ? "pointer" : "not-allowed",
                         border: "1px solid #ddd",
                         background: "#fff",
-                        color:"black"
+                        color: "black",
+                        opacity: firebaseConfigured ? 1 : 0.65,
                     }}
                 >
-                    {googleLoading ? "Opening Google..." : "Continue with Google"}
+                    {googleLoading
+                        ? "Opening Google..."
+                        : firebaseConfigured
+                            ? "Continue with Google"
+                            : "Configure Firebase for Google login"}
                 </button>
 
                 {/* Status */}

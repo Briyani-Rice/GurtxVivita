@@ -20,11 +20,11 @@ const sourceLogo = "public/GurtXVivita_Logo.png";
 
 assert.equal(
     sha256(sourceLogo),
-    "079117dfde0a216e38c1b966929527db10ecb36a0082859987ee5b168efa1adc",
+    "74b3460d2d744b281ef68f6efbb75e33f32925a9d60cb3ee6b83c8d7bf8291d2",
     "public app logo should match the supplied GxV logo image",
 );
 
-assert.deepEqual(readPngSize(sourceLogo), { width: 988, height: 988 });
+assert.deepEqual(readPngSize(sourceLogo), { width: 1540, height: 1540 });
 assert.deepEqual(readPngSize("public/GurtXVivita_Logo_1024x1024.png"), { width: 1024, height: 1024 });
 assert.deepEqual(readPngSize("src-tauri/icons/icon.png"), { width: 512, height: 512 });
 assert.deepEqual(readPngSize("src-tauri/icons/32x32.png"), { width: 32, height: 32 });
