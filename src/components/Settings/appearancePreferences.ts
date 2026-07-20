@@ -75,7 +75,7 @@ const LANGUAGE_TAGS: Record<Language, string> = {
 
 function clampFontSize(fontSize: number): number {
     if (!Number.isFinite(fontSize)) return DEFAULT_PREFS.fontSize;
-    return Math.min(64, Math.max(8, Math.round(fontSize)));
+    return Math.min(24, Math.max(8, Math.round(fontSize)));
 }
 
 function isTheme(value: unknown): value is AppearanceTheme {
