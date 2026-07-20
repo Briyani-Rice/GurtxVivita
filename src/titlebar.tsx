@@ -34,7 +34,7 @@ export default function Titlebar({
         <div
             data-tauri-drag-region
             className="title"
-            style={{ userSelect: "none" }}it
+            style={{ userSelect: "none" }}
         >
             <h3
                 data-tauri-drag-region
