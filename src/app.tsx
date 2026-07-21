@@ -1050,6 +1050,15 @@ function App() {
                 setTabIndex(nextIndex);
             }
 
+            if (event.metaKey && event.key >= '1' && event.key <= '9') {
+                const targetIndex = Number(event.key) - 1;
+
+                if (targetIndex < tabs.length) {
+                    event.preventDefault();
+                    setTabIndex(targetIndex);
+                }
+            }
+
             if (event.key === 'F11') {
                 event.preventDefault();
                 void toggleFullscreen();
