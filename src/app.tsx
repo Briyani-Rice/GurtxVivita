@@ -623,6 +623,7 @@ function App() {
 
             if (!result.success) {
                 console.warn(result.note);
+                alert(`Google sign-in failed: ${result.note}`);
                 return;
             }
 
