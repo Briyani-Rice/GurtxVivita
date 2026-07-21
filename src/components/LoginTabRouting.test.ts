@@ -39,4 +39,10 @@ assert.doesNotMatch(
     "Regular login should not dump users back onto the Welcome tab",
 );
 
+assert.doesNotMatch(
+    source,
+    /getCUsrname\(\)[\s\S]*setTabIndex\(0\)/,
+    "LoginTab should not close itself to the Welcome tab based on stale native username state",
+);
+
 console.log("LoginTab routing source checks passed");

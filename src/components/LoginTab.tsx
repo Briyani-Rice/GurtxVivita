@@ -127,24 +127,6 @@ function LoginTabContent({
         }
     };
 
-    useEffect(() => {
-        const run = async () => {
-            try {
-                // @ts-ignore
-                const usrname = await window.user?.getCUsrname();
-
-                if (usrname != undefined) {
-                    handleClosingTab(actL);
-                    setTabIndex(0);
-                }
-            } catch (err) {
-                console.error("Failed to get username:", err);
-            }
-        };
-
-        run();
-    }, []);
-
     return (
         <div
             style={{

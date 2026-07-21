@@ -65,11 +65,6 @@ function googleProvider(): GoogleAuthProvider {
     return provider;
 }
 
-function isTauriRuntime(): boolean {
-    return typeof window !== "undefined" &&
-        ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
-}
-
 async function toLoginResult(user: FirebaseUser): Promise<FirebaseLoginResult> {
     const profile = await getOrCreateFirebaseUserProfile(user, adminEmailPerms(user));
     const perms = profile.perms;
@@ -121,22 +116,6 @@ export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
         return {
             success: false,
             note: "Firebase is not configured. Add Firebase Vite environment variables first.",
-        };
-    }
-
-    if (isTauriRuntime()) {
-        try {
-            await signInWithRedirect(auth, googleProvider());
-        } catch (redirectError) {
-            return {
-                success: false,
-                note: `Google redirect could not start. ${errorMessage(redirectError, "Try running the web app in a browser.")}`,
-            };
-        }
-
-        return {
-            success: false,
-            note: "Redirecting to Google sign-in...",
         };
     }
 

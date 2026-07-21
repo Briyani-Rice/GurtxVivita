@@ -79,10 +79,10 @@ assert.match(
     "Firebase auth service should make Le Son Tung's school Google account admin",
 );
 
-assert.match(
+assert.doesNotMatch(
     authSource,
-    /__TAURI_INTERNALS__|__TAURI__/,
-    "Firebase auth service should detect the Tauri desktop runtime, since window.open popups don't work there",
+    /if \(isTauriRuntime\(\)\)/,
+    "Firebase auth service should not force Tauri desktop login through redirect because it can return to the Welcome tab",
 );
 
 assert.match(
