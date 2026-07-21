@@ -54,6 +54,24 @@ assert.match(
 );
 
 assert.match(
+    titlebarSource,
+    /onToggleFullscreen,\s*\n\s*}: Props/,
+    "Titlebar should receive the fullscreen callback from props",
+);
+
+assert.match(
+    titlebarSource,
+    /title="fullscreen"/,
+    "Titlebar should render a visible fullscreen button",
+);
+
+assert.match(
+    titlebarSource,
+    /onClick=\{onToggleFullscreen\}/,
+    "Fullscreen button should call the native fullscreen toggle",
+);
+
+assert.match(
     capabilitySource,
     /core:window:allow-set-fullscreen/,
     "Tauri capability should permit setting native fullscreen",

@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client'
 //@ts-ignore
 import './style.css'
 import Titlebar from "./titlebar"
-import {Command, CommandArgument, CommandArgumentType, Tab} from "./types"
+import {Command, CommandArgument, CommandArgumentType, Tab, UserPerms} from "./types"
 import "react-icons/io"
 import {IoIosBook, IoIosCloseCircle, IoIosCloseCircleOutline} from 'react-icons/io'
 import {MdAddCircle, MdAddCircleOutline} from "react-icons/md";
@@ -27,24 +27,12 @@ import vivitaSpaceImage from "./assets/vivita-space.png";
 import vivitaCommunityImage from "./assets/vivita-community.jpg";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { InventoryProvider } from "./components/InventoryProvider";
-import {
-  collection,
-  onSnapshot,
-  QuerySnapshot,
-  DocumentData,
-} from "firebase/firestore";
-import { db } from "./firebase/firebase"; // adjust path if needed
-
-interface StuffItem {
-  id: string;
-  // Add your Firestore fields here
-  name: string;
-  quantity: number;
-}
+import AdminViewTab from "./components/AdminViewTab";
+import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
 
 export type BasicTabProps = {
     tabs: Tab[];
-    setTabs: (tabs: Tab[]) => void;
+    setTabs: React.Dispatch<React.SetStateAction<Tab[]>>;
     tabIndex: number;
     setTabIndex: (index: number) => void;
     handleNewTab: () => number;
@@ -836,28 +824,6 @@ function AppCommandEntry({ setCmdBarVis }: { setCmdBarVis: (visible: boolean) =>
 
 function App() {
 
-
-
-    const [list, setList] = useState<StuffItem[]>([]);
-
-    useEffect(() => {
-        const unsubscribe = onSnapshot(collection(db, "stuff"), (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Omit<StuffItem, "id">),
-      }));
-
-        setList(data);
-    });
-
-    return () => unsubscribe();
-    }, []);
-
-
-
-
-
-
     const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
     const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
 
@@ -884,6 +850,41 @@ function App() {
 
         mediaQuery?.addEventListener("change", handleSystemThemeChange);
         return () => mediaQuery?.removeEventListener("change", handleSystemThemeChange);
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        consumeGoogleRedirectResult().then((result) => {
+            if (cancelled || !result) {
+                return;
+            }
+
+            if (!result.success) {
+                console.warn(result.note);
+                return;
+            }
+
+            const isAdmin = result.perms === UserPerms.Staff;
+            const targetName = isAdmin ? "Admin View" : "User View";
+
+            setTabs((prevTabs) => {
+                const existingIndex = prevTabs.findIndex((tab) => tab.name === targetName);
+
+                if (existingIndex !== -1) {
+                    setTabIndex(existingIndex);
+                    return prevTabs;
+                }
+
+                const nextTab: Tab = isAdmin ? new AdminViewTab() : new UserViewTab();
+                setTabIndex(prevTabs.length);
+                return [...prevTabs, nextTab];
+            });
+        });
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     const handleNewTab = (): number => {

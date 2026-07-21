@@ -1,12 +1,15 @@
-import { initializeApp, type FirebaseApp } from "firebase/app";
 import {
     getAuth,
+    getRedirectResult,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithRedirect,
     type Auth,
     type User as FirebaseUser,
 } from "firebase/auth";
 import { UserPerms } from "../types";
+import { getFirebaseApp, hasFirebaseConfig } from "./firebaseApp";
+import { getOrCreateFirebaseUserProfile } from "./firebaseUsers";
 
 export type FirebaseLoginResult = {
     success: boolean;
@@ -16,50 +19,35 @@ export type FirebaseLoginResult = {
     displayName?: string | null;
 };
 
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-};
-
-let firebaseApp: FirebaseApp | undefined;
 let firebaseAuth: Auth | undefined;
-
-function hasFirebaseConfig(): boolean {
-    return Boolean(
-        firebaseConfig.apiKey &&
-        firebaseConfig.authDomain &&
-        firebaseConfig.projectId &&
-        firebaseConfig.appId,
-    );
-}
+const defaultAdminEmails = [
+    "le_son_tung@s2025.ssts.edu.sg",
+];
 
 function getFirebaseAuth(): Auth | null {
-    if (!hasFirebaseConfig()) {
+    const app = getFirebaseApp();
+    if (!app) {
         return null;
     }
 
-    if (!firebaseApp) {
-        firebaseApp = initializeApp(firebaseConfig);
-        firebaseAuth = getAuth(firebaseApp);
+    if (!firebaseAuth) {
+        firebaseAuth = getAuth(app);
     }
 
     return firebaseAuth ?? null;
 }
 
 function adminEmails(): Set<string> {
-    return new Set(
-        String(import.meta.env.VITE_FIREBASE_ADMIN_EMAILS ?? "")
+    return new Set([
+        ...defaultAdminEmails,
+        ...String(import.meta.env.VITE_FIREBASE_ADMIN_EMAILS ?? "")
             .split(",")
             .map(email => email.trim().toLowerCase())
             .filter(Boolean),
-    );
+    ]);
 }
 
-function permissionsFor(user: FirebaseUser): UserPerms {
+function adminEmailPerms(user: FirebaseUser): UserPerms {
     const admins = adminEmails();
     const email = user.email?.toLowerCase();
 
@@ -68,6 +56,58 @@ function permissionsFor(user: FirebaseUser): UserPerms {
     }
 
     return UserPerms.Basic;
+}
+
+function googleProvider(): GoogleAuthProvider {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    return provider;
+}
+
+function isTauriRuntime(): boolean {
+    return typeof window !== "undefined" &&
+        ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+}
+
+async function toLoginResult(user: FirebaseUser): Promise<FirebaseLoginResult> {
+    const profile = await getOrCreateFirebaseUserProfile(user, adminEmailPerms(user));
+    const perms = profile.perms;
+
+    return {
+        success: true,
+        note: perms === UserPerms.Staff
+            ? "Google login successful."
+            : "Google login successful. This account is not an admin.",
+        perms,
+        email: profile.email,
+        displayName: profile.username,
+    };
+}
+
+function errorCode(error: unknown): string | undefined {
+    return typeof error === "object" && error !== null && "code" in error
+        ? String((error as { code?: unknown }).code)
+        : undefined;
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+    const code = errorCode(error);
+    const message = error instanceof Error ? error.message : fallback;
+
+    if (code === "auth/configuration-not-found") {
+        return "Enable Firebase Authentication and the Google sign-in provider in Firebase Console, then restart the app.";
+    }
+
+    if (code === "auth/operation-not-allowed") {
+        return "Google sign-in is disabled for this Firebase project. Enable the Google provider in Firebase Authentication.";
+    }
+
+    if (code === "auth/unauthorized-domain") {
+        return "This app domain is not authorized in Firebase Authentication. Add localhost and 127.0.0.1 to Authorized domains.";
+    }
+
+    return code ? `${code}: ${message}` : message;
 }
 
 export function isFirebaseAuthConfigured(): boolean {
@@ -84,28 +124,65 @@ export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
         };
     }
 
-    try {
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: "select_account" });
+    if (isTauriRuntime()) {
+        try {
+            await signInWithRedirect(auth, googleProvider());
+        } catch (redirectError) {
+            return {
+                success: false,
+                note: `Google redirect could not start. ${errorMessage(redirectError, "Try running the web app in a browser.")}`,
+            };
+        }
 
-        const credential = await signInWithPopup(auth, provider);
-        const { user } = credential;
-        const perms = permissionsFor(user);
-
-        return {
-            success: true,
-            note: perms === UserPerms.Staff
-                ? "Google login successful."
-                : "Google login successful. This account is not an admin.",
-            perms,
-            email: user.email,
-            displayName: user.displayName,
-        };
-    } catch (error) {
-        const message = error instanceof Error ? error.message : "Google login failed.";
         return {
             success: false,
-            note: message,
+            note: "Redirecting to Google sign-in...",
+        };
+    }
+
+    try {
+        const credential = await signInWithPopup(auth, googleProvider());
+
+        return await toLoginResult(credential.user);
+    } catch (error) {
+        if (errorCode(error) === "auth/popup-blocked") {
+            try {
+                await signInWithRedirect(auth, googleProvider());
+            } catch (redirectError) {
+                return {
+                    success: false,
+                    note: `Google redirect could not start. ${errorMessage(redirectError, "Try running the web app in a browser.")}`,
+                };
+            }
+
+            return {
+                success: false,
+                note: "Redirecting to Google sign-in...",
+            };
+        }
+
+        return {
+            success: false,
+            note: errorMessage(error, "Google login failed."),
+        };
+    }
+}
+
+export async function consumeGoogleRedirectResult(): Promise<FirebaseLoginResult | null> {
+    const auth = getFirebaseAuth();
+
+    if (!auth) {
+        return null;
+    }
+
+    try {
+        const credential = await getRedirectResult(auth);
+
+        return credential ? await toLoginResult(credential.user) : null;
+    } catch (error) {
+        return {
+            success: false,
+            note: errorMessage(error, "Google redirect login failed."),
         };
     }
 }

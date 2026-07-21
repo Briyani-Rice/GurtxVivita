@@ -12,13 +12,13 @@ assert.match(
 assert.match(
     providerSource,
     /function createLocalMaterial\(material: MaterialInput\): Material/,
-    "Inventory provider should create local material records when PocketBase is unavailable",
+    "Inventory provider should create local material records when Firebase is unavailable",
 );
 
 assert.match(
     providerSource,
     /setMaterials\(prev => \[normalizeMaterialArea\(createLocalMaterial\(material\)\), \.\.\.prev\]\)/,
-    "Add material should still update shared state when PocketBase create fails",
+    "Add material should still update shared state when Firebase create fails",
 );
 
 assert.match(

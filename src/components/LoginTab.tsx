@@ -5,7 +5,6 @@ import { Eye, EyeClosed } from "lucide-react";
 import AdminViewTab from "./AdminViewTab";
 import { UserViewTab } from "./UserViewTab";
 import {
-    consumeGoogleRedirectResult,
     isFirebaseAuthConfigured,
     signInWithGoogle,
     type FirebaseLoginResult,
@@ -13,6 +12,7 @@ import {
 
 type LoginTabContentProps = BasicTabProps & {
     actL: number;
+    loginTabId: string;
 };
 
 export default class LoginTab implements Tab {
@@ -22,7 +22,7 @@ export default class LoginTab implements Tab {
 
     constructor(props: BasicTabProps, actL: number) {
         this.content = (
-            <LoginTabContent {...props} actL={actL} />
+            <LoginTabContent {...props} actL={actL} loginTabId={this.id} />
         );
     }
 }
@@ -36,6 +36,7 @@ function LoginTabContent({
                              setTab,
                              handleClosingTab,
                              actL,
+                             loginTabId,
                          }: LoginTabContentProps) {
     const [showPass, setShowPass] = useState(false);
     const [username, setUsername] = useState("");
@@ -47,31 +48,22 @@ function LoginTabContent({
 
     const completeLogin = (res: { perms?: UserPerms }, localUser?: User | null) => {
         const isAdmin = res?.perms === UserPerms.Staff || localUser?.getPerms() === UserPerms.Staff;
-        const tabsWithoutLogin = tabs.filter((_, index) => index !== actL);
 
         setNote("Login successful!");
+        setTabs((prevTabs) => {
+            const tabsWithoutLogin = prevTabs.filter((tab) => tab.id !== loginTabId);
+            const targetName = isAdmin ? "Admin View" : "User View";
+            const existingIndex = tabsWithoutLogin.findIndex(tab => tab.name === targetName);
 
-        if (isAdmin) {
-            const existingAdminIndex = tabsWithoutLogin.findIndex(tab => tab.name === "Admin View");
-
-            if (existingAdminIndex !== -1) {
-                setTabs(tabsWithoutLogin);
-                setTabIndex(existingAdminIndex);
-            } else {
-                setTabs([...tabsWithoutLogin, new AdminViewTab()]);
-                setTabIndex(tabsWithoutLogin.length);
+            if (existingIndex !== -1) {
+                setTabIndex(existingIndex);
+                return tabsWithoutLogin;
             }
-        } else {
-            const existingUserIndex = tabsWithoutLogin.findIndex(tab => tab.name === "User View");
 
-            if (existingUserIndex !== -1) {
-                setTabs(tabsWithoutLogin);
-                setTabIndex(existingUserIndex);
-            } else {
-                setTabs([...tabsWithoutLogin, new UserViewTab()]);
-                setTabIndex(tabsWithoutLogin.length);
-            }
-        }
+            const nextTab = isAdmin ? new AdminViewTab() : new UserViewTab();
+            setTabIndex(tabsWithoutLogin.length);
+            return [...tabsWithoutLogin, nextTab];
+        });
     };
 
     const handleLogin = async () => {
@@ -138,17 +130,6 @@ function LoginTabContent({
     useEffect(() => {
         const run = async () => {
             try {
-                const redirectResult = await consumeGoogleRedirectResult();
-
-                if (redirectResult?.success) {
-                    completeLogin(redirectResult);
-                    return;
-                }
-
-                if (redirectResult && !redirectResult.success) {
-                    setNote(redirectResult.note);
-                }
-
                 // @ts-ignore
                 const usrname = await window.user?.getCUsrname();
 

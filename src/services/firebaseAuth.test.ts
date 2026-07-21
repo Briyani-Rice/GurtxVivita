@@ -2,13 +2,21 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const authSource = readFileSync(new URL("./firebaseAuth.ts", import.meta.url), "utf8");
+const appSource = readFileSync(new URL("./firebaseApp.ts", import.meta.url), "utf8");
 const loginSource = readFileSync(new URL("../components/LoginTab.tsx", import.meta.url), "utf8");
+const appEntrySource = readFileSync(new URL("../app.tsx", import.meta.url), "utf8");
 const envExampleSource = readFileSync(new URL("../../.env.example", import.meta.url), "utf8");
 
 assert.match(
-    authSource,
+    appSource,
     /initializeApp/,
-    "Firebase auth service should initialize the Firebase app from Vite config",
+    "Shared Firebase app service should initialize Firebase from Vite config",
+);
+
+assert.match(
+    authSource,
+    /getFirebaseApp/,
+    "Firebase auth service should reuse the shared Firebase app",
 );
 
 assert.match(
@@ -25,14 +33,74 @@ assert.match(
 
 assert.match(
     authSource,
+    /signInWithRedirect/,
+    "Firebase auth service should fall back to redirect when the popup is blocked",
+);
+
+assert.match(
+    authSource,
+    /getRedirectResult/,
+    "Firebase auth service should read Google redirect results when the login page loads",
+);
+
+assert.match(
+    authSource,
+    /auth\/popup-blocked/,
+    "Firebase auth service should explicitly handle blocked popup errors",
+);
+
+assert.match(
+    authSource,
+    /auth\/configuration-not-found/,
+    "Firebase auth service should explain when Firebase Authentication or Google provider is not enabled",
+);
+
+assert.match(
+    authSource,
+    /Enable Firebase Authentication and the Google sign-in provider/,
+    "Firebase auth service should give an actionable fix for missing auth configuration",
+);
+
+assert.match(
+    authSource,
+    /Google redirect could not start/,
+    "Firebase auth service should surface redirect startup failures instead of throwing to the UI",
+);
+
+assert.match(
+    authSource,
     /VITE_FIREBASE_ADMIN_EMAILS/,
     "Firebase auth service should support admin email allow-listing",
+);
+
+assert.match(
+    authSource,
+    /le_son_tung@s2025\.ssts\.edu\.sg/,
+    "Firebase auth service should make Le Son Tung's school Google account admin",
+);
+
+assert.match(
+    authSource,
+    /__TAURI_INTERNALS__|__TAURI__/,
+    "Firebase auth service should detect the Tauri desktop runtime, since window.open popups don't work there",
 );
 
 assert.match(
     loginSource,
     /signInWithGoogle/,
     "Login tab should offer Firebase Google sign-in",
+);
+
+assert.match(
+    appEntrySource,
+    /consumeGoogleRedirectResult/,
+    "App entry point should complete Google login after a Tauri redirect reloads the app, since the Login tab no longer exists at that point",
+);
+
+assert.doesNotMatch(
+    loginSource,
+    /consumeGoogleRedirectResult/,
+    "Login tab should not own redirect-result handling: a redirect reload discards the Login tab before it can run",
 );
 
 assert.match(

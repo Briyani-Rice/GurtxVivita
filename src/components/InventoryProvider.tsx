@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { Compartment, FloorData, Material, MaterialRequest } from "../types";
 import {
+    approveMaterialRequestRecord,
     createMaterialRecord,
+    createMaterialRequestRecord,
     deleteMaterialRecord,
+    declineMaterialRequestRecord,
+    listMaterialRequestRecords,
     listMaterialRecords,
     updateMaterialRecord,
     type MaterialInput,
-} from "../services/pocketbaseMaterials";
+} from "../services/firebaseInventory";
 import { makerspaceItems, type MakerItem } from "./makerspaceData";
 import {
     inventoryCompartments,
@@ -27,24 +31,15 @@ type InventoryContextValue = {
     addMaterial: (material: MaterialInput) => Promise<void>;
     editMaterial: (id: string, material: MaterialInput) => Promise<void>;
     deleteMaterial: (id: string) => Promise<void>;
-    submitRequest: (materialId: string, quantity: number, reason: string) => void;
+    submitRequest: (materialId: string, quantity: number, reason: string) => Promise<void>;
     approveRequest: (id: string) => Promise<void>;
-    declineRequest: (id: string) => void;
+    declineRequest: (id: string) => Promise<void>;
     getEmptyMaterials: () => Material[];
 };
 
 const InventoryContext = createContext<InventoryContextValue | null>(null);
 const LOCAL_MATERIAL_ID_PREFIX = "local-";
-
-function toMaterialInput(material: Material): MaterialInput {
-    return {
-        name: material.name,
-        description: material.description,
-        quantity: material.quantity,
-        unit: material.unit,
-        compartmentId: material.compartmentId,
-    };
-}
+const LOCAL_REQUEST_ID_PREFIX = "local-request-";
 
 function createLocalMaterial(material: MaterialInput): Material {
     return {
@@ -56,6 +51,10 @@ function createLocalMaterial(material: MaterialInput): Material {
 
 function isLocalMaterial(id: string): boolean {
     return id.startsWith(LOCAL_MATERIAL_ID_PREFIX);
+}
+
+function isLocalRequest(id: string): boolean {
+    return id.startsWith(LOCAL_REQUEST_ID_PREFIX);
 }
 
 function makeRequest(material: Material, quantity: number, reason: string): MaterialRequest {
@@ -70,14 +69,21 @@ function makeRequest(material: Material, quantity: number, reason: string): Mate
     };
 }
 
+function createLocalRequest(material: Material, quantity: number, reason: string): MaterialRequest {
+    return {
+        ...makeRequest(material, quantity, reason),
+        id: `${LOCAL_REQUEST_ID_PREFIX}${crypto.randomUUID()}`,
+    };
+}
+
 function showSyncError(action: string, error: unknown) {
-    console.error(`Unable to ${action} material in PocketBase`, error);
-    alert(`Unable to ${action} material. Check that PocketBase is running and the materials collection exists.`);
+    console.error(`Unable to ${action} Firebase inventory`, error);
+    alert(`Unable to ${action} Firebase inventory. Check that Firestore is enabled and the materials/materialRequests collections are allowed.`);
 }
 
 function showLocalSyncWarning(action: string, error: unknown) {
-    console.warn(`Unable to ${action} material in PocketBase; saved locally for this session.`, error);
-    alert(`PocketBase is not available. The material was saved locally for this session, but it will not sync until PocketBase is running.`);
+    console.warn(`Unable to ${action} Firebase inventory; saved locally for this session.`, error);
+    alert(`Firebase is not available. This change was saved locally for this session, but it will not sync until Firestore is reachable.`);
 }
 
 export function InventoryProvider({ children }: { children: React.ReactNode }) {
@@ -88,14 +94,20 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         let isMounted = true;
 
-        listMaterialRecords()
-            .then(savedMaterials => {
+        Promise.all([
+            listMaterialRecords(),
+            listMaterialRequestRecords(),
+        ])
+            .then(([savedMaterials, savedRequests]) => {
                 if (isMounted && savedMaterials.length > 0) {
                     setMaterials(savedMaterials.map(normalizeMaterialArea));
                 }
+                if (isMounted) {
+                    setRequests(savedRequests);
+                }
             })
             .catch(error => {
-                console.warn("Unable to load PocketBase materials; using starter data.", error);
+                console.warn("Unable to load Firebase inventory; using starter data.", error);
             });
 
         return () => {
@@ -168,10 +180,23 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 showSyncError("delete", error);
             }
         },
-        submitRequest: (materialId, quantity, reason) => {
+        submitRequest: async (materialId, quantity, reason) => {
             const material = materials.find(material => material.id === materialId);
             if (!material) return;
-            setRequests(prev => [makeRequest(material, quantity, reason), ...prev]);
+
+            try {
+                const savedRequest = await createMaterialRequestRecord({
+                    materialId: material.id,
+                    materialName: material.name,
+                    requestedQuantity: quantity,
+                    reason,
+                    comments: undefined,
+                });
+                setRequests(prev => [savedRequest, ...prev]);
+            } catch (error) {
+                setRequests(prev => [createLocalRequest(material, quantity, reason), ...prev]);
+                showLocalSyncWarning("submit request to", error);
+            }
         },
         approveRequest: async (id) => {
             const request = requests.find(request => request.id === id);
@@ -180,28 +205,28 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 : undefined;
 
             if (request && material) {
-                const nextMaterial = {
-                    ...material,
-                    quantity: Math.max(0, material.quantity - request.requestedQuantity),
-                };
-
-                if (isLocalMaterial(material.id)) {
+                if (isLocalMaterial(material.id) || isLocalRequest(request.id)) {
+                    const nextMaterial = {
+                        ...material,
+                        quantity: Math.max(0, material.quantity - request.requestedQuantity),
+                    };
                     setMaterials(prev => prev.map(existing =>
                         existing.id === material.id ? normalizeMaterialArea(nextMaterial) : existing
                     ));
                 } else {
-                try {
-                    const savedMaterial = await updateMaterialRecord(
-                        material.id,
-                        toMaterialInput(nextMaterial),
-                    );
-                    setMaterials(prev => prev.map(existing =>
-                        existing.id === material.id ? normalizeMaterialArea(savedMaterial) : existing
-                    ));
-                } catch (error) {
-                    showSyncError("update", error);
-                    return;
-                }
+                    try {
+                        const saved = await approveMaterialRequestRecord(request, material);
+                        setMaterials(prev => prev.map(existing =>
+                            existing.id === material.id ? normalizeMaterialArea(saved.material) : existing
+                        ));
+                        setRequests(prev => prev.map(existingRequest =>
+                            existingRequest.id === id ? saved.request : existingRequest
+                        ));
+                        return;
+                    } catch (error) {
+                        showSyncError("approve request in", error);
+                        return;
+                    }
                 }
             }
 
@@ -215,7 +240,22 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                     : existingRequest
             ));
         },
-        declineRequest: (id) => {
+        declineRequest: async (id) => {
+            const request = requests.find(request => request.id === id);
+
+            if (request && !isLocalRequest(request.id)) {
+                try {
+                    const savedRequest = await declineMaterialRequestRecord(request);
+                    setRequests(prev => prev.map(existing =>
+                        existing.id === id ? savedRequest : existing
+                    ));
+                    return;
+                } catch (error) {
+                    showSyncError("decline request in", error);
+                    return;
+                }
+            }
+
             setRequests(prev => prev.map(request =>
                 request.id === id
                     ? {
