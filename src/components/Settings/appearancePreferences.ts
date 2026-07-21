@@ -39,6 +39,7 @@ const PALETTES = {
         shellEnd: "#ffffff",
         shellText: "#24262B",
         tabActiveBorder: "#A1824F",
+        logoFilter: "brightness(0.15)",
     },
     dark: {
         bg: "#161D26",
@@ -62,6 +63,7 @@ const PALETTES = {
         shellEnd: "#32353C",
         shellText: "#FFFDF6",
         tabActiveBorder: "#A5D6D1",
+        logoFilter: "none",
     },
 };
 
@@ -155,6 +157,7 @@ export function applyAppearancePrefs(prefs: AppearancePrefs): AppearancePrefs {
     root.style.setProperty("--viventory-shell-end", palette.shellEnd);
     root.style.setProperty("--viventory-shell-text", palette.shellText);
     root.style.setProperty("--viventory-tab-active-border", palette.tabActiveBorder);
+    root.style.setProperty("--viventory-logo-filter", palette.logoFilter);
     root.style.setProperty("--viventory-font-size", `${normalized.fontSize}px`);
 
     document.body.style.background = palette.bg;

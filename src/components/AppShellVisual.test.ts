@@ -51,8 +51,8 @@ assert.match(
 
 assert.match(
     tauriConfigSource,
-    /"decorations":\s*false/,
-    "Tauri desktop window should hide the native title bar",
+    /"decorations":\s*true/,
+    "Tauri desktop window should show the native macOS traffic lights",
 );
 
 console.log("AppShell visual source checks passed");

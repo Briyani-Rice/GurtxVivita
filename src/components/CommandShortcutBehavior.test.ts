@@ -70,4 +70,40 @@ assert.match(
     "Docs should show Ctrl+Shift+Tab as the previous tab shortcut",
 );
 
+assert.match(
+    appSource,
+    /\/\^\[1-9\]\$\/\.test\(event\.key\)/,
+    "Cmd+1 through Cmd+9 should jump directly to a tab",
+);
+
+assert.match(
+    appSource,
+    /digit === 9 \? tabs\.length - 1 : digit - 1/,
+    "Cmd+9 should jump to the last tab like browsers do",
+);
+
+assert.match(
+    appSource,
+    /event\.code === 'BracketRight' \|\| event\.code === 'BracketLeft'/,
+    "Cmd+Shift+bracket should cycle between tabs",
+);
+
+assert.match(
+    tabSystemDocs,
+    /\|\s*`⌘1`–`⌘8`\s*\|\s*Jump to tab 1–8\s*\|/,
+    "Docs should show Cmd+number tab jumping",
+);
+
+assert.match(
+    tabSystemDocs,
+    /\|\s*`⌘9`\s*\|\s*Jump to last tab\s*\|/,
+    "Docs should show Cmd+9 as jump to last tab",
+);
+
+assert.match(
+    tabSystemDocs,
+    /\|\s*`⌘Y`\s*\|\s*Open command bar\s*\|/,
+    "Docs should show Cmd+Y as the command bar shortcut",
+);
+
 console.log("Command shortcut behavior source checks passed");

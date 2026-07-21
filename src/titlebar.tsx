@@ -1,5 +1,5 @@
 import "./titlestyle.css";
-import { BsArrowsFullscreen, BsGearFill } from "react-icons/bs";
+import { BsGearFill } from "react-icons/bs";
 import { Tab } from "./types";
 import Settings from "./components/Settings/Settings";
 import { useEffect, useState } from "react";
@@ -10,7 +10,6 @@ type Props = {
     setTabIndex: any;
     handleNewTab: () => number;
     setTab: (index: number, tab: Tab) => void;
-    onToggleFullscreen: () => void;
 };
 
 export default function Titlebar({
@@ -18,7 +17,6 @@ export default function Titlebar({
                                      setTabIndex,
                                      handleNewTab,
                                      setTab,
-                                     onToggleFullscreen,
                                  }: Props) {
     const [leftPadding, setLeftPadding] = useState(0);
 
@@ -51,25 +49,6 @@ export default function Titlebar({
             </h3>
 
             <div className="title-right">
-                <button
-                    title="fullscreen"
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "var(--viventory-surface)",
-                        color: "var(--viventory-text)",
-                        borderRadius: "6px",
-                        border: "1px solid var(--viventory-border)",
-                        padding: "7px",
-                        cursor: "pointer",
-                        boxShadow: "0 8px 18px rgba(36, 38, 43, 0.08)",
-                    }}
-                    onClick={onToggleFullscreen}
-                >
-                    <BsArrowsFullscreen size={18} color="currentColor" />
-                </button>
-
                 <button
                     title="settings"
                     style={{

@@ -47,28 +47,28 @@ assert.match(
     "Fullscreen toggle should update the native Tauri window",
 );
 
-assert.match(
+assert.doesNotMatch(
     titlebarSource,
     /onToggleFullscreen/,
-    "Titlebar should expose a clickable fullscreen control",
+    "Titlebar should not expose the removed fullscreen control",
 );
 
-assert.match(
+assert.doesNotMatch(
     titlebarSource,
     /onToggleFullscreen,\s*\n\s*}: Props/,
-    "Titlebar should receive the fullscreen callback from props",
+    "Titlebar should not receive the removed fullscreen callback from props",
 );
 
-assert.match(
+assert.doesNotMatch(
     titlebarSource,
     /title="fullscreen"/,
-    "Titlebar should render a visible fullscreen button",
+    "Titlebar should not render a visible fullscreen button",
 );
 
-assert.match(
+assert.doesNotMatch(
     titlebarSource,
     /onClick=\{onToggleFullscreen\}/,
-    "Fullscreen button should call the native fullscreen toggle",
+    "Fullscreen button click handler should be removed from the titlebar",
 );
 
 assert.match(

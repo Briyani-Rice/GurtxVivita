@@ -11,8 +11,13 @@ assert.match(source, /minHeight:\s*56/, "Touch targets should be large enough fo
 assert.match(source, /fontSize:\s*16/, "Child-facing body text should be larger than the 14pt minimum");
 assert.match(
     appSource,
-    /new welcomeTab\(\),\s*new MakerKioskTab\(\)/,
-    "Welcome should be the first default tab, with Maker Bot still available",
+    /useState<Tab\[\]>\(\[\s*new welcomeTab\(\)\s*\]\)/,
+    "The app should open with only the Welcome tab",
+);
+assert.match(
+    appSource,
+    /new OpenTabCommand\("Maker Bot"/,
+    "Maker Bot should stay reachable from the command bar",
 );
 
 console.log("MakerKiosk source checks passed");

@@ -17,26 +17,32 @@ assert.match(
 
 assert.match(
     appSource,
-    /Open Maker Bot/,
-    "Welcome page should guide users into the Maker Bot experience",
-);
-
-assert.match(
-    appSource,
-    /vivitaSpaceImage/,
-    "Welcome page should use a real VIVITA space image asset",
-);
-
-assert.match(
-    appSource,
     /Our Vivistop @ 10 Kampong Eunos/,
-    "Welcome page should borrow the original site's place-based makerspace language",
+    "Welcome page should keep the place-based makerspace language",
+);
+
+assert.doesNotMatch(
+    appSource,
+    /vivitaSpaceImage|vivitaCommunityImage/,
+    "Minimalist welcome page should not render hero photo collages",
+);
+
+assert.doesNotMatch(
+    appSource,
+    /Youth are our bosses|Make, test, share/,
+    "Minimalist welcome page should drop the marketing card stack",
 );
 
 assert.match(
     appSource,
-    /Youth are our bosses/,
-    "Welcome page should echo the original site's youth-led tone",
+    /quickLinks/,
+    "Welcome page should offer quiet quick links into the main tabs",
+);
+
+assert.match(
+    appSource,
+    /Press ⌘Y or use the command bar/,
+    "Welcome page should point makers at the command bar",
 );
 
 assert.doesNotMatch(

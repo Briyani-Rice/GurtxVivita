@@ -37,6 +37,7 @@
   --viventory-shell-end: #ffffff;
   --viventory-shell-text: #24262B;
   --viventory-tab-active-border: #A1824F;
+  --viventory-logo-filter: brightness(0.15);
   --viventory-font-size: 14px;
 
   font: 18px/145% var(--sans);
