@@ -183,14 +183,28 @@ assert.match(
 
 assert.match(
     loginSource,
-    /t\("login\.googleUnavailableDesktop"\)/,
-    "Login tab should show a clear desktop-app Google login message",
+    /t\("login\.googleConfigureDesktop"\)/,
+    "Login tab should point at desktop OAuth configuration instead of claiming Google login is impossible",
+);
+
+const i18nSource = readFileSync(new URL("../i18n/i18n.ts", import.meta.url), "utf8");
+
+assert.match(
+    i18nSource,
+    /"login\.googleConfigureDesktop": "Configure desktop Google login"/,
+    "Desktop Google configuration message should have English copy in the i18n dictionary",
 );
 
 assert.match(
-    readFileSync(new URL("../i18n/i18n.ts", import.meta.url), "utf8"),
-    /"login\.googleUnavailableDesktop": "Google login unavailable in desktop app"/,
-    "Desktop Google login message should have English copy in the i18n dictionary",
+    i18nSource,
+    /"login\.googleOpening": "Opening your browser\.\.\."/,
+    "Desktop Google login should tell the user their browser is opening (English copy)",
+);
+
+assert.doesNotMatch(
+    i18nSource,
+    /googleUnavailableDesktop/,
+    "The unavailable-on-desktop key must be fully renamed — Google login now works on desktop",
 );
 
 for (const key of [
@@ -201,6 +215,8 @@ for (const key of [
     "VITE_FIREBASE_STORAGE_BUCKET",
     "VITE_FIREBASE_MESSAGING_SENDER_ID",
     "VITE_FIREBASE_ADMIN_EMAILS",
+    "VITE_GOOGLE_DESKTOP_CLIENT_ID",
+    "VITE_GOOGLE_DESKTOP_CLIENT_SECRET",
 ]) {
     assert.match(envExampleSource, new RegExp(`${key}=`), `.env.example should document ${key}`);
 }

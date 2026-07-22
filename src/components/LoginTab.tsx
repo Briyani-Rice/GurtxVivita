@@ -283,7 +283,7 @@ function LoginTabContent({
                         googleLoginSupported
                             ? "Sign in with Google"
                             : firebaseConfigured
-                                ? "Google login is only available in the browser build"
+                                ? "Set VITE_GOOGLE_DESKTOP_CLIENT_ID and VITE_GOOGLE_DESKTOP_CLIENT_SECRET in .env to enable Google login in the desktop app"
                             : "Add Firebase Vite environment variables to enable Google login"
                     }
                     style={{
@@ -302,7 +302,7 @@ function LoginTabContent({
                         : googleLoginSupported
                             ? t("login.google")
                             : firebaseConfigured
-                                ? t("login.googleUnavailableDesktop")
+                                ? t("login.googleConfigureDesktop")
                                 : t("login.googleConfigure")}
                 </button>
 
