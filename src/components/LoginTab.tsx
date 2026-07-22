@@ -11,6 +11,7 @@ import {
     type FirebaseLoginResult,
 } from "../services/firebaseAuth";
 import { recordAccountLogin } from "../services/accountSession";
+import { useI18n } from "../i18n/i18n";
 
 type LoginTabContentProps = BasicTabProps & {
     actL: number;
@@ -44,10 +45,12 @@ function LoginTabContent({
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [note, setNote] = useState("");
+    const [noteIsSuccess, setNoteIsSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const firebaseConfigured = isFirebaseAuthConfigured();
     const googleLoginSupported = isGoogleLoginSupported();
+    const { t } = useI18n();
 
     const completeLogin = (
         res: { perms?: UserPerms; email?: string | null; displayName?: string | null },
@@ -70,7 +73,8 @@ function LoginTabContent({
             });
         }
 
-        setNote("Login successful!");
+        setNote(t("login.success"));
+        setNoteIsSuccess(true);
         setTabs((prevTabs) => {
             const tabsWithoutLogin = prevTabs.filter((tab) => tab.id !== loginTabId);
             const targetName = isAdmin ? "Admin View" : "User View";
@@ -91,6 +95,7 @@ function LoginTabContent({
         try {
             setLoading(true);
             setNote("");
+            setNoteIsSuccess(false);
 
             const localUser = User.login(username.trim(), password);
 
@@ -109,7 +114,7 @@ function LoginTabContent({
                     }
                     : {
                         success: false,
-                        note: "Invalid username or password",
+                        note: t("login.invalid"),
                     };
 
             if (!res?.success) {
@@ -121,7 +126,7 @@ function LoginTabContent({
 
         } catch (err) {
             console.error(err);
-            setNote("Unexpected error occurred.");
+            setNote(t("login.error"));
         } finally {
             setLoading(false);
         }
@@ -131,6 +136,7 @@ function LoginTabContent({
         try {
             setGoogleLoading(true);
             setNote("");
+            setNoteIsSuccess(false);
 
             const res: FirebaseLoginResult = await signInWithGoogle();
 
@@ -175,15 +181,15 @@ function LoginTabContent({
                 }}
             >
                 <h1 style={{ marginBottom: "24px" }}>
-                    Login to Viventory
+                    {t("login.title")}
                 </h1>
                 <p style={{ marginTop: "-12px", marginBottom: "24px", color: "#555" }}>
-                    Admin demo: User / User12345
+                    {t("login.demo")}
                 </p>
 
                 {/* Username */}
                 <div style={{ marginBottom: "16px", color:"black" }}>
-                    <label htmlFor="username">Username</label>
+                    <label htmlFor="username">{t("login.username")}</label>
                     <br />
                     <input
                         id="username"
@@ -207,7 +213,7 @@ function LoginTabContent({
 
                 {/* Password */}
                 <div style={{ marginBottom: "16px",color:"black" }}>
-                    <label htmlFor="password">Password</label>
+                    <label htmlFor="password">{t("login.password")}</label>
                     <br />
 
                     <div
@@ -267,7 +273,7 @@ function LoginTabContent({
                         cursor: "pointer",
                     }}
                 >
-                    {loading ? "Logging in..." : "Login"}
+                    {loading ? t("login.loggingIn") : t("login.button")}
                 </button>
 
                 <button
@@ -292,12 +298,12 @@ function LoginTabContent({
                     }}
                 >
                     {googleLoading
-                        ? "Opening Google..."
+                        ? t("login.googleOpening")
                         : googleLoginSupported
-                            ? "Continue with Google"
+                            ? t("login.google")
                             : firebaseConfigured
-                                ? "Google login unavailable in desktop app"
-                                : "Configure Firebase for Google login"}
+                                ? t("login.googleUnavailableDesktop")
+                                : t("login.googleConfigure")}
                 </button>
 
                 {/* Status */}
@@ -305,9 +311,7 @@ function LoginTabContent({
                     <p
                         style={{
                             marginTop: "12px",
-                            color: note.includes("successful")
-                                ? "green"
-                                : "red",
+                            color: noteIsSuccess ? "green" : "red",
                         }}
                     >
                         {note}

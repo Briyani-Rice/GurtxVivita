@@ -4,6 +4,7 @@ import { Tab } from "./types";
 import Settings from "./components/Settings/Settings";
 import { useEffect, useState } from "react";
 import { platform } from "@tauri-apps/plugin-os";
+import { useI18n } from "./i18n/i18n";
 
 type Props = {
     tabs: Tab[];
@@ -28,6 +29,7 @@ export default function Titlebar({
                                      setTab,
                                  }: Props) {
     const [leftPadding, setLeftPadding] = useState(0);
+    const { t } = useI18n();
 
     useEffect(() => {
         let cancelled = false;
@@ -62,12 +64,12 @@ export default function Titlebar({
                     pointerEvents: "none"
                 }}
             >
-                VIVITA Maker Guide
+                {t("app.title")}
             </h3>
 
             <div className="title-right">
                 <button
-                    title="settings"
+                    title={t("app.settings")}
                     style={{
                         display: "flex",
                         alignItems: "center",

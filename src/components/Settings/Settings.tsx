@@ -4,6 +4,7 @@ import React, {
     useEffect,
     useState
 } from "react";
+import { translateSettingsPageName, useI18n } from "../../i18n/i18n";
 
 async function getPages(): Promise<SettingsPage[]> {
     //@ts-ignore
@@ -28,6 +29,7 @@ function SettingsContent() {
     const [pages, setPages] = useState<SettingsPage[]>([]);
     const [selectedIndex, setSelectedIndex] =
         useState<number>(0);
+    const { language, t } = useI18n();
 
     useEffect(() => {
         loadPages();
@@ -73,7 +75,7 @@ function SettingsContent() {
                         letterSpacing: 0,
                     }}
                 >
-                    Control room
+                    {t("settings.controlRoom")}
                 </p>
                 <h2
                     style={{
@@ -84,13 +86,13 @@ function SettingsContent() {
                         color: "var(--viventory-text)",
                  }}
                 >
-                Settings
+                {t("settings.title")}
                 </h2>
 
 
                 <input
                     type="search"
-                    placeholder="Search..."
+                    placeholder={t("settings.searchPlaceholder")}
                     style={{
                         width: "100%",
                         marginBottom: "14px",
@@ -134,7 +136,7 @@ function SettingsContent() {
                                     fontWeight: 750,
                                 }}
                             >
-                                {page.name}
+                                {translateSettingsPageName(language, page.name)}
                             </button>
                         ))
                     }

@@ -26,6 +26,7 @@ import { InventoryProvider } from "./components/InventoryProvider";
 import AdminViewTab from "./components/AdminViewTab";
 import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
 import { recordAccountLogin } from "./services/accountSession";
+import { translateTabName, useI18n } from "./i18n/i18n";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -120,22 +121,25 @@ export class welcomeTab implements Tab {
     static props:BasicTabProps
 
     constructor() {
-        this.content = this.loadContent()
+        this.content = <WelcomeContent />
     }
     static SetProps(_: { tabs: Tab[] }, basicTabProps: BasicTabProps){
         this.props = basicTabProps
     }
-    loadContent(){
-        const searchInputId = "welcome-search";
+}
 
-        const quickLinks: Array<{ label: string; open: () => void }> = [
-            { label: "Maker Bot", open: () => focusOrOpenTab("Maker Bot", () => new MakerKioskTab()) },
-            { label: "Inventory", open: () => focusOrOpenTab("User View", () => new UserViewTab()) },
-            { label: "Docs", open: () => focusOrOpenTab("Documentation", () => new DocsView()) },
-            { label: "Settings", open: () => focusOrOpenTab("Settings", () => new Settings()) },
-        ];
+function WelcomeContent() {
+    const { t } = useI18n();
+    const searchInputId = "welcome-search";
 
-        return(
+    const quickLinks: Array<{ label: string; open: () => void }> = [
+        { label: t("link.makerBot"), open: () => focusOrOpenTab("Maker Bot", () => new MakerKioskTab()) },
+        { label: t("link.inventory"), open: () => focusOrOpenTab("User View", () => new UserViewTab()) },
+        { label: t("link.docs"), open: () => focusOrOpenTab("Documentation", () => new DocsView()) },
+        { label: t("link.settings"), open: () => focusOrOpenTab("Settings", () => new Settings()) },
+    ];
+
+    return(
 
             <div
                 style={{
@@ -180,7 +184,7 @@ export class welcomeTab implements Tab {
                         letterSpacing: "-0.5px",
                         color: "var(--viventory-text)",
                     }}>
-                        Welcome to VIVITA Singapore
+                        {t("welcome.heading")}
                     </h1>
                     <p style={{
                         margin: 0,
@@ -189,7 +193,7 @@ export class welcomeTab implements Tab {
                         lineHeight: 1.5,
                         color: "var(--viventory-muted-text)",
                     }}>
-                        Our Vivistop @ 10 Kampong Eunos has the tools, materials, and space to build your ideas.
+                        {t("welcome.sub")}
                     </p>
                     <form
                         onSubmit={(event) => {
@@ -205,7 +209,7 @@ export class welcomeTab implements Tab {
                             id={searchInputId}
                             name={searchInputId}
                             type="search"
-                            placeholder="Search materials, tools, or rooms..."
+                            placeholder={t("welcome.searchPlaceholder")}
                             style={{
                                 width: "100%",
                                 minHeight: "48px",
@@ -251,13 +255,10 @@ export class welcomeTab implements Tab {
                         fontSize: "12px",
                         color: "var(--viventory-muted-text)",
                     }}>
-                        Press ⌘Y or use the command bar above to go anywhere.
+                        {t("welcome.hint")}
                     </p>
                 </main>
             </div>)
-    }
-    
-
 }
 //@ts-ignore
 type RenderTabBarTabProps = {
@@ -280,6 +281,7 @@ function RenderTabBarTab({
                              setTabIndex
                          }: RenderTabBarTabProps) {
     const [isHovered, setIsHovered] = useState(false)
+    const { language } = useI18n()
 
     const {
         attributes,
@@ -348,7 +350,7 @@ function RenderTabBarTab({
                     alignItems: "center"
                 }}
             >
-                {tab.name}
+                {translateTabName(language, tab.name)}
             </div>
 
             <button
@@ -552,6 +554,7 @@ function RenderTab(
 }
 
 function AppCommandEntry({ setCmdBarVis }: { setCmdBarVis: (visible: boolean) => void }) {
+    const { t } = useI18n();
     return (
         <div
             style={{
@@ -577,7 +580,7 @@ function AppCommandEntry({ setCmdBarVis }: { setCmdBarVis: (visible: boolean) =>
                     justifyContent: "flex-start",
                 }}
             >
-                &gt; Enter command
+                &gt; {t("app.enterCommand")}
             </button>
             <div />
         </div>

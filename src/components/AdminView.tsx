@@ -14,7 +14,8 @@ import {
 } from 'lucide-react';
 import { Material, Compartment, MaterialRequest, FloorData } from '../types';
 import { MaterialDialog } from './MaterialDialog';
-import { isMaterialAvailable, materialStockLabel } from '../utils/materialDetails';
+import { isMaterialAvailable } from '../utils/materialDetails';
+import { translatedStockLabel, useI18n } from '../i18n/i18n';
 import {
     ResizableHandle,
     ResizablePanel,
@@ -463,6 +464,7 @@ export function AdminView({
     const [sortMode, setSortMode] = useState<MaterialSortMode>('name-asc');
     const [stockFilter, setStockFilter] = useState<StockFilterMode>('all');
     const [safetyFilter, setSafetyFilter] = useState<SafetyFilterMode>('all');
+    const { language, t } = useI18n();
 
     const selectedCompartment: Compartment | null =
         compartments.find(c => c.id === selectedElement) ?? null;
@@ -512,22 +514,22 @@ export function AdminView({
         <div style={styles.shell}>
             <div style={styles.header}>
                 <div>
-                    <p style={styles.eyebrow}>Makerspace operations</p>
-                    <h2 style={styles.title}>Inventory Workspace</h2>
+                    <p style={styles.eyebrow}>{t('admin.eyebrow')}</p>
+                    <h2 style={styles.title}>{t('admin.title')}</h2>
                 </div>
 
                 <div style={styles.stats} aria-label="Admin inventory summary">
                     <div style={styles.stat}>
                         <Package size={17} />
-                        {materials.length} materials
+                        {t('admin.materialsCount', { count: materials.length })}
                     </div>
                     <div style={styles.stat}>
                         <Inbox size={17} />
-                        {pendingRequests.length} pending
+                        {t('admin.pendingCount', { count: pendingRequests.length })}
                     </div>
                     <div style={styles.stat}>
                         <AlertTriangle size={17} />
-                        {emptyMaterials.length} out of stock
+                        {t('admin.outOfStockCount', { count: emptyMaterials.length })}
                     </div>
                 </div>
             </div>
@@ -538,7 +540,7 @@ export function AdminView({
                         <aside style={styles.areaRail} aria-label="Storage areas">
                             <p style={styles.sectionLabel}>
                                 <Package size={15} />
-                                Areas
+                                {t('admin.areas')}
                             </p>
 
                             <div style={styles.areaList}>
@@ -560,7 +562,7 @@ export function AdminView({
                                                 {compartment.name}
                                             </div>
                                             <div style={{ marginTop: 8, fontSize: 12, color: 'var(--viventory-muted-text)' }}>
-                                                {areaMaterials.length} material{areaMaterials.length === 1 ? '' : 's'}
+                                                {t('admin.areaMaterials', { count: areaMaterials.length })}
                                             </div>
                                         </button>
                                     );
@@ -574,12 +576,12 @@ export function AdminView({
                                     <h3 style={styles.paneTitle}>
                                         {selectedCompartment
                                             ? `${selectedCompartment.number} ${selectedCompartment.name}`
-                                            : 'Select a storage area'}
+                                            : t('admin.selectArea')}
                                     </h3>
                                     <p style={styles.paneMeta}>
                                         {selectedCompartment
-                                            ? `${filteredCompartmentMaterials.length} of ${compartmentMaterials.length} tracked material${compartmentMaterials.length === 1 ? '' : 's'} shown`
-                                            : 'Choose an area on the left to manage its materials.'}
+                                            ? t('admin.shownOf', { shown: filteredCompartmentMaterials.length, total: compartmentMaterials.length })
+                                            : t('admin.chooseArea')}
                                     </p>
                                 </div>
 
@@ -590,14 +592,14 @@ export function AdminView({
                                         style={makeButtonStyle('primary')}
                                     >
                                         <Plus size={17} />
-                                        Add Material
+                                        {t('admin.addMaterial')}
                                     </button>
                                 )}
                             </div>
 
                             <div style={styles.controls} aria-label="Admin material controls">
                                 <label style={styles.controlField}>
-                                    <span style={styles.controlLabel}>Search</span>
+                                    <span style={styles.controlLabel}>{t('admin.search')}</span>
                                     <span style={styles.controlInputWrap}>
                                         <Search
                                             size={16}
@@ -612,14 +614,14 @@ export function AdminView({
                                         <input
                                             value={materialSearch}
                                             onChange={event => setMaterialSearch(event.target.value)}
-                                            placeholder="Find material..."
+                                            placeholder={t('admin.searchPlaceholder')}
                                             style={styles.searchInput}
                                         />
                                     </span>
                                 </label>
 
                                 <label style={styles.controlField}>
-                                    <span style={styles.controlLabel}>Location</span>
+                                    <span style={styles.controlLabel}>{t('admin.location')}</span>
                                     <select
                                         value={selectedElement ?? ''}
                                         onChange={event => setSelectedElement(event.target.value || null)}
@@ -634,43 +636,43 @@ export function AdminView({
                                 </label>
 
                                 <label style={styles.controlField}>
-                                    <span style={styles.controlLabel}>Sort</span>
+                                    <span style={styles.controlLabel}>{t('admin.sort')}</span>
                                     <select
                                         value={sortMode}
                                         onChange={event => setSortMode(event.target.value as MaterialSortMode)}
                                         style={styles.controlInput}
                                     >
-                                        <option value="name-asc">Name A-Z</option>
-                                        <option value="name-desc">Name Z-A</option>
-                                        <option value="quantity-desc">Quantity high-low</option>
-                                        <option value="quantity-asc">Quantity low-high</option>
+                                        <option value="name-asc">{t('admin.sortNameAsc')}</option>
+                                        <option value="name-desc">{t('admin.sortNameDesc')}</option>
+                                        <option value="quantity-desc">{t('admin.sortQtyDesc')}</option>
+                                        <option value="quantity-asc">{t('admin.sortQtyAsc')}</option>
                                     </select>
                                 </label>
 
                                 <label style={styles.controlField}>
-                                    <span style={styles.controlLabel}>Stock</span>
+                                    <span style={styles.controlLabel}>{t('admin.stock')}</span>
                                     <select
                                         value={stockFilter}
                                         onChange={event => setStockFilter(event.target.value as StockFilterMode)}
                                         style={styles.controlInput}
                                     >
-                                        <option value="all">All stock</option>
-                                        <option value="in-stock">In stock</option>
-                                        <option value="low-stock">Low stock</option>
-                                        <option value="out-of-stock">Out of stock</option>
+                                        <option value="all">{t('admin.stockAll')}</option>
+                                        <option value="in-stock">{t('admin.stockIn')}</option>
+                                        <option value="low-stock">{t('admin.stockLow')}</option>
+                                        <option value="out-of-stock">{t('admin.stockOut')}</option>
                                     </select>
                                 </label>
 
                                 <label style={styles.controlField}>
-                                    <span style={styles.controlLabel}>Safety</span>
+                                    <span style={styles.controlLabel}>{t('admin.safety')}</span>
                                     <select
                                         value={safetyFilter}
                                         onChange={event => setSafetyFilter(event.target.value as SafetyFilterMode)}
                                         style={styles.controlInput}
                                     >
-                                        <option value="all">All safety</option>
-                                        <option value="adult">Needs adult</option>
-                                        <option value="standard">Standard use</option>
+                                        <option value="all">{t('admin.safetyAll')}</option>
+                                        <option value="adult">{t('admin.safetyAdult')}</option>
+                                        <option value="standard">{t('admin.safetyStandard')}</option>
                                     </select>
                                 </label>
                             </div>
@@ -679,19 +681,19 @@ export function AdminView({
                                 {!selectedCompartment ? (
                                     <div style={styles.emptyState}>
                                         <Package size={24} />
-                                        <p style={{ margin: '10px 0 0', fontWeight: 700 }}>No area selected</p>
+                                        <p style={{ margin: '10px 0 0', fontWeight: 700 }}>{t('admin.noAreaSelected')}</p>
                                     </div>
                                 ) : compartmentMaterials.length === 0 ? (
                                     <div style={styles.emptyState}>
                                         <Package size={24} />
-                                        <p style={{ margin: '10px 0 0', fontWeight: 700 }}>No materials here yet</p>
-                                        <p style={{ margin: '4px 0 0', fontSize: 13 }}>Add the first item to start tracking this area.</p>
+                                        <p style={{ margin: '10px 0 0', fontWeight: 700 }}>{t('admin.noMaterialsHere')}</p>
+                                        <p style={{ margin: '4px 0 0', fontSize: 13 }}>{t('admin.addFirst')}</p>
                                     </div>
                                 ) : filteredCompartmentMaterials.length === 0 ? (
                                     <div style={styles.emptyState}>
                                         <Search size={24} />
-                                        <p style={{ margin: '10px 0 0', fontWeight: 700 }}>No matching materials</p>
-                                        <p style={{ margin: '4px 0 0', fontSize: 13 }}>Change the search, stock, or safety filters.</p>
+                                        <p style={{ margin: '10px 0 0', fontWeight: 700 }}>{t('admin.noMatching')}</p>
+                                        <p style={{ margin: '4px 0 0', fontSize: 13 }}>{t('admin.changeFilters')}</p>
                                     </div>
                                 ) : (
                                     filteredCompartmentMaterials.map(material => (
@@ -732,7 +734,7 @@ export function AdminView({
                                             </div>
 
                                             <div style={makeStockPillStyle(material)}>
-                                                {materialStockLabel(material)}
+                                                {translatedStockLabel(language, material)}
                                             </div>
 
                                             <div style={styles.cardFooter}>
@@ -754,7 +756,7 @@ export function AdminView({
                                                 {materialNeedsAdultSupervision(material) && (
                                                     <span style={styles.subtlePill}>
                                                         <AlertTriangle size={13} />
-                                                        Adult supervision
+                                                        {t('admin.adultSupervision')}
                                                     </span>
                                                 )}
                                             </div>
@@ -775,10 +777,10 @@ export function AdminView({
                         <section style={styles.sideSection}>
                             <p style={styles.sectionLabel}>
                                 <Inbox size={15} />
-                                Review queue
+                                {t('admin.reviewQueue')}
                             </p>
                             <p style={styles.paneMeta}>
-                                Review requests from the user view and update stock automatically when approved.
+                                {t('admin.reviewSub')}
                             </p>
                         </section>
 
@@ -786,7 +788,7 @@ export function AdminView({
                             {pendingRequests.length === 0 ? (
                                 <div style={styles.emptyState}>
                                     <Inbox size={24} />
-                                    <p style={{ margin: '10px 0 0', fontWeight: 700 }}>No pending requests</p>
+                                    <p style={{ margin: '10px 0 0', fontWeight: 700 }}>{t('admin.noPending')}</p>
                                 </div>
                             ) : (
                                 pendingRequests.map(request => (
@@ -795,10 +797,10 @@ export function AdminView({
                                             <div>
                                                 <h4 style={styles.requestName}>{request.materialName}</h4>
                                                 <p style={styles.requestMeta}>
-                                                    Qty: {request.requestedQuantity}
+                                                    {t('admin.qty', { count: request.requestedQuantity })}
                                                 </p>
                                             </div>
-                                            <span style={makeButtonStyle('ghost')}>Pending</span>
+                                            <span style={makeButtonStyle('ghost')}>{t('admin.pendingBadge')}</span>
                                         </div>
 
                                         {request.reason && (
@@ -812,7 +814,7 @@ export function AdminView({
                                                 style={makeButtonStyle('approve')}
                                             >
                                                 <CheckCircle size={16} />
-                                                Approve
+                                                {t('admin.approve')}
                                             </button>
                                             <button
                                                 type="button"
@@ -820,7 +822,7 @@ export function AdminView({
                                                 style={makeButtonStyle('decline')}
                                             >
                                                 <XCircle size={16} />
-                                                Decline
+                                                {t('admin.decline')}
                                             </button>
                                         </div>
 
@@ -836,7 +838,7 @@ export function AdminView({
                             <section style={styles.sideSection}>
                                 <p style={styles.sectionLabel}>
                                     <AlertTriangle size={15} />
-                                    Out of Stock
+                                    {t('admin.outOfStockSection')}
                                 </p>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                     {emptyMaterials.map(material => (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { filterMaterialsBySearch } from '../utils/materialSearch';
-import { isMaterialAvailable, materialStockLabel } from '../utils/materialDetails';
+import { isMaterialAvailable } from '../utils/materialDetails';
+import { translatedStockLabel, useI18n } from '../i18n/i18n';
 import {
     Search,
     Send,
@@ -322,6 +323,7 @@ export function UserView({
     const [submitting, setSubmitting] = useState(false);
     const [requestError, setRequestError] = useState('');
     const [selectedCompartment, setSelectedCompartment] = useState<string | null>(null);
+    const { language, t } = useI18n();
 
     const filteredMaterials = filterMaterialsBySearch(materials, search);
     const hasMaterialSearch = search.trim().length > 0;
@@ -346,14 +348,14 @@ export function UserView({
 
         const quantity = Number(reqQty);
         if (!Number.isInteger(quantity) || quantity <= 0) {
-            setRequestError('Enter a whole number greater than 0.');
+            setRequestError(t('user.errQty'));
             return;
         }
 
         // A zero count with an "in stock" status means the exact amount is
         // unknown, so only enforce the limit when a real count exists.
         if (requesting.quantity > 0 && quantity > requesting.quantity) {
-            setRequestError(`Only ${requesting.quantity} ${requesting.unit} available.`);
+            setRequestError(t('user.errMax', { count: requesting.quantity, unit: requesting.unit }));
             return;
         }
 
@@ -370,7 +372,7 @@ export function UserView({
                 setRequestError('');
             }, 800);
         } catch (error) {
-            setRequestError(error instanceof Error ? error.message : 'Request failed. Please try again.');
+            setRequestError(error instanceof Error ? error.message : t('user.errFailed'));
         } finally {
             setSubmitting(false);
         }
@@ -405,7 +407,7 @@ export function UserView({
                         style={styles.tabBtn(activeTab === tab)}
                         onClick={() => setActiveTab(tab)}
                     >
-                        {tab}
+                        {t(tab === 'map' ? 'user.map' : 'user.materials')}
                     </button>
                 ))}
             </div>
@@ -424,7 +426,7 @@ export function UserView({
 
                     {!selectedCompartment && (
                         <div style={styles.hint}>
-                            Tap a compartment to view materials
+                            {t('user.hint')}
                         </div>
                     )}
                 </div>
@@ -444,7 +446,7 @@ export function UserView({
                                     letterSpacing: 0
                                 }}
                             >
-                                Materials studio
+                                {t('user.eyebrow')}
                             </p>
                             <h2
                                 style={{
@@ -455,7 +457,7 @@ export function UserView({
                                     letterSpacing: 0
                                 }}
                             >
-                                Find what you need to build
+                                {t('user.title')}
                             </h2>
                         </div>
                         <div
@@ -471,7 +473,7 @@ export function UserView({
                             }}
                         >
                             <Package size={18} />
-                            {filteredMaterials.length} shown
+                            {t('user.shown', { count: filteredMaterials.length })}
                         </div>
                     </div>
 
@@ -489,7 +491,7 @@ export function UserView({
                                 style={styles.input}
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                placeholder="Search materials..."
+                                placeholder={t('user.searchPlaceholder')}
                             />
                         </div>
                     </div>
@@ -511,7 +513,7 @@ export function UserView({
                                                 {m.name}
                                             </strong>
                                             <span style={styles.statusPill(!available)}>
-                                                {materialStockLabel(m)}
+                                                {translatedStockLabel(language, m)}
                                             </span>
                                         </div>
 
@@ -536,7 +538,7 @@ export function UserView({
                                             onClick={() => startRequest(m)}
                                             disabled={!available}
                                         >
-                                            <Send size={14} /> Request
+                                            <Send size={14} /> {t('user.request')}
                                         </button>
                                     </div>
                                 );
@@ -545,15 +547,15 @@ export function UserView({
                     ) : (
                         <div style={styles.emptyState}>
                             {hasMaterialSearch
-                                ? `No materials found for "${search.trim()}"`
-                                : 'No materials available'}
+                                ? t('user.noResults', { query: search.trim() })
+                                : t('user.noMaterials')}
                         </div>
                     )}
 
                     {myRequests.length > 0 && (
                         <div style={styles.pendingPanel}>
                             <Clock3 size={18} />
-                            Pending requests: {myRequests.length}
+                            {t('user.pending', { count: myRequests.length })}
                         </div>
                     )}
                 </div>
@@ -565,15 +567,15 @@ export function UserView({
                         {submitted ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <Check />
-                                Request submitted
+                                {t('user.requestSubmitted')}
                             </div>
                         ) : (
                             <>
                                 <h3 style={{ margin: 0, fontSize: 24, letterSpacing: 0 }}>
-                                    Request {requesting.name}
+                                    {t('user.requestTitle', { name: requesting.name })}
                                 </h3>
                                 <p style={{ margin: 0, color: 'var(--viventory-muted-text)' }}>
-                                    Need it for a project? Tell the team how many you need and why.
+                                    {t('user.requestSub')}
                                 </p>
 
                                 <input
@@ -589,7 +591,7 @@ export function UserView({
                                 <textarea
                                     value={reqReason}
                                     onChange={e => setReqReason(e.target.value)}
-                                    placeholder="Reason for request"
+                                    placeholder={t('user.reasonPlaceholder')}
                                     style={{
                                         ...styles.input,
                                         minHeight: 96,
@@ -607,10 +609,10 @@ export function UserView({
 
                                 <div style={styles.buttonRow}>
                                     <button style={styles.primaryBtn} onClick={handleRequest} disabled={submitting}>
-                                        {submitting ? 'Submitting...' : 'Submit'}
+                                        {submitting ? t('user.submitting') : t('user.submit')}
                                     </button>
                                     <button style={styles.secondaryBtn} onClick={closeRequestModal} disabled={submitting}>
-                                        Cancel
+                                        {t('user.cancel')}
                                     </button>
                                 </div>
                             </>
