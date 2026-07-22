@@ -93,8 +93,38 @@ assert.match(
 
 assert.match(
     authSource,
-    /Google login is only available in the browser build/,
-    "Firebase auth service should explain why Google login is disabled in the desktop app",
+    /signInWithCredential/,
+    "Firebase auth service should bridge the desktop OAuth id_token into Firebase with signInWithCredential",
+);
+
+assert.match(
+    authSource,
+    /signInWithGoogleDesktop/,
+    "Firebase auth service should have a dedicated desktop (Tauri) Google sign-in flow",
+);
+
+assert.match(
+    authSource,
+    /googleDesktopOauth/,
+    "Firebase auth service should reuse the pure desktop OAuth helpers",
+);
+
+assert.match(
+    authSource,
+    /VITE_GOOGLE_DESKTOP_CLIENT_ID/,
+    "Firebase auth service should read the desktop OAuth client ID from Vite env",
+);
+
+assert.match(
+    authSource,
+    /oauth2\.googleapis\.com\/token/,
+    "Firebase auth service should exchange the auth code at Google's token endpoint",
+);
+
+assert.match(
+    authSource,
+    /Timed out waiting for Google sign-in/,
+    "Firebase auth service should time out if the user abandons the browser sign-in",
 );
 
 assert.match(

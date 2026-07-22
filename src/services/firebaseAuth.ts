@@ -2,12 +2,22 @@ import {
     getAuth,
     getRedirectResult,
     GoogleAuthProvider,
+    signInWithCredential,
     signInWithPopup,
     signInWithRedirect,
     signOut,
     type Auth,
     type User as FirebaseUser,
 } from "firebase/auth";
+import {
+    buildGoogleAuthUrl,
+    buildTokenRequestBody,
+    createPkcePair,
+    createStateToken,
+    loopbackResponseHtml,
+    parseRedirectUrl,
+    parseTokenResponse,
+} from "./googleDesktopOauth";
 import { UserPerms } from "../types";
 import { getFirebaseApp, hasFirebaseConfig } from "./firebaseApp";
 import { getOrCreateFirebaseUserProfile } from "./firebaseUsers";
@@ -31,6 +41,15 @@ function isTauriRuntime(): boolean {
             "__TAURI_INTERNALS__" in window
             || "__TAURI__" in window
         );
+}
+
+const DESKTOP_LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
+
+function desktopOauthClient(): { clientId: string; clientSecret: string } | null {
+    const clientId = String(import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID ?? "").trim();
+    const clientSecret = String(import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_SECRET ?? "").trim();
+
+    return clientId && clientSecret ? { clientId, clientSecret } : null;
 }
 
 function getFirebaseAuth(): Auth | null {
@@ -119,17 +138,105 @@ export function isFirebaseAuthConfigured(): boolean {
 }
 
 export function isGoogleLoginSupported(): boolean {
-    return hasFirebaseConfig() && !isTauriRuntime();
+    if (!hasFirebaseConfig()) {
+        return false;
+    }
+
+    return !isTauriRuntime() || desktopOauthClient() !== null;
 }
 
-export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
-    if (isTauriRuntime()) {
+// Desktop (Tauri) flow: Google blocks OAuth inside embedded webviews, so we
+// sign in through the system browser and catch the redirect on a one-shot
+// localhost server, then bridge the id_token into Firebase.
+async function signInWithGoogleDesktop(auth: Auth): Promise<FirebaseLoginResult> {
+    const client = desktopOauthClient();
+
+    if (!client) {
         return {
             success: false,
-            note: "Google login is only available in the browser build. Use the demo login in the desktop app.",
+            note: "Set VITE_GOOGLE_DESKTOP_CLIENT_ID and VITE_GOOGLE_DESKTOP_CLIENT_SECRET to enable Google login in the desktop app.",
         };
     }
 
+    const [{ start, cancel, onUrl }, { openUrl }, { fetch: tauriFetch }] = await Promise.all([
+        import("@fabianlars/tauri-plugin-oauth"),
+        import("@tauri-apps/plugin-opener"),
+        import("@tauri-apps/plugin-http"),
+    ]);
+
+    const port = await start({ response: loopbackResponseHtml });
+    const redirectUri = `http://localhost:${port}`;
+    let unlisten: (() => void) | undefined;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+        const { verifier, challenge } = await createPkcePair();
+        const state = createStateToken();
+
+        const redirectUrlPromise = new Promise<string>((resolve, reject) => {
+            timeout = setTimeout(
+                () => reject(new Error("Timed out waiting for Google sign-in in the browser.")),
+                DESKTOP_LOGIN_TIMEOUT_MS,
+            );
+            onUrl(url => resolve(url))
+                .then(stop => {
+                    unlisten = stop;
+                })
+                .catch(reject);
+        });
+
+        await openUrl(buildGoogleAuthUrl({
+            clientId: client.clientId,
+            redirectUri,
+            state,
+            codeChallenge: challenge,
+        }));
+
+        const redirect = parseRedirectUrl(await redirectUrlPromise, state);
+
+        if ("error" in redirect) {
+            return { success: false, note: redirect.error };
+        }
+
+        const tokenResponse = await tauriFetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: buildTokenRequestBody({
+                code: redirect.code,
+                clientId: client.clientId,
+                clientSecret: client.clientSecret,
+                redirectUri,
+                codeVerifier: verifier,
+            }).toString(),
+        });
+
+        const token = parseTokenResponse(await tokenResponse.json().catch(() => null));
+
+        if ("error" in token) {
+            return { success: false, note: token.error };
+        }
+
+        const credential = await signInWithCredential(
+            auth,
+            GoogleAuthProvider.credential(token.idToken),
+        );
+
+        return await toLoginResult(credential.user);
+    } catch (error) {
+        return {
+            success: false,
+            note: errorMessage(error, "Google login failed."),
+        };
+    } finally {
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        unlisten?.();
+        cancel(port).catch(() => {});
+    }
+}
+
+export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
     const auth = getFirebaseAuth();
 
     if (!auth) {
@@ -137,6 +244,10 @@ export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
             success: false,
             note: "Firebase is not configured. Add Firebase Vite environment variables first.",
         };
+    }
+
+    if (isTauriRuntime()) {
+        return signInWithGoogleDesktop(auth);
     }
 
     try {
