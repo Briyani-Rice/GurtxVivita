@@ -2,11 +2,17 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const source = readFileSync(new URL("./AdminView.tsx", import.meta.url), "utf8");
+const i18nSource = readFileSync(new URL("../i18n/i18n.ts", import.meta.url), "utf8");
 
 assert.match(
-    source,
+    i18nSource,
     /Makerspace operations/,
     "Admin View should use warmer operations-focused heading copy",
+);
+assert.match(
+    source,
+    /t\('admin\.eyebrow'\)/,
+    "Admin View should render the translated heading copy",
 );
 
 assert.match(
@@ -17,14 +23,24 @@ assert.match(
 
 assert.match(
     source,
-    /In stock/,
+    /translatedStockLabel\(language, material\)/,
     "Admin material cards should use direct stock status language",
+);
+assert.match(
+    i18nSource,
+    /"stock\.inStock": "In stock"/,
+    "Stock status should have English copy in the i18n dictionary",
 );
 
 assert.match(
     source,
-    /Review queue/,
+    /t\('admin\.reviewQueue'\)/,
     "Admin requests pane should read like an active review queue",
+);
+assert.match(
+    i18nSource,
+    /"admin\.reviewQueue": "Review queue"/,
+    "Review queue heading should have English copy in the i18n dictionary",
 );
 
 assert.doesNotMatch(

@@ -2,11 +2,17 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const userViewSource = readFileSync(new URL("UserView.tsx", import.meta.url), "utf8");
+const i18nSource = readFileSync(new URL("../i18n/i18n.ts", import.meta.url), "utf8");
 
 assert.match(
-    userViewSource,
+    i18nSource,
     /Materials studio/,
     "User materials view should use a warmer makerspace heading",
+);
+assert.match(
+    userViewSource,
+    /t\('user\.eyebrow'\)/,
+    "User materials view should render the translated heading",
 );
 
 assert.match(
@@ -17,14 +23,24 @@ assert.match(
 
 assert.match(
     userViewSource,
-    /Available now/,
+    /translatedStockLabel\(language, m\)/,
     "Material cards should make stock status more scannable",
+);
+assert.match(
+    i18nSource,
+    /"stock\.inStock": "In stock"/,
+    "Stock status should have English copy in the i18n dictionary",
 );
 
 assert.match(
-    userViewSource,
+    i18nSource,
     /Need it for a project/,
     "Request modal should use friendly project-oriented copy",
+);
+assert.match(
+    userViewSource,
+    /t\('user\.requestSub'\)/,
+    "Request modal should render the translated request copy",
 );
 
 assert.match(
@@ -47,8 +63,13 @@ assert.match(
 
 assert.match(
     userViewSource,
-    /Enter a quantity greater than 0/,
+    /t\('user\.errQty'\)/,
     "Request modal should validate invalid quantities before submitting",
+);
+assert.match(
+    i18nSource,
+    /"user\.errQty": "Enter a whole number greater than 0\."/,
+    "Quantity validation should have English copy in the i18n dictionary",
 );
 
 assert.doesNotMatch(

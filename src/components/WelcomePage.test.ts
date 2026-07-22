@@ -2,11 +2,17 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const appSource = readFileSync(new URL("../app.tsx", import.meta.url), "utf8");
+const i18nSource = readFileSync(new URL("../i18n/i18n.ts", import.meta.url), "utf8");
 
 assert.match(
-    appSource,
+    i18nSource,
     /Welcome to VIVITA/,
     "Welcome page should have a warmer VIVITA-oriented headline",
+);
+assert.match(
+    appSource,
+    /t\("welcome\.heading"\)/,
+    "Welcome page should render the translated headline",
 );
 
 assert.match(
@@ -16,7 +22,7 @@ assert.match(
 );
 
 assert.match(
-    appSource,
+    i18nSource,
     /Our Vivistop @ 10 Kampong Eunos/,
     "Welcome page should keep the place-based makerspace language",
 );
@@ -52,9 +58,14 @@ assert.doesNotMatch(
 );
 
 assert.match(
-    appSource,
+    i18nSource,
     /Press ⌘Y or use the command bar/,
     "Welcome page should point makers at the command bar",
+);
+assert.match(
+    appSource,
+    /t\("welcome\.hint"\)/,
+    "Welcome page should render the translated command bar hint",
 );
 
 assert.doesNotMatch(

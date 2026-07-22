@@ -18,8 +18,14 @@ assert.match(
 
 assert.match(
     appSource,
-    /&gt; Enter command/,
+    /&gt; \{t\("app\.enterCommand"\)\}/,
     "Always-visible command entry should show the command prompt label",
+);
+
+assert.match(
+    readFileSync(new URL("../i18n/i18n.ts", import.meta.url), "utf8"),
+    /"app\.enterCommand": "Enter command"/,
+    "Command prompt label should have English copy in the i18n dictionary",
 );
 
 assert.doesNotMatch(

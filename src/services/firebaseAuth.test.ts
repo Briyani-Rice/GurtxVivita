@@ -159,8 +159,14 @@ assert.doesNotMatch(
 
 assert.match(
     loginSource,
-    /Continue with Google/,
+    /t\("login\.google"\)/,
     "Login tab should render a clear Google sign-in button",
+);
+
+assert.match(
+    readFileSync(new URL("../i18n/i18n.ts", import.meta.url), "utf8"),
+    /"login\.google": "Continue with Google"/,
+    "Google sign-in button should have English copy in the i18n dictionary",
 );
 
 assert.match(
@@ -177,8 +183,14 @@ assert.match(
 
 assert.match(
     loginSource,
-    /Google login unavailable in desktop app/,
+    /t\("login\.googleUnavailableDesktop"\)/,
     "Login tab should show a clear desktop-app Google login message",
+);
+
+assert.match(
+    readFileSync(new URL("../i18n/i18n.ts", import.meta.url), "utf8"),
+    /"login\.googleUnavailableDesktop": "Google login unavailable in desktop app"/,
+    "Desktop Google login message should have English copy in the i18n dictionary",
 );
 
 for (const key of [

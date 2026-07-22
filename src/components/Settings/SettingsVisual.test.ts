@@ -6,8 +6,14 @@ const appearanceSource = readFileSync(new URL("./SettingsPages/Appearance.tsx", 
 
 assert.match(
     settingsSource,
-    /Control room/,
+    /t\("settings\.controlRoom"\)/,
     "Settings shell should use a warmer control-room heading",
+);
+
+assert.match(
+    readFileSync(new URL("../../i18n/i18n.ts", import.meta.url), "utf8"),
+    /"settings\.controlRoom": "Control room"/,
+    "Control room heading should have English copy in the i18n dictionary",
 );
 
 assert.match(
