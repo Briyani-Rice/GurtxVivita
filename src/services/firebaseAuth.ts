@@ -4,6 +4,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     signInWithRedirect,
+    signOut,
     type Auth,
     type User as FirebaseUser,
 } from "firebase/auth";
@@ -147,21 +148,41 @@ export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
     }
 }
 
-export async function consumeGoogleRedirectResult(): Promise<FirebaseLoginResult | null> {
-    const auth = getFirebaseAuth();
+let redirectResultPromise: Promise<FirebaseLoginResult | null> | undefined;
 
-    if (!auth) {
-        return null;
+// getRedirectResult() only returns the pending credential once; React's
+// StrictMode double-invokes this effect on mount, so without memoizing here
+// the first (real) call gets discarded by the effect's own cleanup flag and
+// the second call finds nothing left to consume. See consumers in app.tsx.
+export function consumeGoogleRedirectResult(): Promise<FirebaseLoginResult | null> {
+    if (!redirectResultPromise) {
+        redirectResultPromise = (async () => {
+            const auth = getFirebaseAuth();
+
+            if (!auth) {
+                return null;
+            }
+
+            try {
+                const credential = await getRedirectResult(auth);
+
+                return credential ? await toLoginResult(credential.user) : null;
+            } catch (error) {
+                return {
+                    success: false,
+                    note: errorMessage(error, "Google redirect login failed."),
+                };
+            }
+        })();
     }
 
-    try {
-        const credential = await getRedirectResult(auth);
+    return redirectResultPromise;
+}
 
-        return credential ? await toLoginResult(credential.user) : null;
-    } catch (error) {
-        return {
-            success: false,
-            note: errorMessage(error, "Google redirect login failed."),
-        };
+export async function signOutOfFirebase(): Promise<void> {
+    const auth = getFirebaseAuth();
+
+    if (auth) {
+        await signOut(auth);
     }
 }

@@ -12,6 +12,15 @@ type Props = {
     setTab: (index: number, tab: Tab) => void;
 };
 
+async function getTitlebarPlatform() {
+    try {
+        return await platform();
+    } catch (error) {
+        void error;
+        return "browser";
+    }
+}
+
 export default function Titlebar({
                                      tabs,
                                      setTabIndex,
@@ -21,12 +30,20 @@ export default function Titlebar({
     const [leftPadding, setLeftPadding] = useState(0);
 
     useEffect(() => {
+        let cancelled = false;
+
         async function getOS() {
-            const osName = await platform();
+            const osName = await getTitlebarPlatform();
+            if (cancelled) return;
+
             setLeftPadding(osName === "macos" ? 85 : 0);
         }
 
         getOS();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     return (

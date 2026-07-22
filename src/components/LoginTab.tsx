@@ -9,6 +9,7 @@ import {
     signInWithGoogle,
     type FirebaseLoginResult,
 } from "../services/firebaseAuth";
+import { recordAccountLogin } from "../services/accountSession";
 
 type LoginTabContentProps = BasicTabProps & {
     actL: number;
@@ -46,8 +47,26 @@ function LoginTabContent({
     const [googleLoading, setGoogleLoading] = useState(false);
     const firebaseConfigured = isFirebaseAuthConfigured();
 
-    const completeLogin = (res: { perms?: UserPerms }, localUser?: User | null) => {
+    const completeLogin = (
+        res: { perms?: UserPerms; email?: string | null; displayName?: string | null },
+        localUser?: User | null,
+    ) => {
         const isAdmin = res?.perms === UserPerms.Staff || localUser?.getPerms() === UserPerms.Staff;
+
+        if (localUser) {
+            recordAccountLogin({
+                label: localUser.getUsername(),
+                provider: "demo",
+                perms: localUser.getPerms(),
+            });
+        } else {
+            recordAccountLogin({
+                label: res.displayName || res.email || "Google account",
+                email: res.email,
+                provider: "google",
+                perms: res.perms,
+            });
+        }
 
         setNote("Login successful!");
         setTabs((prevTabs) => {

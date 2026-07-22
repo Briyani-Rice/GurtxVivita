@@ -86,6 +86,18 @@ assert.doesNotMatch(
 );
 
 assert.match(
+    authSource,
+    /redirectResultPromise/,
+    "consumeGoogleRedirectResult should memoize the pending redirect promise so React StrictMode's double effect invocation can't let the real result be consumed once and then discarded, silently stranding the user on the default tab",
+);
+
+assert.match(
+    appEntrySource,
+    /alert\(`Google sign-in failed/,
+    "App entry point should surface a failed Google redirect to the user instead of only logging it to the console",
+);
+
+assert.match(
     loginSource,
     /signInWithGoogle/,
     "Login tab should offer Firebase Google sign-in",

@@ -1,5 +1,5 @@
 //@ts-ignore
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
 import ReactDOM from 'react-dom/client'
 //@ts-ignore
 import './style.css'
@@ -26,6 +26,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { InventoryProvider } from "./components/InventoryProvider";
 import AdminViewTab from "./components/AdminViewTab";
 import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
+import { recordAccountLogin } from "./services/accountSession";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -623,11 +624,18 @@ function App() {
 
             if (!result.success) {
                 console.warn(result.note);
+                alert(`Google sign-in failed: ${result.note}`);
                 return;
             }
 
             const isAdmin = result.perms === UserPerms.Staff;
             const targetName = isAdmin ? "Admin View" : "User View";
+            recordAccountLogin({
+                label: result.displayName || result.email || "Google account",
+                email: result.email,
+                provider: "google",
+                perms: result.perms,
+            });
 
             setTabs((prevTabs) => {
                 const existingIndex = prevTabs.findIndex((tab) => tab.name === targetName);
@@ -750,6 +758,37 @@ function App() {
             return [...prevTabs, new UserViewTab(trimmedQuery)];
         });
     }
+    const openLoginTab = useCallback(() => {
+        const existingIndex = tabs.findIndex(tab => tab.name === "Login");
+
+        if (existingIndex !== -1) {
+            setTabIndex(existingIndex);
+            return;
+        }
+
+        const newIndex = handleNewTab();
+        setTab(
+            newIndex,
+            new LoginTab({
+                tabs,
+                setTabs,
+                tabIndex,
+                setTabIndex,
+                handleNewTab,
+                setTab,
+                handleClosingTab,
+                handleMaterialSearch,
+            }, newIndex),
+        );
+    }, [handleClosingTab, handleMaterialSearch, handleNewTab, setTab, tabIndex, tabs]);
+
+    useEffect(() => {
+        const onOpenLogin = () => openLoginTab();
+
+        window.addEventListener("viventory:open-login", onOpenLogin);
+        return () => window.removeEventListener("viventory:open-login", onOpenLogin);
+    }, [openLoginTab]);
+
     welcomeTab.SetProps(
         { tabs },
         {
