@@ -80,7 +80,7 @@ function clampFontSize(fontSize: number): number {
     return Math.min(24, Math.max(8, Math.round(fontSize)));
 }
 
-function isTheme(value: unknown): value is AppearanceTheme {
+function isTheme(value: unknown): value is AppearanceTheme  {
     return value === "light" || value === "system" || value === "dark";
 }
 
