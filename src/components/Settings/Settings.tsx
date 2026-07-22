@@ -50,7 +50,7 @@ function SettingsContent() {
                 padding: "20px",
                 minHeight: "100%",
                 boxSizing: "border-box",
-                background: "var(--viventory-bg)",
+                background: "var(--viventory-welcome-bg)",
                 color: "var(--viventory-text)",
                 fontSize: "var(--viventory-font-size)",
             }}

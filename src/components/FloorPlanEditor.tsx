@@ -386,7 +386,6 @@ export function FloorPlanEditor({
         }
         setAddForm(null);
         setEditingMaterialId(null);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedElement]);
 
     // ── Helpers ────────────────────────────────────────────────────────────────

@@ -98,6 +98,26 @@ function assertVisibleEdge(alpha: number, message: string): void {
     assert.ok(alpha >= 64, message);
 }
 
+function visibleBounds(image: PngImage): { minX: number; minY: number; maxX: number; maxY: number } {
+    let minX = image.width;
+    let minY = image.height;
+    let maxX = -1;
+    let maxY = -1;
+
+    for (let y = 0; y < image.height; y += 1) {
+        for (let x = 0; x < image.width; x += 1) {
+            if (alphaAt(image, x, y) >= 64) {
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+            }
+        }
+    }
+
+    return { minX, minY, maxX, maxY };
+}
+
 const icon = parseRgbaPng(new URL("../../src-tauri/icons/icon.png", import.meta.url));
 assert.equal(icon.width, 512);
 assert.equal(icon.height, 512);
@@ -106,14 +126,21 @@ assert.equal(alphaAt(icon, 0, 0), 0, "top-left corner should be transparent for 
 assert.equal(alphaAt(icon, icon.width - 1, 0), 0, "top-right corner should be transparent for a rounded-square app icon");
 assert.equal(alphaAt(icon, 0, icon.height - 1), 0, "bottom-left corner should be transparent for a rounded-square app icon");
 assert.equal(alphaAt(icon, icon.width - 1, icon.height - 1), 0, "bottom-right corner should be transparent for a rounded-square app icon");
-assertVisibleEdge(alphaAt(icon, Math.floor(icon.width / 2), 0), "top edge should stay visible so the icon is not circular");
-assertVisibleEdge(alphaAt(icon, Math.floor(icon.width / 2), icon.height - 1), "bottom edge should stay visible so the icon is not circular");
-assertVisibleEdge(alphaAt(icon, 0, Math.floor(icon.height / 2)), "left edge should stay visible so the icon is not circular");
-assertVisibleEdge(alphaAt(icon, icon.width - 1, Math.floor(icon.height / 2)), "right edge should stay visible so the icon is not circular");
-assert.equal(alphaAt(icon, 70, 20), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
-assert.equal(alphaAt(icon, icon.width - 71, 20), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
-assert.equal(alphaAt(icon, 70, icon.height - 21), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
-assert.equal(alphaAt(icon, icon.width - 71, icon.height - 21), 255, "near-corner area should stay filled for a softly rounded square, not a circle");
+assert.equal(alphaAt(icon, Math.floor(icon.width / 2), 0), 0, "top edge should have padding so the Dock icon is not oversized");
+assert.equal(alphaAt(icon, Math.floor(icon.width / 2), icon.height - 1), 0, "bottom edge should have padding so the Dock icon is not oversized");
+assert.equal(alphaAt(icon, 0, Math.floor(icon.height / 2)), 0, "left edge should have padding so the Dock icon is not oversized");
+assert.equal(alphaAt(icon, icon.width - 1, Math.floor(icon.height / 2)), 0, "right edge should have padding so the Dock icon is not oversized");
+
+const bounds = visibleBounds(icon);
+const minInset = Math.floor(icon.width * 0.08);
+assert.ok(bounds.minX >= minInset, `visible icon body should be inset from the left edge by at least ${minInset}px`);
+assert.ok(bounds.minY >= minInset, `visible icon body should be inset from the top edge by at least ${minInset}px`);
+assert.ok(icon.width - 1 - bounds.maxX >= minInset, `visible icon body should be inset from the right edge by at least ${minInset}px`);
+assert.ok(icon.height - 1 - bounds.maxY >= minInset, `visible icon body should be inset from the bottom edge by at least ${minInset}px`);
+assertVisibleEdge(alphaAt(icon, Math.floor(icon.width / 2), bounds.minY), "top of padded icon body should stay visible");
+assertVisibleEdge(alphaAt(icon, Math.floor(icon.width / 2), bounds.maxY), "bottom of padded icon body should stay visible");
+assertVisibleEdge(alphaAt(icon, bounds.minX, Math.floor(icon.height / 2)), "left of padded icon body should stay visible");
+assertVisibleEdge(alphaAt(icon, bounds.maxX, Math.floor(icon.height / 2)), "right of padded icon body should stay visible");
 assert.equal(alphaAt(icon, Math.floor(icon.width / 2), Math.floor(icon.height / 2)), 255);
 
 console.log("AppIconShape.test.ts passed");

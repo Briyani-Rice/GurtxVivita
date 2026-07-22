@@ -4,6 +4,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     signInWithRedirect,
+    signOut,
     type Auth,
     type User as FirebaseUser,
 } from "firebase/auth";
@@ -176,4 +177,12 @@ export function consumeGoogleRedirectResult(): Promise<FirebaseLoginResult | nul
     }
 
     return redirectResultPromise;
+}
+
+export async function signOutOfFirebase(): Promise<void> {
+    const auth = getFirebaseAuth();
+
+    if (auth) {
+        await signOut(auth);
+    }
 }
