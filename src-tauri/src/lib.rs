@@ -84,11 +84,6 @@ pub fn run() {
                 .allow_directory("/path/to/directory", true)
                 .expect("Failed to allow directory");
 
-            // #[cfg(debug_assertions)] // Best practice: limit to debug builds
-            // {
-                let window = app.get_webview_window("main").unwrap();
-                window.open_devtools();
-            // }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
