@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Material, Compartment, MaterialRequest, FloorData } from '../types';
 import { MaterialDialog } from './MaterialDialog';
+import { isMaterialAvailable, materialStockLabel } from '../utils/materialDetails';
 import {
     ResizableHandle,
     ResizablePanel,
@@ -400,11 +401,19 @@ const makeButtonStyle = (variant: 'primary' | 'ghost' | 'approve' | 'decline'): 
     return { ...base, background: 'var(--viventory-surface)', borderColor: 'var(--viventory-border)', color: 'var(--viventory-text)', minWidth: 36, padding: 8 };
 };
 
-const makeStockPillStyle = (quantity: number): CSSProperties => ({
-    ...styles.quantity,
-    background: quantity <= 0 ? 'rgba(161, 130, 79, 0.16)' : quantity <= 2 ? 'rgba(255, 245, 203, 0.7)' : 'rgba(51, 167, 181, 0.12)',
-    color: quantity <= 0 ? 'var(--viventory-welcome-accent-2)' : quantity <= 2 ? 'var(--viventory-welcome-accent)' : 'var(--viventory-text)',
-});
+const materialIsLowStock = (material: Material): boolean =>
+    material.stockStatus === 'low' || (material.quantity > 0 && material.quantity <= 2);
+
+const makeStockPillStyle = (material: Material): CSSProperties => {
+    const unavailable = !isMaterialAvailable(material);
+    const low = materialIsLowStock(material);
+
+    return {
+        ...styles.quantity,
+        background: unavailable ? 'rgba(161, 130, 79, 0.16)' : low ? 'rgba(255, 245, 203, 0.7)' : 'rgba(51, 167, 181, 0.12)',
+        color: unavailable ? 'var(--viventory-welcome-accent-2)' : low ? 'var(--viventory-welcome-accent)' : 'var(--viventory-text)',
+    };
+};
 
 function materialNeedsAdultSupervision(material: Material): boolean {
     const text = `${material.name} ${material.description}`.toLowerCase();
@@ -412,9 +421,9 @@ function materialNeedsAdultSupervision(material: Material): boolean {
 }
 
 function materialMatchesStockFilter(material: Material, filter: StockFilterMode): boolean {
-    if (filter === 'in-stock') return material.quantity > 0;
-    if (filter === 'low-stock') return material.quantity > 0 && material.quantity <= 2;
-    if (filter === 'out-of-stock') return material.quantity <= 0;
+    if (filter === 'in-stock') return isMaterialAvailable(material);
+    if (filter === 'low-stock') return materialIsLowStock(material);
+    if (filter === 'out-of-stock') return !isMaterialAvailable(material);
 
     return true;
 }
@@ -722,17 +731,26 @@ export function AdminView({
                                                 </div>
                                             </div>
 
-                                            <div style={makeStockPillStyle(material.quantity)}>
-                                                {material.quantity <= 0
-                                                    ? 'Out of stock'
-                                                    : `In stock: ${material.quantity} ${material.unit}`}
+                                            <div style={makeStockPillStyle(material)}>
+                                                {materialStockLabel(material)}
                                             </div>
 
                                             <div style={styles.cardFooter}>
                                                 <span style={styles.subtlePill}>
                                                     <MapPin size={13} />
-                                                    {selectedCompartment.number}
+                                                    {material.location ?? selectedCompartment.number}
                                                 </span>
+                                                {material.category && (
+                                                    <span style={styles.subtlePill}>
+                                                        {material.category}
+                                                    </span>
+                                                )}
+                                                {material.storage && (
+                                                    <span style={styles.subtlePill}>
+                                                        <Package size={13} />
+                                                        {material.storage}
+                                                    </span>
+                                                )}
                                                 {materialNeedsAdultSupervision(material) && (
                                                     <span style={styles.subtlePill}>
                                                         <AlertTriangle size={13} />
@@ -822,7 +840,7 @@ export function AdminView({
                                 </p>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                     {emptyMaterials.map(material => (
-                                        <span key={material.id} style={makeStockPillStyle(material.quantity)}>
+                                        <span key={material.id} style={makeStockPillStyle(material)}>
                                             {material.name}
                                         </span>
                                     ))}

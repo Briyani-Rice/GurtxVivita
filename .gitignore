@@ -28,3 +28,4 @@ dist-ssr
 #Private
 src/Secrets.ts
 Secrets.ts
+.aider*

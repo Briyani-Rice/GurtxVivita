@@ -20,6 +20,7 @@ import {
     starterMaterials,
     starterRequests,
 } from "./inventoryStore";
+import { isMaterialAvailable } from "../utils/materialDetails";
 
 type InventoryContextValue = {
     floors: FloorData[];
@@ -266,7 +267,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                     : request
             ));
         },
-        getEmptyMaterials: () => materials.filter(material => material.quantity <= 0),
+        getEmptyMaterials: () => materials.filter(material => !isMaterialAvailable(material)),
     }), [floors, materials, requests]);
 
     return (

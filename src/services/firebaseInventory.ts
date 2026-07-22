@@ -15,8 +15,9 @@ import {
     type QueryDocumentSnapshot,
     type Timestamp,
 } from "firebase/firestore";
-import type { Material, MaterialRequest } from "../types";
+import type { Material, MaterialRequest, MaterialStockStatus } from "../types";
 import { getFirebaseFirestore } from "./firebaseApp";
+import { enrichMaterial, parseStockStatus } from "../utils/materialDetails";
 
 export type MaterialInput = Omit<Material, "id" | "createdAt">;
 export type MaterialRequestInput = Omit<MaterialRequest, "id" | "createdAt" | "status" | "respondedAt">;
@@ -40,10 +41,20 @@ function toIsoDate(value: unknown): string {
     return new Date().toISOString();
 }
 
+function toOptionalString(value: unknown): string | undefined {
+    return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function toStockStatus(value: unknown): MaterialStockStatus | undefined {
+    return typeof value === "string" ? parseStockStatus(value) ?? undefined : undefined;
+}
+
 function toMaterial(snapshot: QueryDocumentSnapshot<DocumentData> | { id: string; data: () => DocumentData }): Material {
     const data = snapshot.data();
 
-    return {
+    // enrichMaterial handles documents created before the structured fields
+    // existed, whose description is still the raw import dump.
+    return enrichMaterial({
         id: snapshot.id,
         name: String(data.name ?? ""),
         description: String(data.description ?? ""),
@@ -51,7 +62,13 @@ function toMaterial(snapshot: QueryDocumentSnapshot<DocumentData> | { id: string
         unit: String(data.unit ?? "pcs"),
         compartmentId: String(data.compartmentId ?? ""),
         createdAt: toIsoDate(data.createdAt),
-    };
+        category: toOptionalString(data.category),
+        location: toOptionalString(data.location),
+        storage: toOptionalString(data.storage),
+        supplier: toOptionalString(data.supplier),
+        cricut: typeof data.cricut === "boolean" ? data.cricut : undefined,
+        stockStatus: toStockStatus(data.stockStatus),
+    });
 }
 
 function toMaterialRequest(snapshot: QueryDocumentSnapshot<DocumentData> | { id: string; data: () => DocumentData }): MaterialRequest {
@@ -83,13 +100,19 @@ export async function listMaterialRecords(): Promise<Material[]> {
     return snapshot.docs.map(toMaterial);
 }
 
+function stripUndefined<T extends Record<string, unknown>>(record: T): T {
+    return Object.fromEntries(
+        Object.entries(record).filter(([, value]) => value !== undefined),
+    ) as T;
+}
+
 export async function createMaterialRecord(material: MaterialInput): Promise<Material> {
     const db = getInventoryDb();
     const createdAt = new Date().toISOString();
-    const record = {
+    const record = stripUndefined({
         ...material,
         createdAt,
-    };
+    });
     const ref = await addDoc(collection(db, MATERIALS_COLLECTION), record);
 
     return {
@@ -102,7 +125,7 @@ export async function updateMaterialRecord(id: string, material: MaterialInput):
     const db = getInventoryDb();
     const ref = doc(db, MATERIALS_COLLECTION, id);
 
-    await updateDoc(ref, material);
+    await updateDoc(ref, stripUndefined({ ...material }));
 
     const snapshot = await getDoc(ref);
     if (!snapshot.exists()) {

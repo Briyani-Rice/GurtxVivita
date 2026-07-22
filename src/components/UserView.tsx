@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { filterMaterialsBySearch } from '../utils/materialSearch';
+import { isMaterialAvailable, materialStockLabel } from '../utils/materialDetails';
 import {
     Search,
     Send,
@@ -38,6 +39,9 @@ type Styles = {
     emptyState: React.CSSProperties;
     card: (empty: boolean) => React.CSSProperties;
     statusPill: (empty: boolean) => React.CSSProperties;
+    chipRow: React.CSSProperties;
+    chip: React.CSSProperties;
+    cardDescription: React.CSSProperties;
     btnPrimary: React.CSSProperties;
     pendingPanel: React.CSSProperties;
     modalBackdrop: React.CSSProperties;
@@ -146,8 +150,8 @@ const styles: Styles = {
 
     grid: {
         display: 'grid',
-        gap: 14,
-        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'
+        gap: 12,
+        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))'
     },
     emptyState: {
         padding: 24,
@@ -162,24 +166,60 @@ const styles: Styles = {
         background: 'var(--viventory-surface)',
         border: `1px solid ${empty ? 'rgba(239, 111, 77, 0.48)' : 'var(--viventory-border)'}`,
         borderRadius: 8,
-        padding: 16,
+        padding: 14,
         opacity: empty ? 0.82 : 1,
         display: 'flex',
         flexDirection: 'column',
-        gap: 12,
+        gap: 8,
         boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)'
     }),
 
     statusPill: (empty: boolean) => ({
+        flexShrink: 0,
         alignSelf: 'flex-start',
+        whiteSpace: 'nowrap',
         borderRadius: 999,
-        padding: '6px 10px',
+        padding: '5px 10px',
         background: empty ? 'rgba(161, 130, 79, 0.16)' : 'rgba(165, 214, 209, 0.26)',
         color: empty ? 'var(--viventory-welcome-accent-2)' : 'var(--viventory-welcome-accent)',
         border: empty ? '1px solid rgba(161, 130, 79, 0.34)' : '1px solid rgba(51, 167, 181, 0.28)',
         fontSize: 12,
         fontWeight: 800
     }),
+
+    chipRow: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 6
+    },
+
+    chip: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        maxWidth: '100%',
+        borderRadius: 999,
+        border: '1px solid var(--viventory-border)',
+        background: 'var(--viventory-muted-surface)',
+        color: 'var(--viventory-muted-text)',
+        padding: '3px 8px',
+        fontSize: 11.5,
+        fontWeight: 700,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+    },
+
+    cardDescription: {
+        margin: 0,
+        color: 'var(--viventory-muted-text)',
+        fontSize: 13,
+        lineHeight: 1.4,
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden'
+    },
 
     btnPrimary: {
         background: 'linear-gradient(135deg, var(--viventory-welcome-accent), var(--viventory-welcome-accent-2))',
@@ -305,13 +345,15 @@ export function UserView({
         if (!requesting) return;
 
         const quantity = Number(reqQty);
-        if (!Number.isFinite(quantity) || quantity <= 0) {
-            setRequestError('Enter a quantity greater than 0.');
+        if (!Number.isInteger(quantity) || quantity <= 0) {
+            setRequestError('Enter a whole number greater than 0.');
             return;
         }
 
-        if (quantity > requesting.quantity) {
-            setRequestError(`Only ${Math.max(requesting.quantity, 0)} ${requesting.unit} available.`);
+        // A zero count with an "in stock" status means the exact amount is
+        // unknown, so only enforce the limit when a real count exists.
+        if (requesting.quantity > 0 && quantity > requesting.quantity) {
+            setRequestError(`Only ${requesting.quantity} ${requesting.unit} available.`);
             return;
         }
 
@@ -455,39 +497,44 @@ export function UserView({
                     {filteredMaterials.length > 0 ? (
                         <div style={styles.grid}>
                             {filteredMaterials.map(m => {
-                                const empty = m.quantity <= 0;
+                                const available = isMaterialAvailable(m);
+                                const chips = [
+                                    m.category,
+                                    m.location && `📍 ${m.location}`,
+                                    m.storage && `📦 ${m.storage}`,
+                                ].filter(Boolean) as string[];
 
                                 return (
-                                    <div key={m.id} style={styles.card(empty)}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                                            <div style={{ textAlign: 'left' }}>
-                                                <strong style={{ fontSize: 18 }}>{m.name}</strong>
-                                                <p style={{ margin: '6px 0 0', color: 'var(--viventory-muted-text)' }}>
-                                                    {m.description}
-                                                </p>
-                                            </div>
-                                            <span style={styles.statusPill(empty)}>
-                                                {empty ? 'Out of stock' : 'Available now'}
+                                    <div key={m.id} style={styles.card(!available)}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                                            <strong style={{ fontSize: 16, textAlign: 'left', lineHeight: 1.25 }}>
+                                                {m.name}
+                                            </strong>
+                                            <span style={styles.statusPill(!available)}>
+                                                {materialStockLabel(m)}
                                             </span>
                                         </div>
 
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'baseline',
-                                                gap: 6,
-                                                color: 'var(--viventory-text)',
-                                                fontWeight: 850
-                                            }}
-                                        >
-                                            <span style={{ fontSize: 28 }}>{Math.max(m.quantity, 0)}</span>
-                                            <span style={{ color: 'var(--viventory-muted-text)' }}>{m.unit}</span>
-                                        </div>
+                                        {chips.length > 0 && (
+                                            <div style={styles.chipRow}>
+                                                {chips.map(chip => (
+                                                    <span key={chip} style={styles.chip} title={chip}>
+                                                        {chip}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {m.description && (
+                                            <p style={styles.cardDescription} title={m.description}>
+                                                {m.description}
+                                            </p>
+                                        )}
 
                                         <button
-                                            style={styles.btnPrimary}
+                                            style={{ ...styles.btnPrimary, marginTop: 'auto' }}
                                             onClick={() => startRequest(m)}
-                                            disabled={empty}
+                                            disabled={!available}
                                         >
                                             <Send size={14} /> Request
                                         </button>
@@ -532,7 +579,8 @@ export function UserView({
                                 <input
                                     type="number"
                                     min={1}
-                                    max={Math.max(requesting.quantity, 1)}
+                                    step={1}
+                                    max={requesting.quantity > 0 ? requesting.quantity : undefined}
                                     value={reqQty}
                                     onChange={e => setReqQty(e.target.value)}
                                     style={styles.input}

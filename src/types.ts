@@ -3,6 +3,8 @@ export interface Renderable {
     render(): void;
 }
 
+export type MaterialStockStatus = "in-stock" | "low" | "out-of-stock" | "wishlist" | "missing";
+
 export interface Material {
     id: string;
     name: string;
@@ -11,6 +13,14 @@ export interface Material {
     unit: string;
     compartmentId: string;
     createdAt: string;
+    // Structured fields parsed from the bulk inventory import
+    // (see src/utils/materialDetails.ts).
+    category?: string;
+    location?: string;
+    storage?: string;
+    supplier?: string;
+    cricut?: boolean;
+    stockStatus?: MaterialStockStatus;
 }
 
 export type ElementType = 'compartment' | 'outofbounds' | 'stairs' | 'lift' | 'chair' | 'table' | 'workplace';

@@ -15,7 +15,13 @@ export function filterMaterialsBySearch(
     }
 
     return materials.filter(material =>
-        material.name.toLowerCase().includes(normalizedQuery) ||
-        material.description.toLowerCase().includes(normalizedQuery)
+        [
+            material.name,
+            material.description,
+            material.category,
+            material.location,
+            material.storage,
+            material.supplier,
+        ].some(value => value?.toLowerCase().includes(normalizedQuery))
     );
 }

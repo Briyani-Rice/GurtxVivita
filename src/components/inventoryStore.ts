@@ -1,6 +1,7 @@
 import type { Compartment, FloorData, Material, MaterialRequest } from "../types";
 import type { MakerItem } from "./makerspaceData";
 import { vivitaFloor, vivitaMaterials } from "./roomMapData.ts";
+import { enrichMaterial } from "../utils/materialDetails.ts";
 
 const areaColors: Record<string, string> = {
     "white-space": "#f8fafc",
@@ -47,7 +48,7 @@ export const inventoryCompartments: Compartment[] = vivitaFloor.elements
         color: areaColors[element.id] ?? "#64748b",
     }));
 
-export const starterMaterials: Material[] = vivitaMaterials;
+export const starterMaterials: Material[] = vivitaMaterials.map(enrichMaterial);
 
 export const starterRequests: MaterialRequest[] = [];
 
