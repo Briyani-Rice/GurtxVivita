@@ -231,7 +231,11 @@ async function signInWithGoogleDesktop(auth: Auth): Promise<FirebaseLoginResult>
         if (timeout) {
             clearTimeout(timeout);
         }
-        unlisten?.();
+        try {
+            unlisten?.();
+        } catch {
+            // listener may already be gone
+        }
         cancel(port).catch(() => {});
     }
 }
