@@ -1,12 +1,14 @@
-import { type CSSProperties, useState } from 'react';
+import { type CSSProperties, useMemo, useState } from 'react';
 import {
     AlertTriangle,
     CheckCircle,
     Edit2,
     GripVertical,
     Inbox,
+    MapPin,
     Package,
     Plus,
+    Search,
     Trash2,
     XCircle,
 } from 'lucide-react';
@@ -31,6 +33,10 @@ interface AdminViewProps {
     onDeclineRequest: (id: string) => void;
     getterEmptyMaterials: () => Material[];
 }
+
+type MaterialSortMode = 'name-asc' | 'name-desc' | 'quantity-desc' | 'quantity-asc';
+type StockFilterMode = 'all' | 'in-stock' | 'low-stock' | 'out-of-stock';
+type SafetyFilterMode = 'all' | 'adult' | 'standard';
 
 const styles: Record<string, CSSProperties> = {
     shell: {
@@ -151,6 +157,56 @@ const styles: Record<string, CSSProperties> = {
         fontSize: 14,
         lineHeight: 1.35,
     },
+    controls: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+        gap: 10,
+        padding: '14px 0',
+        borderBottom: '1px solid var(--viventory-border)',
+    },
+    controlField: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        minWidth: 0,
+    },
+    controlLabel: {
+        color: 'var(--viventory-muted-text)',
+        fontSize: 12,
+        fontWeight: 800,
+        letterSpacing: 0,
+        textTransform: 'uppercase',
+    },
+    controlInputWrap: {
+        position: 'relative',
+        minWidth: 0,
+    },
+    controlInput: {
+        width: '100%',
+        minHeight: 38,
+        boxSizing: 'border-box',
+        border: '1px solid var(--viventory-border)',
+        borderRadius: 4,
+        background: 'var(--viventory-surface)',
+        color: 'var(--viventory-text)',
+        padding: '8px 10px',
+        fontSize: 13,
+        fontWeight: 650,
+        outline: 'none',
+    },
+    searchInput: {
+        width: '100%',
+        minHeight: 38,
+        boxSizing: 'border-box',
+        border: '1px solid var(--viventory-border)',
+        borderRadius: 4,
+        background: 'var(--viventory-surface)',
+        color: 'var(--viventory-text)',
+        padding: '8px 10px 8px 34px',
+        fontSize: 13,
+        fontWeight: 650,
+        outline: 'none',
+    },
     list: {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
@@ -195,6 +251,25 @@ const styles: Record<string, CSSProperties> = {
         color: 'var(--viventory-text)',
         fontSize: 13,
         fontWeight: 700,
+    },
+    cardFooter: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        flexWrap: 'wrap',
+        marginTop: 10,
+    },
+    subtlePill: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '5px 8px',
+        border: '1px solid var(--viventory-border)',
+        borderRadius: 4,
+        background: 'var(--viventory-muted-surface)',
+        color: 'var(--viventory-muted-text)',
+        fontSize: 12,
+        fontWeight: 750,
     },
     cardActions: {
         display: 'flex',
@@ -331,6 +406,29 @@ const makeStockPillStyle = (quantity: number): CSSProperties => ({
     color: quantity <= 0 ? 'var(--viventory-welcome-accent-2)' : quantity <= 2 ? 'var(--viventory-welcome-accent)' : 'var(--viventory-text)',
 });
 
+function materialNeedsAdultSupervision(material: Material): boolean {
+    const text = `${material.name} ${material.description}`.toLowerCase();
+    return /\b(adult|supervision|hot|solder|saw|drill|knife|cutter|3d printer|printer|laser|blade)\b/.test(text);
+}
+
+function materialMatchesStockFilter(material: Material, filter: StockFilterMode): boolean {
+    if (filter === 'in-stock') return material.quantity > 0;
+    if (filter === 'low-stock') return material.quantity > 0 && material.quantity <= 2;
+    if (filter === 'out-of-stock') return material.quantity <= 0;
+
+    return true;
+}
+
+function sortMaterials(materials: Material[], sortMode: MaterialSortMode): Material[] {
+    return [...materials].sort((a, b) => {
+        if (sortMode === 'quantity-desc') return b.quantity - a.quantity || a.name.localeCompare(b.name);
+        if (sortMode === 'quantity-asc') return a.quantity - b.quantity || a.name.localeCompare(b.name);
+        if (sortMode === 'name-desc') return b.name.localeCompare(a.name);
+
+        return a.name.localeCompare(b.name);
+    });
+}
+
 export function AdminView({
                               floors: _floors,
                               onFloorsChange: _onFloorsChange,
@@ -345,10 +443,17 @@ export function AdminView({
                               getterEmptyMaterials,
                           }: AdminViewProps) {
     const [selectedElement, setSelectedElement] = useState<string | null>(
-        compartments[0]?.id ?? null
+        compartments.find(compartment => compartment.id === 'tinkering-studio')?.id
+            ?? compartments.find(compartment => compartment.id === 'vivi-shelving')?.id
+            ?? compartments[0]?.id
+            ?? null
     );
     const [isMaterialDialogOpen, setIsMaterialDialogOpen] = useState(false);
     const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+    const [materialSearch, setMaterialSearch] = useState('');
+    const [sortMode, setSortMode] = useState<MaterialSortMode>('name-asc');
+    const [stockFilter, setStockFilter] = useState<StockFilterMode>('all');
+    const [safetyFilter, setSafetyFilter] = useState<SafetyFilterMode>('all');
 
     const selectedCompartment: Compartment | null =
         compartments.find(c => c.id === selectedElement) ?? null;
@@ -356,6 +461,26 @@ export function AdminView({
     const compartmentMaterials = materials.filter(
         m => m.compartmentId === selectedElement
     );
+
+    const filteredCompartmentMaterials = useMemo(() => {
+        const query = materialSearch.trim().toLowerCase();
+        const filtered = compartmentMaterials.filter(material => {
+            const safetyMatch = safetyFilter === 'all'
+                || (safetyFilter === 'adult' && materialNeedsAdultSupervision(material))
+                || (safetyFilter === 'standard' && !materialNeedsAdultSupervision(material));
+
+            const searchMatch = !query
+                || material.name.toLowerCase().includes(query)
+                || material.description.toLowerCase().includes(query)
+                || material.unit.toLowerCase().includes(query);
+
+            return searchMatch
+                && safetyMatch
+                && materialMatchesStockFilter(material, stockFilter);
+        });
+
+        return sortMaterials(filtered, sortMode);
+    }, [compartmentMaterials, materialSearch, safetyFilter, sortMode, stockFilter]);
 
     const pendingRequests = requests.filter(r => r.status === 'pending');
     const emptyMaterials  = getterEmptyMaterials();
@@ -444,7 +569,7 @@ export function AdminView({
                                     </h3>
                                     <p style={styles.paneMeta}>
                                         {selectedCompartment
-                                            ? `${compartmentMaterials.length} tracked material${compartmentMaterials.length === 1 ? '' : 's'} in this area`
+                                            ? `${filteredCompartmentMaterials.length} of ${compartmentMaterials.length} tracked material${compartmentMaterials.length === 1 ? '' : 's'} shown`
                                             : 'Choose an area on the left to manage its materials.'}
                                     </p>
                                 </div>
@@ -461,6 +586,86 @@ export function AdminView({
                                 )}
                             </div>
 
+                            <div style={styles.controls} aria-label="Admin material controls">
+                                <label style={styles.controlField}>
+                                    <span style={styles.controlLabel}>Search</span>
+                                    <span style={styles.controlInputWrap}>
+                                        <Search
+                                            size={16}
+                                            style={{
+                                                position: 'absolute',
+                                                left: 10,
+                                                top: 11,
+                                                color: 'var(--viventory-muted-text)',
+                                                pointerEvents: 'none',
+                                            }}
+                                        />
+                                        <input
+                                            value={materialSearch}
+                                            onChange={event => setMaterialSearch(event.target.value)}
+                                            placeholder="Find material..."
+                                            style={styles.searchInput}
+                                        />
+                                    </span>
+                                </label>
+
+                                <label style={styles.controlField}>
+                                    <span style={styles.controlLabel}>Location</span>
+                                    <select
+                                        value={selectedElement ?? ''}
+                                        onChange={event => setSelectedElement(event.target.value || null)}
+                                        style={styles.controlInput}
+                                    >
+                                        {compartments.map(compartment => (
+                                            <option key={compartment.id} value={compartment.id}>
+                                                {compartment.number} {compartment.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+
+                                <label style={styles.controlField}>
+                                    <span style={styles.controlLabel}>Sort</span>
+                                    <select
+                                        value={sortMode}
+                                        onChange={event => setSortMode(event.target.value as MaterialSortMode)}
+                                        style={styles.controlInput}
+                                    >
+                                        <option value="name-asc">Name A-Z</option>
+                                        <option value="name-desc">Name Z-A</option>
+                                        <option value="quantity-desc">Quantity high-low</option>
+                                        <option value="quantity-asc">Quantity low-high</option>
+                                    </select>
+                                </label>
+
+                                <label style={styles.controlField}>
+                                    <span style={styles.controlLabel}>Stock</span>
+                                    <select
+                                        value={stockFilter}
+                                        onChange={event => setStockFilter(event.target.value as StockFilterMode)}
+                                        style={styles.controlInput}
+                                    >
+                                        <option value="all">All stock</option>
+                                        <option value="in-stock">In stock</option>
+                                        <option value="low-stock">Low stock</option>
+                                        <option value="out-of-stock">Out of stock</option>
+                                    </select>
+                                </label>
+
+                                <label style={styles.controlField}>
+                                    <span style={styles.controlLabel}>Safety</span>
+                                    <select
+                                        value={safetyFilter}
+                                        onChange={event => setSafetyFilter(event.target.value as SafetyFilterMode)}
+                                        style={styles.controlInput}
+                                    >
+                                        <option value="all">All safety</option>
+                                        <option value="adult">Needs adult</option>
+                                        <option value="standard">Standard use</option>
+                                    </select>
+                                </label>
+                            </div>
+
                             <div style={styles.list}>
                                 {!selectedCompartment ? (
                                     <div style={styles.emptyState}>
@@ -473,8 +678,14 @@ export function AdminView({
                                         <p style={{ margin: '10px 0 0', fontWeight: 700 }}>No materials here yet</p>
                                         <p style={{ margin: '4px 0 0', fontSize: 13 }}>Add the first item to start tracking this area.</p>
                                     </div>
+                                ) : filteredCompartmentMaterials.length === 0 ? (
+                                    <div style={styles.emptyState}>
+                                        <Search size={24} />
+                                        <p style={{ margin: '10px 0 0', fontWeight: 700 }}>No matching materials</p>
+                                        <p style={{ margin: '4px 0 0', fontSize: 13 }}>Change the search, stock, or safety filters.</p>
+                                    </div>
                                 ) : (
-                                    compartmentMaterials.map(material => (
+                                    filteredCompartmentMaterials.map(material => (
                                         <article key={material.id} style={styles.materialCard}>
                                             <div style={styles.cardHeader}>
                                                 <div style={{ minWidth: 0 }}>
@@ -515,6 +726,19 @@ export function AdminView({
                                                 {material.quantity <= 0
                                                     ? 'Out of stock'
                                                     : `In stock: ${material.quantity} ${material.unit}`}
+                                            </div>
+
+                                            <div style={styles.cardFooter}>
+                                                <span style={styles.subtlePill}>
+                                                    <MapPin size={13} />
+                                                    {selectedCompartment.number}
+                                                </span>
+                                                {materialNeedsAdultSupervision(material) && (
+                                                    <span style={styles.subtlePill}>
+                                                        <AlertTriangle size={13} />
+                                                        Adult supervision
+                                                    </span>
+                                                )}
                                             </div>
                                         </article>
                                     ))

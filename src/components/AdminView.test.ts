@@ -23,6 +23,30 @@ assert.match(
 
 assert.match(
     source,
+    /Admin material controls/,
+    "AdminView should own the material sorting and filtering controls",
+);
+
+assert.match(
+    source,
+    /Name A-Z/,
+    "AdminView should let staff sort materials by name",
+);
+
+assert.match(
+    source,
+    /Quantity high-low/,
+    "AdminView should let staff sort materials by quantity",
+);
+
+assert.match(
+    source,
+    /Adult supervision/,
+    "AdminView should expose the adult-supervision material filter result",
+);
+
+assert.match(
+    source,
     /onApproveRequest\(request\.id\)/,
     "AdminView should keep request approval controls wired",
 );

@@ -6,6 +6,7 @@ import AdminViewTab from "./AdminViewTab";
 import { UserViewTab } from "./UserViewTab";
 import {
     isFirebaseAuthConfigured,
+    isGoogleLoginSupported,
     signInWithGoogle,
     type FirebaseLoginResult,
 } from "../services/firebaseAuth";
@@ -46,6 +47,7 @@ function LoginTabContent({
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const firebaseConfigured = isFirebaseAuthConfigured();
+    const googleLoginSupported = isGoogleLoginSupported();
 
     const completeLogin = (
         res: { perms?: UserPerms; email?: string | null; displayName?: string | null },
@@ -270,28 +272,32 @@ function LoginTabContent({
 
                 <button
                     onClick={handleGoogleLogin}
-                    disabled={googleLoading || loading || !firebaseConfigured}
+                    disabled={googleLoading || loading || !googleLoginSupported}
                     title={
-                        firebaseConfigured
+                        googleLoginSupported
                             ? "Sign in with Google"
+                            : firebaseConfigured
+                                ? "Google login is only available in the browser build"
                             : "Add Firebase Vite environment variables to enable Google login"
                     }
                     style={{
                         width: "100%",
                         marginTop: "10px",
                         padding: "10px",
-                        cursor: firebaseConfigured ? "pointer" : "not-allowed",
+                        cursor: googleLoginSupported ? "pointer" : "not-allowed",
                         border: "1px solid #ddd",
                         background: "#fff",
                         color: "black",
-                        opacity: firebaseConfigured ? 1 : 0.65,
+                        opacity: googleLoginSupported ? 1 : 0.65,
                     }}
                 >
                     {googleLoading
                         ? "Opening Google..."
-                        : firebaseConfigured
+                        : googleLoginSupported
                             ? "Continue with Google"
-                            : "Configure Firebase for Google login"}
+                            : firebaseConfigured
+                                ? "Google login unavailable in desktop app"
+                                : "Configure Firebase for Google login"}
                 </button>
 
                 {/* Status */}

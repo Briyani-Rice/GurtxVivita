@@ -17,7 +17,7 @@ interface UserViewProps {
     floors: FloorData[];
     materials: Material[];
     requests: MaterialRequest[];
-    onSubmitRequest: (materialId: string, quantity: number, reason: string) => void;
+    onSubmitRequest: (materialId: string, quantity: number, reason: string) => Promise<void> | void;
     prefs?: UserPrefs;
     initialTab?: UserTab;
     initialMaterialSearch?: string;
@@ -52,7 +52,9 @@ const styles: Styles = {
         display: 'flex',
         flexDirection: 'column',
         flex: 1,
+        height: '100%',
         minHeight: 0,
+        overflow: 'hidden',
         background: 'var(--viventory-bg)',
         color: 'var(--viventory-text)'
     },
@@ -102,7 +104,9 @@ const styles: Styles = {
 
     materialsPanel: {
         flex: 1,
-        overflow: 'auto',
+        minHeight: 0,
+        overflowY: 'auto',
+        overflowX: 'hidden',
         padding: 20,
         background: 'var(--viventory-bg)'
     },
@@ -225,6 +229,8 @@ const styles: Styles = {
         padding: 22,
         width: '100%',
         maxWidth: 420,
+        maxHeight: 'calc(100vh - 32px)',
+        overflowY: 'auto',
         boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
         display: 'flex',
         flexDirection: 'column',
@@ -273,6 +279,8 @@ export function UserView({
     const [reqQty, setReqQty] = useState('1');
     const [reqReason, setReqReason] = useState('');
     const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [requestError, setRequestError] = useState('');
     const [selectedCompartment, setSelectedCompartment] = useState<string | null>(null);
 
     const filteredMaterials = filterMaterialsBySearch(materials, search);
@@ -293,16 +301,55 @@ export function UserView({
         };
     }, []);
 
-    const handleRequest = () => {
+    const handleRequest = async () => {
         if (!requesting) return;
-        onSubmitRequest(requesting.id, Number(reqQty), reqReason);
-        setSubmitted(true);
-        setTimeout(() => {
-            setRequesting(null);
-            setSubmitted(false);
-            setReqQty('1');
-            setReqReason('');
-        }, 800);
+
+        const quantity = Number(reqQty);
+        if (!Number.isFinite(quantity) || quantity <= 0) {
+            setRequestError('Enter a quantity greater than 0.');
+            return;
+        }
+
+        if (quantity > requesting.quantity) {
+            setRequestError(`Only ${Math.max(requesting.quantity, 0)} ${requesting.unit} available.`);
+            return;
+        }
+
+        try {
+            setSubmitting(true);
+            setRequestError('');
+            await onSubmitRequest(requesting.id, quantity, reqReason.trim());
+            setSubmitted(true);
+            window.setTimeout(() => {
+                setRequesting(null);
+                setSubmitted(false);
+                setReqQty('1');
+                setReqReason('');
+                setRequestError('');
+            }, 800);
+        } catch (error) {
+            setRequestError(error instanceof Error ? error.message : 'Request failed. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const closeRequestModal = () => {
+        if (submitting) return;
+
+        setRequesting(null);
+        setSubmitted(false);
+        setReqQty('1');
+        setReqReason('');
+        setRequestError('');
+    };
+
+    const startRequest = (material: Material) => {
+        setRequesting(material);
+        setSubmitted(false);
+        setReqQty('1');
+        setReqReason('');
+        setRequestError('');
     };
 
     const myRequests = requests.filter(r => r.status === 'pending');
@@ -439,7 +486,7 @@ export function UserView({
 
                                         <button
                                             style={styles.btnPrimary}
-                                            onClick={() => setRequesting(m)}
+                                            onClick={() => startRequest(m)}
                                             disabled={empty}
                                         >
                                             <Send size={14} /> Request
@@ -484,6 +531,8 @@ export function UserView({
 
                                 <input
                                     type="number"
+                                    min={1}
+                                    max={Math.max(requesting.quantity, 1)}
                                     value={reqQty}
                                     onChange={e => setReqQty(e.target.value)}
                                     style={styles.input}
@@ -502,11 +551,17 @@ export function UserView({
                                     }}
                                 />
 
+                                {requestError && (
+                                    <p style={{ margin: 0, color: 'var(--viventory-welcome-accent-2)', fontWeight: 750 }}>
+                                        {requestError}
+                                    </p>
+                                )}
+
                                 <div style={styles.buttonRow}>
-                                    <button style={styles.primaryBtn} onClick={handleRequest}>
-                                        Submit
+                                    <button style={styles.primaryBtn} onClick={handleRequest} disabled={submitting}>
+                                        {submitting ? 'Submitting...' : 'Submit'}
                                     </button>
-                                    <button style={styles.secondaryBtn} onClick={() => setRequesting(null)}>
+                                    <button style={styles.secondaryBtn} onClick={closeRequestModal} disabled={submitting}>
                                         Cancel
                                     </button>
                                 </div>

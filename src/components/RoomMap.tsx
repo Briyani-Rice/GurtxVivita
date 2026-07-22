@@ -33,8 +33,12 @@ type AreaRect = {
     h: number;
 };
 
-const PLAN_WIDTH = 1200;
-const PLAN_HEIGHT = 760;
+const MAP_BOUNDS = {
+    x: 60,
+    y: 30,
+    width: 1210,
+    height: 650,
+};
 
 const STYLE: Record<string, { fill: string; stroke: string; text: string }> = {
     compartment: { fill: "#f8fafc", stroke: "#111827", text: "#111827" },
@@ -53,6 +57,26 @@ function createCamera(): CameraState {
         pan: { x: 40, y: 40 },
         zoom: 0.95,
         targetZoom: 0.95,
+        velocity: { x: 0, y: 0 },
+    };
+}
+
+function fitCameraToMap(width: number, height: number): CameraState {
+    const padding = Math.min(48, Math.max(18, Math.min(width, height) * 0.06));
+    const availableWidth = Math.max(1, width - padding * 2);
+    const availableHeight = Math.max(1, height - padding * 2);
+    const zoom = Math.max(
+        0.35,
+        Math.min(2.5, Math.min(availableWidth / MAP_BOUNDS.width, availableHeight / MAP_BOUNDS.height)),
+    );
+
+    return {
+        pan: {
+            x: (width - MAP_BOUNDS.width * zoom) / 2 - MAP_BOUNDS.x * zoom,
+            y: (height - MAP_BOUNDS.height * zoom) / 2 - MAP_BOUNDS.y * zoom,
+        },
+        zoom,
+        targetZoom: zoom,
         velocity: { x: 0, y: 0 },
     };
 }
@@ -306,6 +330,7 @@ export function RoomMap({
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const cam = useRef(createCamera());
+    const hasFittedInitialView = useRef(false);
     const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
     const pinch = useRef<{ dist: number; zoom: number } | null>(null);
 
@@ -383,6 +408,10 @@ export function RoomMap({
             canvas.style.height = `${rect.height}px`;
 
             ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
+            if (!hasFittedInitialView.current && rect.width > 0 && rect.height > 0) {
+                cam.current = fitCameraToMap(rect.width, rect.height);
+                hasFittedInitialView.current = true;
+            }
             draw();
         };
 
@@ -558,8 +587,9 @@ export function RoomMap({
                     <button onClick={() => cam.current.targetZoom = Math.max(0.45, cam.current.targetZoom * 0.84)} style={buttonStyle}>-</button>
                     <button
                         onClick={() => {
-                            cam.current.pan = { x: 40, y: 40 };
-                            cam.current.targetZoom = 0.95;
+                            const rect = containerRef.current?.getBoundingClientRect();
+                            if (!rect) return;
+                            cam.current = fitCameraToMap(rect.width, rect.height);
                         }}
                         style={buttonStyle}
                     >
@@ -650,6 +680,6 @@ const quantityPill: React.CSSProperties = {
 };
 
 export const ROOM_MAP_PLAN_SIZE = {
-    width: PLAN_WIDTH,
-    height: PLAN_HEIGHT,
+    width: MAP_BOUNDS.width,
+    height: MAP_BOUNDS.height,
 };

@@ -17,7 +17,6 @@ import Settings from "./components/Settings/Settings";
 import DocsView from "./components/Docs/DocsView";
 import {CommandBar} from "./CommandBar";
 import LoginTab from "./components/LoginTab";
-import {RoomMapTab} from "./components/RoomMapTab";
 import {UserViewTab} from "./components/UserViewTab";
 import { applyAppearancePrefs, loadAppearancePrefs } from "./components/Settings/appearancePreferences";
 import { MakerKioskTab } from "./components/MakerKiosk";
@@ -106,7 +105,6 @@ export class LoginCommand implements Command {
 
 export var commands:Command[] = [
     new SearchCommand(),
-    new OpenTabCommand("Room Map", "Room map", () => new RoomMapTab()),
     new OpenTabCommand("Maker Bot", "Maker Bot", () => new MakerKioskTab()),
     new OpenTabCommand("Inventory", "User View", () => new UserViewTab()),
     new OpenTabCommand("Docs", "Documentation", () => new DocsView()),
@@ -132,7 +130,6 @@ export class welcomeTab implements Tab {
 
         const quickLinks: Array<{ label: string; open: () => void }> = [
             { label: "Maker Bot", open: () => focusOrOpenTab("Maker Bot", () => new MakerKioskTab()) },
-            { label: "Room Map", open: () => focusOrOpenTab("Room map", () => new RoomMapTab()) },
             { label: "Inventory", open: () => focusOrOpenTab("User View", () => new UserViewTab()) },
             { label: "Docs", open: () => focusOrOpenTab("Documentation", () => new DocsView()) },
             { label: "Settings", open: () => focusOrOpenTab("Settings", () => new Settings()) },

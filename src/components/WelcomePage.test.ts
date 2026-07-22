@@ -39,6 +39,18 @@ assert.match(
     "Welcome page should offer quiet quick links into the main tabs",
 );
 
+assert.doesNotMatch(
+    appSource,
+    /new OpenTabCommand\("Room Map"/,
+    "Room Map should not be available as a separate command tab",
+);
+
+assert.doesNotMatch(
+    appSource,
+    /label:\s*"Room Map"/,
+    "Welcome quick links should route users to Inventory instead of a separate Room Map window",
+);
+
 assert.match(
     appSource,
     /Press ⌘Y or use the command bar/,

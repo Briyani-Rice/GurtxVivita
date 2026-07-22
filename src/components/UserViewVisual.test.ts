@@ -27,6 +27,30 @@ assert.match(
     "Request modal should use friendly project-oriented copy",
 );
 
+assert.match(
+    userViewSource,
+    /height:\s*'100%'[\s\S]*overflow:\s*'hidden'/,
+    "User View should give the tab content a fixed-height shell so the materials pane can scroll",
+);
+
+assert.match(
+    userViewSource,
+    /overflowY:\s*'auto'/,
+    "User materials page should scroll vertically inside the tab",
+);
+
+assert.match(
+    userViewSource,
+    /await onSubmitRequest/,
+    "Request submission should wait for the shared inventory request handler",
+);
+
+assert.match(
+    userViewSource,
+    /Enter a quantity greater than 0/,
+    "Request modal should validate invalid quantities before submitting",
+);
+
 assert.doesNotMatch(
     userViewSource,
     /background:\s*'#fff'/,

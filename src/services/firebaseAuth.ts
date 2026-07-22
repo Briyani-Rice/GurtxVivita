@@ -25,6 +25,14 @@ const defaultAdminEmails = [
     "le_son_tung@s2025.ssts.edu.sg",
 ];
 
+function isTauriRuntime(): boolean {
+    return typeof window !== "undefined"
+        && (
+            "__TAURI_INTERNALS__" in window
+            || "__TAURI__" in window
+        );
+}
+
 function getFirebaseAuth(): Auth | null {
     const app = getFirebaseApp();
     if (!app) {
@@ -110,7 +118,18 @@ export function isFirebaseAuthConfigured(): boolean {
     return hasFirebaseConfig();
 }
 
+export function isGoogleLoginSupported(): boolean {
+    return hasFirebaseConfig() && !isTauriRuntime();
+}
+
 export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
+    if (isTauriRuntime()) {
+        return {
+            success: false,
+            note: "Google login is only available in the browser build. Use the demo login in the desktop app.",
+        };
+    }
+
     const auth = getFirebaseAuth();
 
     if (!auth) {

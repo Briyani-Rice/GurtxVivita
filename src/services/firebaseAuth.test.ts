@@ -79,10 +79,22 @@ assert.match(
     "Firebase auth service should make Le Son Tung's school Google account admin",
 );
 
-assert.doesNotMatch(
+assert.match(
     authSource,
-    /if \(isTauriRuntime\(\)\)/,
-    "Firebase auth service should not force Tauri desktop login through redirect because it can return to the Welcome tab",
+    /function isTauriRuntime/,
+    "Firebase auth service should detect the packaged Tauri runtime",
+);
+
+assert.match(
+    authSource,
+    /isGoogleLoginSupported/,
+    "Firebase auth service should expose whether Google login is supported in the current runtime",
+);
+
+assert.match(
+    authSource,
+    /Google login is only available in the browser build/,
+    "Firebase auth service should explain why Google login is disabled in the desktop app",
 );
 
 assert.match(
@@ -125,6 +137,18 @@ assert.match(
     loginSource,
     /isFirebaseAuthConfigured/,
     "Login tab should avoid offering an active Google sign-in button when Firebase env is missing",
+);
+
+assert.match(
+    loginSource,
+    /isGoogleLoginSupported/,
+    "Login tab should also disable Google sign-in in runtimes where Firebase popup auth cannot complete",
+);
+
+assert.match(
+    loginSource,
+    /Google login unavailable in desktop app/,
+    "Login tab should show a clear desktop-app Google login message",
 );
 
 for (const key of [
