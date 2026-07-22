@@ -16,13 +16,13 @@ import type { Tab } from "../types";
 import heroImage from "../assets/hero.png";
 import {
     answerMakerQuery,
-    projectIdeas,
     type MakerAnswer,
     type MakerAnswerSection,
     type MakerItem,
     type MakerProjectIdea,
 } from "./makerspaceData";
 import { useInventory } from "./InventoryProvider";
+import { isSafeHttpUrl, openExternalUrl } from "../utils/externalUrl";
 
 type ChatMessage = {
     id: string;
@@ -264,7 +264,7 @@ const styles: Record<string, React.CSSProperties> = {
         background: "rgba(165, 214, 209, 0.34)",
         color: palette.deepSky,
         padding: "4px 9px",
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: 800,
     },
 };
@@ -334,6 +334,23 @@ function AssistantAnswer({ answer }: { answer: MakerAnswer }) {
         <>
             <strong style={{ fontSize: 18 }}>{answer.title}</strong>
             {answer.sections.map(formatSection)}
+            {isSafeHttpUrl(answer.item?.imageUrl) && (
+                <img
+                    src={answer.item!.imageUrl}
+                    alt={`Photo of ${answer.item!.name}`}
+                    style={{ display: "block", maxWidth: "100%", maxHeight: 220, borderRadius: 6, marginTop: 12, border: `1px solid ${palette.line}` }}
+                    onError={event => { event.currentTarget.style.display = "none"; }}
+                />
+            )}
+            {isSafeHttpUrl(answer.item?.videoUrl) && (
+                <button
+                    type="button"
+                    onClick={() => { void openExternalUrl(answer.item!.videoUrl!); }}
+                    style={{ ...styles.badge, background: palette.sky, color: "#FFFDF6", marginTop: 12, fontSize: 14, border: "none", cursor: "pointer" }}
+                >
+                    ▶ Watch a short video
+                </button>
+            )}
             {answer.projects.length > 0 && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginTop: 12 }}>
                     {answer.projects.map(project => <ProjectCard key={project.id} project={project} />)}
@@ -355,6 +372,7 @@ function AssistantAnswer({ answer }: { answer: MakerAnswer }) {
 export function MakerKiosk() {
     const inventory = useInventory();
     const makerItems = inventory.makerItems;
+    const projectIdeas = inventory.projectIdeas;
     const [input, setInput] = useState("");
     const conversationEndRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<ChatMessage[]>(() => [

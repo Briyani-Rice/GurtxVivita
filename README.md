@@ -9,7 +9,8 @@ The app is built as a Vite + React frontend with a Tauri desktop shell.
 - Child-facing Maker Bot kiosk for finding items, learning safe usage, and getting project ideas.
 - Interactive room map for locating storage areas and checking material quantities.
 - User view for searching materials and submitting requests.
-- Admin view for adding, editing, and deleting materials.
+- Admin view for adding, editing, and deleting materials, including usage instructions, image/video links, and the adult-supervision safety flag.
+- Admin-managed project ideas linked to the materials they need, synced to the Maker Bot in near real time.
 - Admin request queue for approving or declining material requests.
 - Documentation tab with in-app Markdown docs.
 - Appearance settings for light, dark, or system theme, font size, and language.
@@ -45,10 +46,15 @@ Password: User12345
 After login, the app opens `Admin View`, where staff can:
 
 - Add, edit, and delete materials.
+- Edit each material's usage instructions and attach image or video links.
+- Flag or unflag tools as needing adult supervision (the Maker Bot shows the safety warning before instructions).
+- Add, edit, and delete project ideas and link them to required materials/tools.
 - Review pending material requests.
 - Approve requests and reduce stock quantities.
 - Decline requests.
 - See out-of-stock items.
+
+Materials, requests, and project ideas are stored in Firestore (`materials`, `materialRequests`, and `projectIdeas` collections) and streamed live with `onSnapshot`, so admin edits reach the kiosk in near real time. See the in-app Documentation tab for the Admin User Guide, Technical Architecture, and Handover & Maintenance Guide.
 
 ## Firebase Google Login
 

@@ -16,6 +16,8 @@ export interface MakerItem {
     safetyLevel: "normal" | "adult";
     instructions: string[];
     imageHint: string;
+    imageUrl?: string;
+    videoUrl?: string;
 }
 
 export interface MakerProjectIdea {

@@ -1,20 +1,27 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Compartment, FloorData, Material, MaterialRequest } from "../types";
 import {
     approveMaterialRequestRecord,
+    approveRequestWithoutStockRecord,
     createMaterialRecord,
     createMaterialRequestRecord,
+    createProjectIdeaRecord,
     deleteMaterialRecord,
+    deleteProjectIdeaRecord,
     declineMaterialRequestRecord,
-    listMaterialRequestRecords,
-    listMaterialRecords,
+    subscribeMaterialRecords,
+    subscribeMaterialRequestRecords,
+    subscribeProjectIdeaRecords,
     updateMaterialRecord,
+    updateProjectIdeaRecord,
     type MaterialInput,
+    type ProjectIdeaInput,
 } from "../services/firebaseInventory";
-import { makerspaceItems, type MakerItem } from "./makerspaceData";
+import { makerspaceItems, projectIdeas as starterProjectIdeas, type MakerItem, type MakerProjectIdea } from "./makerspaceData";
 import {
     inventoryCompartments,
     inventoryFloors,
+    mergeLocalEntries,
     mergeMakerItems,
     normalizeMaterialArea,
     starterMaterials,
@@ -29,9 +36,13 @@ type InventoryContextValue = {
     materials: Material[];
     requests: MaterialRequest[];
     makerItems: MakerItem[];
+    projectIdeas: MakerProjectIdea[];
     addMaterial: (material: MaterialInput) => Promise<void>;
     editMaterial: (id: string, material: MaterialInput) => Promise<void>;
     deleteMaterial: (id: string) => Promise<void>;
+    addProjectIdea: (idea: ProjectIdeaInput) => Promise<void>;
+    editProjectIdea: (id: string, idea: ProjectIdeaInput) => Promise<void>;
+    deleteProjectIdea: (id: string) => Promise<void>;
     submitRequest: (materialId: string, quantity: number, reason: string) => Promise<void>;
     approveRequest: (id: string) => Promise<void>;
     declineRequest: (id: string) => Promise<void>;
@@ -41,6 +52,7 @@ type InventoryContextValue = {
 const InventoryContext = createContext<InventoryContextValue | null>(null);
 const LOCAL_MATERIAL_ID_PREFIX = "local-";
 const LOCAL_REQUEST_ID_PREFIX = "local-request-";
+const LOCAL_IDEA_ID_PREFIX = "local-idea-";
 
 function createLocalMaterial(material: MaterialInput): Material {
     return {
@@ -56,6 +68,10 @@ function isLocalMaterial(id: string): boolean {
 
 function isLocalRequest(id: string): boolean {
     return id.startsWith(LOCAL_REQUEST_ID_PREFIX);
+}
+
+function isLocalIdea(id: string): boolean {
+    return id.startsWith(LOCAL_IDEA_ID_PREFIX);
 }
 
 function makeRequest(material: Material, quantity: number, reason: string): MaterialRequest {
@@ -91,28 +107,56 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     const [floors, setFloors] = useState<FloorData[]>(inventoryFloors);
     const [materials, setMaterials] = useState<Material[]>(starterMaterials);
     const [requests, setRequests] = useState<MaterialRequest[]>(starterRequests);
+    const [projectIdeas, setProjectIdeas] = useState<MakerProjectIdea[]>(starterProjectIdeas);
 
+    // Once a collection has streamed real data we let it go back to empty
+    // (e.g. the admin deletes the last item). Before that first non-empty
+    // snapshot we keep the bundled starter/default content so an unseeded or
+    // still-loading collection doesn't blank out the kiosk.
+    const seenServerData = useRef({ materials: false, ideas: false });
+
+    // Live Firestore subscriptions keep the kiosk in sync with admin edits
+    // in near real time; on error we keep the local starter data.
     useEffect(() => {
-        let isMounted = true;
+        const unsubscribers: (() => void)[] = [];
 
-        Promise.all([
-            listMaterialRecords(),
-            listMaterialRequestRecords(),
-        ])
-            .then(([savedMaterials, savedRequests]) => {
-                if (isMounted && savedMaterials.length > 0) {
-                    setMaterials(savedMaterials.map(normalizeMaterialArea));
-                }
-                if (isMounted) {
-                    setRequests(savedRequests);
-                }
-            })
-            .catch(error => {
-                console.warn("Unable to load Firebase inventory; using starter data.", error);
-            });
+        try {
+            unsubscribers.push(subscribeMaterialRecords(
+                savedMaterials => {
+                    if (savedMaterials.length > 0) {
+                        seenServerData.current.materials = true;
+                    }
+                    if (savedMaterials.length > 0 || seenServerData.current.materials) {
+                        setMaterials(prev => mergeLocalEntries(
+                            prev,
+                            savedMaterials.map(normalizeMaterialArea),
+                            isLocalMaterial,
+                        ));
+                    }
+                },
+                error => console.warn("Unable to stream Firebase materials; using starter data.", error),
+            ));
+            unsubscribers.push(subscribeMaterialRequestRecords(
+                savedRequests => setRequests(prev => mergeLocalEntries(prev, savedRequests, isLocalRequest)),
+                error => console.warn("Unable to stream Firebase requests; using local requests.", error),
+            ));
+            unsubscribers.push(subscribeProjectIdeaRecords(
+                savedIdeas => {
+                    if (savedIdeas.length > 0) {
+                        seenServerData.current.ideas = true;
+                    }
+                    if (savedIdeas.length > 0 || seenServerData.current.ideas) {
+                        setProjectIdeas(prev => mergeLocalEntries(prev, savedIdeas, isLocalIdea));
+                    }
+                },
+                error => console.warn("Unable to stream Firebase project ideas; using starter ideas.", error),
+            ));
+        } catch (error) {
+            console.warn("Unable to connect to Firebase inventory; using starter data.", error);
+        }
 
         return () => {
-            isMounted = false;
+            unsubscribers.forEach(unsubscribe => unsubscribe());
         };
     }, []);
 
@@ -123,6 +167,55 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         materials,
         requests,
         makerItems: mergeMakerItems(makerspaceItems, materials),
+        projectIdeas,
+        addProjectIdea: async (idea) => {
+            try {
+                const savedIdea = await createProjectIdeaRecord(idea);
+                setProjectIdeas(prev => [savedIdea, ...prev]);
+            } catch (error) {
+                setProjectIdeas(prev => [
+                    { ...idea, id: `${LOCAL_IDEA_ID_PREFIX}${crypto.randomUUID()}` },
+                    ...prev,
+                ]);
+                showLocalSyncWarning("add project idea to", error);
+            }
+        },
+        editProjectIdea: async (id, idea) => {
+            const applyLocally = () => setProjectIdeas(prev => prev.map(existing =>
+                existing.id === id ? { ...idea, id } : existing
+            ));
+
+            if (isLocalIdea(id)) {
+                applyLocally();
+                return;
+            }
+
+            try {
+                const savedIdea = await updateProjectIdeaRecord(id, idea);
+                setProjectIdeas(prev => prev.map(existing =>
+                    existing.id === id ? savedIdea : existing
+                ));
+            } catch (error) {
+                applyLocally();
+                showSyncError("update project idea in", error);
+            }
+        },
+        deleteProjectIdea: async (id) => {
+            const removeIdea = () => setProjectIdeas(prev => prev.filter(idea => idea.id !== id));
+
+            if (isLocalIdea(id)) {
+                removeIdea();
+                return;
+            }
+
+            try {
+                await deleteProjectIdeaRecord(id);
+                removeIdea();
+            } catch (error) {
+                removeIdea();
+                showSyncError("delete project idea in", error);
+            }
+        },
         addMaterial: async (material) => {
             try {
                 const savedMaterial = await createMaterialRecord(material);
@@ -201,21 +294,14 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         },
         approveRequest: async (id) => {
             const request = requests.find(request => request.id === id);
-            const material = request
-                ? materials.find(material => material.id === request.materialId)
-                : undefined;
+            if (!request) return;
 
-            if (request && material) {
-                if (isLocalMaterial(material.id) || isLocalRequest(request.id)) {
-                    const nextMaterial = {
-                        ...material,
-                        quantity: Math.max(0, material.quantity - request.requestedQuantity),
-                    };
-                    setMaterials(prev => prev.map(existing =>
-                        existing.id === material.id ? normalizeMaterialArea(nextMaterial) : existing
-                    ));
-                } else {
-                    try {
+            const material = materials.find(material => material.id === request.materialId);
+            const isLocalOnly = isLocalRequest(request.id) || (material ? isLocalMaterial(material.id) : false);
+
+            if (!isLocalOnly) {
+                try {
+                    if (material) {
                         const saved = await approveMaterialRequestRecord(request, material);
                         setMaterials(prev => prev.map(existing =>
                             existing.id === material.id ? normalizeMaterialArea(saved.material) : existing
@@ -223,12 +309,31 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                         setRequests(prev => prev.map(existingRequest =>
                             existingRequest.id === id ? saved.request : existingRequest
                         ));
-                        return;
-                    } catch (error) {
-                        showSyncError("approve request in", error);
-                        return;
+                    } else {
+                        // Material was deleted: resolve the request on the server too,
+                        // otherwise the live subscription reverts it to pending.
+                        const saved = await approveRequestWithoutStockRecord(request);
+                        setRequests(prev => prev.map(existingRequest =>
+                            existingRequest.id === id ? saved : existingRequest
+                        ));
                     }
+                    return;
+                } catch (error) {
+                    showSyncError("approve request in", error);
+                    return;
                 }
+            }
+
+            // Local-only request/material: this session never reached Firestore,
+            // so just resolve it in memory.
+            if (material) {
+                const nextMaterial = {
+                    ...material,
+                    quantity: Math.max(0, material.quantity - request.requestedQuantity),
+                };
+                setMaterials(prev => prev.map(existing =>
+                    existing.id === material.id ? normalizeMaterialArea(nextMaterial) : existing
+                ));
             }
 
             setRequests(prev => prev.map(existingRequest =>
@@ -268,7 +373,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             ));
         },
         getEmptyMaterials: () => materials.filter(material => !isMaterialAvailable(material)),
-    }), [floors, materials, requests]);
+    }), [floors, materials, requests, projectIdeas]);
 
     return (
         <InventoryContext.Provider value={value}>

@@ -12,9 +12,14 @@ function AdminViewTabContent() {
             compartments={inventory.compartments}
             materials={inventory.materials}
             requests={inventory.requests}
+            makerItems={inventory.makerItems}
+            projectIdeas={inventory.projectIdeas}
             onAddMaterial={inventory.addMaterial}
             onEditMaterial={inventory.editMaterial}
             onDeleteMaterial={inventory.deleteMaterial}
+            onAddProjectIdea={inventory.addProjectIdea}
+            onEditProjectIdea={inventory.editProjectIdea}
+            onDeleteProjectIdea={inventory.deleteProjectIdea}
             onApproveRequest={inventory.approveRequest}
             onDeclineRequest={inventory.declineRequest}
             getterEmptyMaterials={inventory.getEmptyMaterials}

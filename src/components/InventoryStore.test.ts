@@ -1,6 +1,41 @@
 import assert from "node:assert/strict";
-import { materialToMakerItem } from "./inventoryStore.ts";
+import { materialToMakerItem, mergeLocalEntries } from "./inventoryStore.ts";
 import { answerMakerQuery } from "./makerspaceData.ts";
+
+const isLocal = (id: string) => id.startsWith("local-");
+
+// A local-only entry survives a server snapshot that doesn't include it.
+assert.deepEqual(
+    mergeLocalEntries(
+        [{ id: "local-1" }, { id: "server-a" }],
+        [{ id: "server-a" }, { id: "server-b" }],
+        isLocal,
+    ).map(entry => entry.id),
+    ["local-1", "server-a", "server-b"],
+    "local-only entries should be kept and prepended to server data",
+);
+
+// Once the local entry is confirmed on the server (same id), the server copy wins.
+assert.deepEqual(
+    mergeLocalEntries(
+        [{ id: "local-1", v: "old" }],
+        [{ id: "local-1", v: "new" }],
+        isLocal,
+    ),
+    [{ id: "local-1", v: "new" }],
+    "a local entry that now exists on the server should not be duplicated",
+);
+
+// Non-local stale entries are dropped (server is authoritative).
+assert.deepEqual(
+    mergeLocalEntries(
+        [{ id: "server-old" }],
+        [{ id: "server-new" }],
+        isLocal,
+    ).map(entry => entry.id),
+    ["server-new"],
+    "non-local entries missing from the snapshot should be dropped",
+);
 
 const printerItem = materialToMakerItem(
     {

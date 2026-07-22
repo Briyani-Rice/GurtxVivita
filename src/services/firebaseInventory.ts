@@ -5,6 +5,7 @@ import {
     doc,
     getDoc,
     getDocs,
+    onSnapshot,
     orderBy,
     query,
     runTransaction,
@@ -16,14 +17,18 @@ import {
     type Timestamp,
 } from "firebase/firestore";
 import type { Material, MaterialRequest, MaterialStockStatus } from "../types";
+import type { MakerProjectIdea } from "../components/makerspaceData";
+import { parseProjectIdeaRecord } from "../components/inventoryStore";
 import { getFirebaseFirestore } from "./firebaseApp";
 import { enrichMaterial, parseStockStatus } from "../utils/materialDetails";
 
 export type MaterialInput = Omit<Material, "id" | "createdAt">;
 export type MaterialRequestInput = Omit<MaterialRequest, "id" | "createdAt" | "status" | "respondedAt">;
+export type ProjectIdeaInput = Omit<MakerProjectIdea, "id">;
 
 export const MATERIALS_COLLECTION = "materials";
 export const REQUESTS_COLLECTION = "materialRequests";
+export const PROJECT_IDEAS_COLLECTION = "projectIdeas";
 
 function getInventoryDb(): Firestore {
     return getFirebaseFirestore();
@@ -49,6 +54,26 @@ function toStockStatus(value: unknown): MaterialStockStatus | undefined {
     return typeof value === "string" ? parseStockStatus(value) ?? undefined : undefined;
 }
 
+function toSafetyLevel(value: unknown): Material["safetyLevel"] {
+    return value === "adult" || value === "normal" ? value : undefined;
+}
+
+function toStringList(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .filter((entry): entry is string => typeof entry === "string")
+        .map(entry => entry.trim())
+        .filter(Boolean);
+}
+
+function toOptionalStringList(value: unknown): string[] | undefined {
+    const list = toStringList(value);
+    return list.length > 0 ? list : undefined;
+}
+
 function toMaterial(snapshot: QueryDocumentSnapshot<DocumentData> | { id: string; data: () => DocumentData }): Material {
     const data = snapshot.data();
 
@@ -68,6 +93,10 @@ function toMaterial(snapshot: QueryDocumentSnapshot<DocumentData> | { id: string
         supplier: toOptionalString(data.supplier),
         cricut: typeof data.cricut === "boolean" ? data.cricut : undefined,
         stockStatus: toStockStatus(data.stockStatus),
+        safetyLevel: toSafetyLevel(data.safetyLevel),
+        instructions: toOptionalStringList(data.instructions),
+        imageUrl: toOptionalString(data.imageUrl),
+        videoUrl: toOptionalString(data.videoUrl),
     });
 }
 
@@ -207,6 +236,95 @@ export async function approveMaterialRequestRecord(
             status: "approved",
             respondedAt,
         },
+    };
+}
+
+export async function listProjectIdeaRecords(): Promise<MakerProjectIdea[]> {
+    const db = getInventoryDb();
+    const snapshot = await getDocs(collection(db, PROJECT_IDEAS_COLLECTION));
+
+    return snapshot.docs.map(entry => parseProjectIdeaRecord(entry.id, entry.data()));
+}
+
+export async function createProjectIdeaRecord(idea: ProjectIdeaInput): Promise<MakerProjectIdea> {
+    const db = getInventoryDb();
+    const ref = await addDoc(collection(db, PROJECT_IDEAS_COLLECTION), { ...idea });
+
+    return { id: ref.id, ...idea };
+}
+
+export async function updateProjectIdeaRecord(id: string, idea: ProjectIdeaInput): Promise<MakerProjectIdea> {
+    const db = getInventoryDb();
+
+    await updateDoc(doc(db, PROJECT_IDEAS_COLLECTION, id), { ...idea });
+
+    return { id, ...idea };
+}
+
+export async function deleteProjectIdeaRecord(id: string): Promise<void> {
+    const db = getInventoryDb();
+
+    await deleteDoc(doc(db, PROJECT_IDEAS_COLLECTION, id));
+}
+
+// Live Firestore listeners so admin edits reach the kiosk in near real time
+// (requirements doc 5.4), even when the tablet stays open all day.
+export function subscribeMaterialRecords(
+    onData: (materials: Material[]) => void,
+    onError: (error: unknown) => void,
+): () => void {
+    const db = getInventoryDb();
+
+    return onSnapshot(
+        query(collection(db, MATERIALS_COLLECTION), orderBy("createdAt", "desc")),
+        snapshot => onData(snapshot.docs.map(toMaterial)),
+        onError,
+    );
+}
+
+export function subscribeMaterialRequestRecords(
+    onData: (requests: MaterialRequest[]) => void,
+    onError: (error: unknown) => void,
+): () => void {
+    const db = getInventoryDb();
+
+    return onSnapshot(
+        query(collection(db, REQUESTS_COLLECTION), orderBy("createdAt", "desc")),
+        snapshot => onData(snapshot.docs.map(toMaterialRequest)),
+        onError,
+    );
+}
+
+export function subscribeProjectIdeaRecords(
+    onData: (ideas: MakerProjectIdea[]) => void,
+    onError: (error: unknown) => void,
+): () => void {
+    const db = getInventoryDb();
+
+    return onSnapshot(
+        collection(db, PROJECT_IDEAS_COLLECTION),
+        snapshot => onData(snapshot.docs.map(entry => parseProjectIdeaRecord(entry.id, entry.data()))),
+        onError,
+    );
+}
+
+// Resolves a request whose material has been deleted: there is no stock to
+// adjust, but the request must still leave "pending" on the server, otherwise
+// the live subscription keeps reverting the admin's decision back to pending.
+export async function approveRequestWithoutStockRecord(request: MaterialRequest): Promise<MaterialRequest> {
+    const db = getInventoryDb();
+    const respondedAt = new Date().toISOString();
+
+    await updateDoc(doc(db, REQUESTS_COLLECTION, request.id), {
+        status: "approved",
+        respondedAt,
+        respondedAtServer: serverTimestamp(),
+    });
+
+    return {
+        ...request,
+        status: "approved",
+        respondedAt,
     };
 }
 

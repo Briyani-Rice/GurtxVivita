@@ -127,7 +127,11 @@ export function MaterialDialog({
         description: '',
         quantity: 0,
         unit: 'pcs',
-        compartmentId: ''
+        compartmentId: '',
+        needsAdult: false,
+        instructionsText: '',
+        imageUrl: '',
+        videoUrl: ''
     });
 
     useEffect(() => {
@@ -137,7 +141,11 @@ export function MaterialDialog({
                 description: material.description,
                 quantity: material.quantity,
                 unit: material.unit,
-                compartmentId: material.compartmentId
+                compartmentId: material.compartmentId,
+                needsAdult: material.safetyLevel === 'adult',
+                instructionsText: (material.instructions ?? []).join('\n'),
+                imageUrl: material.imageUrl ?? '',
+                videoUrl: material.videoUrl ?? ''
             });
         } else {
             setFormData({
@@ -145,14 +153,30 @@ export function MaterialDialog({
                 description: '',
                 quantity: 0,
                 unit: 'pcs',
-                compartmentId: selectedCompartmentId || ''
+                compartmentId: selectedCompartmentId || '',
+                needsAdult: false,
+                instructionsText: '',
+                imageUrl: '',
+                videoUrl: ''
             });
         }
     }, [material, selectedCompartmentId, isOpen]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData);
+        const { needsAdult, instructionsText, imageUrl, videoUrl, ...base } = formData;
+        onSave({
+            ...base,
+            // Saved explicitly (never undefined) so staff can also unflag a tool.
+            safetyLevel: needsAdult ? 'adult' : 'normal',
+            instructions: instructionsText
+                .split('\n')
+                .map(step => step.trim())
+                .filter(Boolean),
+            // Omit blanks so Firestore docs stay clean (undefined is stripped on write).
+            imageUrl: imageUrl.trim() || undefined,
+            videoUrl: videoUrl.trim() || undefined
+        });
         onClose();
     };
 
@@ -263,6 +287,59 @@ export function MaterialDialog({
                             ))}
                         </select>
                     </div>
+
+                    <div>
+                        <label htmlFor="instructions" style={styles.label}>
+                            How to use it (one step per line)
+                        </label>
+                        <textarea
+                            id="instructions"
+                            value={formData.instructionsText}
+                            onChange={(e) => setFormData({ ...formData, instructionsText: e.target.value })}
+                            style={styles.field}
+                            placeholder={'Pick a sheet that is not bent.\nMark your shape before cutting.'}
+                            rows={4}
+                        />
+                    </div>
+
+                    <div style={styles.grid}>
+                        <div>
+                            <label htmlFor="imageUrl" style={styles.label}>
+                                Image link
+                            </label>
+                            <input
+                                type="url"
+                                id="imageUrl"
+                                value={formData.imageUrl}
+                                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                                style={styles.field}
+                                placeholder="https://..."
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="videoUrl" style={styles.label}>
+                                Video link
+                            </label>
+                            <input
+                                type="url"
+                                id="videoUrl"
+                                value={formData.videoUrl}
+                                onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                                style={styles.field}
+                                placeholder="https://..."
+                            />
+                        </div>
+                    </div>
+
+                    <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 0, cursor: 'pointer' }}>
+                        <input
+                            type="checkbox"
+                            checked={formData.needsAdult}
+                            onChange={(e) => setFormData({ ...formData, needsAdult: e.target.checked })}
+                        />
+                        Needs adult supervision — children see a safety warning before instructions
+                    </label>
 
                     <div style={styles.actions}>
                         <button

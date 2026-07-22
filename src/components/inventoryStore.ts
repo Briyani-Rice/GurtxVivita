@@ -1,5 +1,5 @@
 import type { Compartment, FloorData, Material, MaterialRequest } from "../types";
-import type { MakerItem } from "./makerspaceData";
+import type { MakerItem, MakerProjectIdea } from "./makerspaceData";
 import { vivitaFloor, vivitaMaterials } from "./roomMapData.ts";
 import { enrichMaterial } from "../utils/materialDetails.ts";
 
@@ -110,6 +110,16 @@ function inferSafety(material: Material): MakerItem["safetyLevel"] {
         : "normal";
 }
 
+// A stored staff flag always wins; keyword inference only covers
+// materials created before the flag existed.
+export function materialSafetyLevel(material: Material): MakerItem["safetyLevel"] {
+    return material.safetyLevel ?? inferSafety(material);
+}
+
+export function materialRequiresAdultSupervision(material: Material): boolean {
+    return materialSafetyLevel(material) === "adult";
+}
+
 export function materialToMakerItem(
     material: Material,
     compartments: Compartment[] = inventoryCompartments,
@@ -131,14 +141,64 @@ export function materialToMakerItem(
         quantity: material.quantity,
         unit: material.unit,
         description: material.description || `${material.name} in the Viventory inventory.`,
-        safetyLevel: inferSafety(material),
-        instructions: [
-            `Check the quantity before taking ${material.name}.`,
-            "Ask a staff member if you are unsure where it belongs.",
-            "Return it to the same area after use.",
-        ],
+        safetyLevel: materialSafetyLevel(material),
+        instructions: material.instructions?.length
+            ? material.instructions
+            : [
+                `Check the quantity before taking ${material.name}.`,
+                "Ask a staff member if you are unsure where it belongs.",
+                "Return it to the same area after use.",
+            ],
         imageHint: material.name,
+        imageUrl: material.imageUrl,
+        videoUrl: material.videoUrl,
     };
+}
+
+function toStringList(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .filter((entry): entry is string => typeof entry === "string")
+        .map(entry => entry.trim())
+        .filter(Boolean);
+}
+
+// Coerces a raw Firestore document into a safe project idea. Kept here
+// (pure module) so it stays testable without Firebase configuration.
+export function parseProjectIdeaRecord(id: string, data: Record<string, unknown>): MakerProjectIdea {
+    const difficulty = data.difficulty;
+
+    return {
+        id,
+        name: String(data.name ?? ""),
+        summary: String(data.summary ?? ""),
+        difficulty: difficulty === "Starter" || difficulty === "Builder" || difficulty === "Challenge"
+            ? difficulty
+            : "Starter",
+        requiredItemIds: toStringList(data.requiredItemIds),
+        steps: toStringList(data.steps),
+    };
+}
+
+/**
+ * Merges a fresh Firestore snapshot with any entries that were only saved
+ * locally (offline fallback). Without this, every live snapshot replaces the
+ * whole array and silently drops `local-*` records before they ever reach the
+ * server. Local entries that now also exist on the server (same id) are
+ * dropped in favour of the server copy.
+ */
+export function mergeLocalEntries<T extends { id: string }>(
+    previous: T[],
+    serverEntries: T[],
+    isLocal: (id: string) => boolean,
+): T[] {
+    const serverIds = new Set(serverEntries.map(entry => entry.id));
+    const localOnly = previous.filter(entry => isLocal(entry.id) && !serverIds.has(entry.id));
+
+    return [...localOnly, ...serverEntries];
 }
 
 export function mergeMakerItems(staticItems: MakerItem[], materials: Material[]): MakerItem[] {
