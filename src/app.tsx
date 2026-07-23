@@ -27,6 +27,8 @@ import AdminViewTab from "./components/AdminViewTab";
 import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
 import { recordAccountLogin } from "./services/accountSession";
 import { translateTabName, useI18n } from "./i18n/i18n";
+import { hasPrimaryModifier, isApplePlatform } from "./utils/shortcutModifier";
+import { Toaster } from "./components/ui/sonner";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -255,7 +257,7 @@ function WelcomeContent() {
                         fontSize: "12px",
                         color: "var(--viventory-muted-text)",
                     }}>
-                        {t("welcome.hint")}
+                        {t("welcome.hint", { shortcut: isApplePlatform() ? "⌘Y" : "Ctrl+Y" })}
                     </p>
                 </main>
             </div>)
@@ -830,21 +832,27 @@ function App() {
     })
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.metaKey && event.key === 'y') {
+            // Primary modifier is ⌘ on macOS, Ctrl on Windows/Linux/web, so the
+            // shortcuts work on every platform the app ships to.
+            const primary = hasPrimaryModifier(event);
+            const key = event.key.toLowerCase();
+
+            if (primary && key === 'y') {
+                event.preventDefault();
                 setCmdBarVis((prev) => !prev);
             }
 
-            if (event.metaKey && event.ctrlKey && event.key.toLowerCase() === 'f') {
+            if (event.metaKey && event.ctrlKey && key === 'f') {
                 event.preventDefault();
                 void toggleFullscreen();
             }
 
-            if (event.metaKey && event.key.toLowerCase() === 't') {
+            if (primary && key === 't') {
                 event.preventDefault();
                 handleNewTab();
             }
 
-            if (event.metaKey && event.key.toLowerCase() === 'w') {
+            if (primary && key === 'w') {
                 event.preventDefault();
                 handleClosingTab(tabIndex);
             }
@@ -857,7 +865,7 @@ function App() {
             }
 
             if (
-                event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey &&
+                primary && !event.altKey && !event.shiftKey &&
                 /^[1-9]$/.test(event.key) && tabs.length > 0
             ) {
                 event.preventDefault();
@@ -869,7 +877,7 @@ function App() {
             }
 
             if (
-                event.metaKey && event.shiftKey &&
+                primary && event.shiftKey &&
                 (event.code === 'BracketRight' || event.code === 'BracketLeft') &&
                 tabs.length > 0
             ) {
@@ -915,6 +923,7 @@ function App() {
                 fontSize: "var(--viventory-font-size)",
             }}
         >
+            <Toaster position="bottom-right" richColors />
             {cmdBarVis && <CommandBar setVisibility={setCmdBarVis} />}
 
             {!isFullscreen && <Titlebar

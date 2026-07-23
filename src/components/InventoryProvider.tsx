@@ -28,6 +28,7 @@ import {
     starterRequests,
 } from "./inventoryStore";
 import { isMaterialAvailable } from "../utils/materialDetails";
+import { toast } from "sonner";
 
 type InventoryContextValue = {
     floors: FloorData[];
@@ -93,14 +94,16 @@ function createLocalRequest(material: Material, quantity: number, reason: string
     };
 }
 
+// Non-blocking toasts instead of modal alert()s: on an unattended kiosk with
+// flaky Wi-Fi, stacked alert() dialogs would trap the screen.
 function showSyncError(action: string, error: unknown) {
     console.error(`Unable to ${action} Firebase inventory`, error);
-    alert(`Unable to ${action} Firebase inventory. Check that Firestore is enabled and the materials/materialRequests collections are allowed.`);
+    toast.error(`Unable to ${action}. Check that Firestore is reachable and the collections are allowed.`);
 }
 
 function showLocalSyncWarning(action: string, error: unknown) {
     console.warn(`Unable to ${action} Firebase inventory; saved locally for this session.`, error);
-    alert(`Firebase is not available. This change was saved locally for this session, but it will not sync until Firestore is reachable.`);
+    toast.warning("Saved locally for this session only — it will not sync until Firestore is reachable.");
 }
 
 export function InventoryProvider({ children }: { children: React.ReactNode }) {
@@ -270,7 +273,8 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 await deleteMaterialRecord(id);
                 removeMaterial();
             } catch (error) {
-                removeMaterial();
+                // Keep the material visible: it still exists in Firestore, so
+                // removing it locally would make it "reappear" on next launch.
                 showSyncError("delete", error);
             }
         },
@@ -297,6 +301,15 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             if (!request) return;
 
             const material = materials.find(material => material.id === request.materialId);
+
+            // Warn (but still allow) when the approved amount exceeds stock, so
+            // the admin knows the request can't actually be fully fulfilled.
+            if (material && material.quantity > 0 && request.requestedQuantity > material.quantity) {
+                toast.warning(
+                    `Approving ${request.requestedQuantity} ${material.unit} of ${material.name}, but only ${material.quantity} ${material.unit} are in stock.`,
+                );
+            }
+
             const isLocalOnly = isLocalRequest(request.id) || (material ? isLocalMaterial(material.id) : false);
 
             if (!isLocalOnly) {

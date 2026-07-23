@@ -102,43 +102,30 @@ Build the frontend:
 npm run build
 ```
 
-## PocketBase Materials Storage
+## Materials Storage (Firestore)
 
-Admin material add, edit, delete, and request-approval stock updates are stored through PocketBase. By default, the app connects to:
+Materials, material requests, and project ideas are stored in **Firebase Firestore** — this is the source of truth for all admin CRUD. `src/components/InventoryProvider.tsx` subscribes to the collections with `onSnapshot`, so admin edits reach the kiosk in near real time. Configure the Firebase web app values in a local env file (see the Firebase Google Login section above for the `VITE_FIREBASE_*` variables).
 
-```text
-http://127.0.0.1:8090
-```
-
-To use another PocketBase server, create a local env file:
-
-```bash
-VITE_POCKETBASE_URL=https://your-pocketbase.example.com
-```
-
-Create a base collection named `materials` with these fields:
+Collections used (created automatically on first write):
 
 ```text
-name          text, required
-description   text
-quantity      number, required
-unit          text, required
-compartmentId text, required
+materials         name, description, quantity, unit, compartmentId,
+                  safetyLevel, instructions[], imageUrl, videoUrl
+materialRequests  materialId, materialName, requestedQuantity, reason, status
+projectIdeas      name, summary, difficulty, requiredItemIds[], steps[]
 ```
 
-For local prototype use, set the collection API rules to allow the admin app to list, view, create, update, and delete records. If PocketBase is not running, the admin view falls back to starter data and shows an error when staff try to save changes.
+If Firestore is unreachable the app falls back to the seeded starter data and shows a non-blocking toast; changes made offline are kept for the session but do not sync until Firestore is reachable again.
+
+> Note: `src/services/pocketbaseMaterials.ts` is legacy and is **not** used by the app.
 
 ## Useful Checks
 
-The project currently uses small source-level regression checks plus the production build:
+The project uses small source-level regression checks run with `tsx`, plus the production build:
 
 ```bash
-node --experimental-strip-types src/services/pocketbaseMaterials.test.ts
-node --experimental-strip-types src/components/AdminViewTabPocketBase.test.ts
-node --experimental-strip-types src/utils/makerspaceAssistant.test.ts
-node --experimental-strip-types src/components/MakerKiosk.test.ts
-node --experimental-strip-types src/components/AdminView.test.ts
-node --experimental-strip-types src/components/Settings/SettingsPages/Appearance.test.ts
+npm test        # runs every *.test.ts / *.test.tsx under src/
+npm run lint
 npm run build
 ```
 
@@ -159,7 +146,7 @@ src/components/Docs/                 In-app Markdown documentation
 - Tauri desktop mode requires Rust and Cargo.
 - This project is still a prototype, so some data is stored locally in component state or browser storage.
 - Appearance preferences are saved in localStorage and reapplied when the app starts.
-- Maker Bot data is currently seeded in code and can be moved to a cloud database such as Firebase or Supabase later.
+- Maker Bot data is seeded in code as a fallback and is merged with the live Firestore inventory at runtime.
 
 ## Project Links
 

@@ -138,6 +138,7 @@ const styles: Styles = {
 
     input: {
         width: '100%',
+        boxSizing: 'border-box',
         padding: '15px 16px 15px 44px',
         borderRadius: 999,
         border: '1px solid var(--viventory-border)',
@@ -160,7 +161,10 @@ const styles: Styles = {
         borderRadius: 8,
         color: 'var(--viventory-muted-text)',
         background: 'var(--viventory-welcome-card)',
-        fontSize: 15
+        fontSize: 15,
+        // A long unbroken query must wrap instead of spilling past the container.
+        overflowWrap: 'anywhere',
+        wordBreak: 'break-word'
     },
 
     card: (empty: boolean) => ({

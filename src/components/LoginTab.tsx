@@ -141,7 +141,10 @@ function LoginTabContent({
             const res: FirebaseLoginResult = await signInWithGoogle();
 
             if (!res.success) {
+                // A redirect that is under way is progress, not an error, so it
+                // should not be shown in red.
                 setNote(res.note);
+                setNoteIsSuccess(Boolean(res.redirecting));
                 return;
             }
 

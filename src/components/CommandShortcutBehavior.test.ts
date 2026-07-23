@@ -18,14 +18,20 @@ assert.match(
 
 assert.match(
     appSource,
-    /event\.metaKey && event\.key\.toLowerCase\(\) === 't'/,
-    "Cmd+T should create a new tab",
+    /const primary = hasPrimaryModifier\(event\)/,
+    "Shortcuts should use the platform-aware primary modifier (Cmd on macOS, Ctrl elsewhere)",
 );
 
 assert.match(
     appSource,
-    /event\.metaKey && event\.key\.toLowerCase\(\) === 'w'/,
-    "Cmd+W should close the current tab",
+    /primary && key === 't'/,
+    "Cmd/Ctrl+T should create a new tab",
+);
+
+assert.match(
+    appSource,
+    /primary && key === 'w'/,
+    "Cmd/Ctrl+W should close the current tab",
 );
 
 assert.match(

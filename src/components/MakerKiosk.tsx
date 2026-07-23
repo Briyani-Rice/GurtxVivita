@@ -385,10 +385,20 @@ export function MakerKiosk() {
         },
     ]);
 
-    const featuredItems = useMemo(
-        () => makerItems.filter(item => ["hot-glue-gun", "microbit", "cardboard", "leds"].includes(item.id)),
-        [makerItems],
-    );
+    // Match featured items by name, not by static id: once a same-named
+    // material exists in Firestore its id becomes a Firestore doc id, so an
+    // id allowlist would silently stop featuring anything.
+    const featuredItems = useMemo(() => {
+        const wanted = ["glue gun", "micro:bit", "microbit", "cardboard", "led"];
+        const picked: typeof makerItems = [];
+        for (const keyword of wanted) {
+            const match = makerItems.find(item =>
+                item.name.toLowerCase().includes(keyword) && !picked.includes(item));
+            if (match) picked.push(match);
+            if (picked.length >= 4) break;
+        }
+        return picked;
+    }, [makerItems]);
 
     useEffect(() => {
         conversationEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });

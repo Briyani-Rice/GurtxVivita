@@ -25,15 +25,18 @@ import { getOrCreateFirebaseUserProfile } from "./firebaseUsers";
 export type FirebaseLoginResult = {
     success: boolean;
     note: string;
+    // The popup was blocked and a full-page redirect is now under way. This is
+    // an in-progress state, not a failure, so callers should not show it in red.
+    redirecting?: boolean;
     perms?: UserPerms;
     email?: string | null;
     displayName?: string | null;
 };
 
 let firebaseAuth: Auth | undefined;
-const defaultAdminEmails = [
-    "le_son_tung@s2025.ssts.edu.sg",
-];
+// Admin emails come from the VITE_FIREBASE_ADMIN_EMAILS env var only — no
+// personal emails are hardcoded in the shipped bundle. See adminEmails().
+const defaultAdminEmails: string[] = [];
 
 function isTauriRuntime(): boolean {
     return typeof window !== "undefined"
@@ -271,6 +274,7 @@ export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
 
             return {
                 success: false,
+                redirecting: true,
                 note: "Redirecting to Google sign-in...",
             };
         }

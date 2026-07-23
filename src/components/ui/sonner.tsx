@@ -1,26 +1,36 @@
-"use client";
+import { useEffect, useState } from "react";
+import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-import { useTheme } from "next-themes";
-//@ts-ignore
-import { Toaster as Sonner, ToasterProps } from "src/components/ui/sonner";
+// The app stores its resolved theme on <html data-viventory-theme>. Mirror it
+// so toasts match light/dark without pulling in next-themes.
+function useViventoryTheme(): "light" | "dark" {
+    const read = (): "light" | "dark" =>
+        document.documentElement.dataset.viventoryTheme === "dark" ? "dark" : "light";
+
+    const [theme, setTheme] = useState<"light" | "dark">(read);
+
+    useEffect(() => {
+        const observer = new MutationObserver(() => setTheme(read()));
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-viventory-theme"],
+        });
+        return () => observer.disconnect();
+    }, []);
+
+    return theme;
+}
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+    const theme = useViventoryTheme();
 
-  return (
-    <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-        } as React.CSSProperties
-      }
-      {...props}
-    />
-  );
+    return (
+        <Sonner
+            theme={theme}
+            className="toaster group"
+            {...props}
+        />
+    );
 };
 
 export { Toaster };

@@ -21,11 +21,24 @@ export type CmdProps = {
 
 export function CommandBar({ setVisibility }: CmdProps): ReactElement {
     const [text, setText] = useState("");
+    const [selectedIndex, setSelectedIndex] = useState(0);
     const menuRef = useRef<HTMLDivElement | null>(null);
 
     const visCommands = commands.filter(command =>
         command.name.toLowerCase().includes(text.toLowerCase())
     );
+
+    // Keep the highlighted row in range as the filter narrows the list.
+    useEffect(() => {
+        setSelectedIndex(index => Math.min(index, Math.max(0, visCommands.length - 1)));
+    }, [visCommands.length]);
+
+    const runCommand = (index: number) => {
+        const command = visCommands[index];
+        if (!command) return;
+        command.onRun();
+        setVisibility(false);
+    };
 
     const [bounds, setBounds] = useState({ left: 0, width: 0 });
 
@@ -107,6 +120,18 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                 type="search"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setSelectedIndex(index => Math.min(index + 1, visCommands.length - 1));
+                    } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        setSelectedIndex(index => Math.max(index - 1, 0));
+                    } else if (e.key === "Enter") {
+                        e.preventDefault();
+                        runCommand(selectedIndex);
+                    }
+                }}
                 placeholder="Search..."
                 style={{
                     color:"var(--viventory-text)",
@@ -135,30 +160,42 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                     paddingTop: "8px",
                 }}
             >
-                {visCommands.map((value) => {
+                {visCommands.length === 0 ? (
+                    <div
+                        style={{
+                            fontFamily: "monospace",
+                            fontSize: "13px",
+                            padding: "9px 10px",
+                            color: "var(--viventory-muted-text)",
+                        }}
+                    >
+                        No matching commands
+                    </div>
+                ) : visCommands.map((value, index) => {
                     const args = value.args
                         .map(arg => `[${arg.Name} ${getTypeString(arg.Type)}]`)
                         .join(" ");
+                    const isSelected = index === selectedIndex;
 
                     return (
                         <button
                             key={value.name}
+                            onMouseEnter={() => setSelectedIndex(index)}
                             style={{
                                 width: "100%",
                                 textAlign: "left",
                                 fontFamily: "monospace",
                                 fontSize: "13px",
                                 padding: "9px 10px",
-                                background: "var(--viventory-surface)",
-                                border: "1px solid var(--viventory-border)",
+                                background: isSelected ? "var(--viventory-active-tab)" : "var(--viventory-surface)",
+                                border: isSelected
+                                    ? "1px solid var(--viventory-tab-active-border)"
+                                    : "1px solid var(--viventory-border)",
                                 borderRadius: "4px",
                                 cursor: "pointer",
                                 color:"var(--viventory-text)"
                             }}
-                            onClick={()=>{
-                                value.onRun()
-                                setVisibility(false)
-                            }}
+                            onClick={()=> runCommand(index)}
                         >
                             {`> ${value.name} ${args}`}
                         </button>

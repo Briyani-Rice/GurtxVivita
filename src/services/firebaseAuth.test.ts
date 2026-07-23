@@ -73,10 +73,10 @@ assert.match(
     "Firebase auth service should support admin email allow-listing",
 );
 
-assert.match(
+assert.doesNotMatch(
     authSource,
-    /le_son_tung@s2025\.ssts\.edu\.sg/,
-    "Firebase auth service should make Le Son Tung's school Google account admin",
+    /@s2025\.ssts\.edu\.sg/,
+    "Firebase auth service should not hardcode a personal admin email in the bundle (admins come from VITE_FIREBASE_ADMIN_EMAILS)",
 );
 
 assert.match(

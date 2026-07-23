@@ -2,7 +2,6 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import type { FloorElement, Material } from "../types";
 import {
     getAreaInventory,
-    getAreaInventoryTotal,
 } from "../utils/roomMapInventory";
 import { clampZoom, panForZoomAtPoint, type Vec2 } from "../utils/cameraZoom";
 
@@ -103,8 +102,14 @@ function screenToWorld(x: number, y: number, cam: CameraState) {
     };
 }
 
+function isDarkTheme(): boolean {
+    return typeof document !== "undefined"
+        && document.documentElement.dataset.viventoryTheme === "dark";
+}
+
 function drawBackground(ctx: CanvasRenderingContext2D, W: number, H: number) {
-    ctx.fillStyle = "#f8fafc";
+    // Match the app theme so the map is not a bright white block in dark mode.
+    ctx.fillStyle = isDarkTheme() ? "#161D26" : "#f8fafc";
     ctx.fillRect(0, 0, W, H);
 }
 
@@ -313,6 +318,8 @@ function drawElement(
     if (materialCount > 0) {
         ctx.font = `${Math.max(10, 12 * cam.zoom)}px sans-serif`;
         ctx.fillStyle = "#2563eb";
+        // Count of distinct materials (types), matching the side panel — not the
+        // summed quantity, which made one 120-sheet material read as "120 items".
         ctx.fillText(`${materialCount} item${materialCount === 1 ? "" : "s"}`, r.x + r.w / 2, r.y + r.h / 2 + 13);
     }
 
@@ -395,7 +402,7 @@ export function RoomMap({
                     c,
                     hoveredAreaId === el.id,
                     selectedAreaId === el.id,
-                    getAreaInventoryTotal(materials, el.id)
+                    getAreaInventory(materials, el.id).length
                 );
             }
         }
@@ -600,7 +607,7 @@ export function RoomMap({
     };
 
     return (
-        <div style={{ display: "flex", width: "100%", height: "100%", background: "#f8fafc" }}>
+        <div style={{ display: "flex", width: "100%", height: "100%", background: "var(--viventory-bg)" }}>
             <div
                 ref={containerRef}
                 style={{
@@ -652,13 +659,13 @@ export function RoomMap({
             </div>
 
             <aside style={detailPanel}>
-                <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase" }}>
+                <div style={{ fontSize: 12, color: "var(--viventory-muted-text)", textTransform: "uppercase" }}>
                     Selected area
                 </div>
-                <h2 style={{ margin: "6px 0 4px", fontSize: 22, lineHeight: 1.15 }}>
+                <h2 style={{ margin: "6px 0 4px", fontSize: 22, lineHeight: 1.15, color: "var(--viventory-text)" }}>
                     {selectedArea?.name ?? "Select an area"}
                 </h2>
-                <div style={{ color: "#475569", fontSize: 13 }}>
+                <div style={{ color: "var(--viventory-muted-text)", fontSize: 13 }}>
                     {selectedMaterials.length} material type{selectedMaterials.length === 1 ? "" : "s"} stored here
                 </div>
 
@@ -666,15 +673,15 @@ export function RoomMap({
                     {selectedMaterials.length > 0 ? selectedMaterials.map(material => (
                         <div key={material.id} style={materialRow}>
                             <div>
-                                <div style={{ fontWeight: 700 }}>{material.name}</div>
-                                <div style={{ color: "#64748b", fontSize: 12 }}>{material.description}</div>
+                                <div style={{ fontWeight: 700, color: "var(--viventory-text)" }}>{material.name}</div>
+                                <div style={{ color: "var(--viventory-muted-text)", fontSize: 12 }}>{material.description}</div>
                             </div>
                             <div style={quantityPill}>
                                 {material.quantity} {material.unit}
                             </div>
                         </div>
                     )) : (
-                        <div style={{ color: "#64748b", fontSize: 14 }}>
+                        <div style={{ color: "var(--viventory-muted-text)", fontSize: 14 }}>
                             No materials are assigned to this area yet.
                         </div>
                     )}
@@ -696,8 +703,9 @@ const zoomControls: React.CSSProperties = {
 const buttonStyle: React.CSSProperties = {
     minWidth: 54,
     height: 34,
-    border: "1px solid #cbd5e1",
-    background: "#ffffff",
+    border: "1px solid var(--viventory-border)",
+    background: "var(--viventory-surface)",
+    color: "var(--viventory-text)",
     borderRadius: 6,
     cursor: "pointer",
     fontWeight: 700,
@@ -705,8 +713,9 @@ const buttonStyle: React.CSSProperties = {
 
 const detailPanel: React.CSSProperties = {
     width: 320,
-    borderLeft: "1px solid #dbe3ea",
-    background: "#ffffff",
+    borderLeft: "1px solid var(--viventory-border)",
+    background: "var(--viventory-surface)",
+    color: "var(--viventory-text)",
     padding: 18,
     boxSizing: "border-box",
     overflowY: "auto",
@@ -718,7 +727,7 @@ const materialRow: React.CSSProperties = {
     justifyContent: "space-between",
     gap: 12,
     padding: "10px 0",
-    borderBottom: "1px solid #e2e8f0",
+    borderBottom: "1px solid var(--viventory-border)",
 };
 
 const quantityPill: React.CSSProperties = {
