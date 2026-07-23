@@ -1,0 +1,68 @@
+rules_version = '2';
+
+// Recommended Firestore security rules for Viventory.
+//
+// NOT DEPLOYED AUTOMATICALLY. Review, add your staff emails below, then deploy
+// with `firebase deploy --only firestore:rules` (or paste into the Firestore
+// Rules tab in the Firebase console).
+//
+// TRADE-OFF TO DECIDE FIRST — the demo login (User / User12345) has no Firebase
+// Authentication, so with these rules a demo admin CANNOT write to Firestore
+// (their material/idea edits will fail and fall back to local-only for the
+// session). Only the Google admin sign-in — which is Firebase-authenticated —
+// can write. Choose one:
+//   * Deploy these rules and do real admin work via Google sign-in (demo login
+//     becomes read-only against Firestore). Recommended for anything shared.
+//   * Keep Firestore in test mode for a purely local, offline prototype.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // An authenticated Google account whose verified email is on the staff list.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in [
+          'le_son_tung@s2025.ssts.edu.sg'
+          // , 'another-staff@example.com'
+        ];
+    }
+
+    // A newly created request must be pending and well-formed, so a kiosk user
+    // can never create an already-approved request or corrupt the queue.
+    function isValidNewRequest() {
+      let d = request.resource.data;
+      return d.status == 'pending'
+        && d.materialId is string && d.materialId.size() > 0
+        && d.materialName is string
+        && d.requestedQuantity is number && d.requestedQuantity > 0
+        && d.reason is string;
+    }
+
+    // Inventory + project ideas: public read (the kiosk is open to children
+    // with no login); only staff may create, edit, or delete.
+    match /materials/{materialId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /projectIdeas/{ideaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Requests: anyone may read the queue and submit a pending request; only
+    // staff may approve, decline, or delete one.
+    match /materialRequests/{requestId} {
+      allow read: if true;
+      allow create: if isValidNewRequest();
+      allow update, delete: if isAdmin();
+    }
+
+    // User profiles created by Google sign-in: a signed-in user may read and
+    // write only their own profile document.
+    match /user/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
