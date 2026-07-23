@@ -1,5 +1,6 @@
 import type { Compartment, FloorData, Material, MaterialRequest } from "../types";
 import type { MakerItem, MakerProjectIdea } from "./makerspaceData";
+import { inferMakerSafety } from "./makerspaceData";
 import { vivitaFloor, vivitaMaterials } from "./roomMapData.ts";
 import { enrichMaterial } from "../utils/materialDetails.ts";
 
@@ -104,10 +105,7 @@ function inferType(material: Material): MakerItem["type"] {
 }
 
 function inferSafety(material: Material): MakerItem["safetyLevel"] {
-    const text = `${material.name} ${material.description}`.toLowerCase();
-    return /\b(hot|solder|saw|drill|knife|cutter|3d printer|printer)\b/.test(text)
-        ? "adult"
-        : "normal";
+    return inferMakerSafety(material.name, material.description);
 }
 
 // A stored staff flag always wins; keyword inference only covers

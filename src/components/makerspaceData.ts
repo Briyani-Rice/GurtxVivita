@@ -276,6 +276,16 @@ export const projectIdeas: MakerProjectIdea[] = [
     },
 ];
 
+// Keyword defaults for tools that need adult supervision (requirements doc 5.2).
+// "glue gun" is included because the doc's own example is a hot glue gun, and
+// the seeded inventory has one named plainly "Glue Gun". Staff can always
+// override this per item via the adult-supervision flag in Admin View.
+const ADULT_SAFETY_PATTERN = /\b(hot|solder|saw|drill|knife|cutter|glue gun|3d printer|printer|laser|blade|heat gun|iron)\b/;
+
+export function inferMakerSafety(name: string, description = ""): MakerItem["safetyLevel"] {
+    return ADULT_SAFETY_PATTERN.test(`${name} ${description}`.toLowerCase()) ? "adult" : "normal";
+}
+
 const LOCATION_WORDS = ["where", "find", "located", "location", "shelf", "zone"];
 const USE_WORDS = ["use", "how", "instructions", "guide", "work", "safe", "safety"];
 const MAKE_WORDS = ["make", "build", "create", "project", "idea", "ideas", "do"];
@@ -285,15 +295,43 @@ function normalize(value: string): string {
     return value.toLowerCase().replace(/[^a-z0-9:+ ]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// Whole-word intent matching. Substring matching mis-routed item names that
+// contain an intent word (e.g. "Toki Maker" -> "make", "Dowels" -> "do"),
+// sending location questions to the project-ideas branch.
 function includesAny(query: string, words: string[]): boolean {
-    return words.some(word => query.includes(word));
+    const tokens = new Set(query.split(" "));
+    return words.some(word => tokens.has(word));
+}
+
+// Returns the length of the most specific alias that appears in the query,
+// or 0 if none does. "hot glue gun" (12) beats a decoy aliased "glue gun" (8),
+// so the child reaches the correct — and correctly safety-flagged — item.
+function itemMatchScore(item: MakerItem, normalizedQuery: string): number {
+    let best = 0;
+    for (const alias of [item.name, ...item.aliases]) {
+        const normalizedAlias = normalize(alias);
+        if (normalizedAlias && normalizedQuery.includes(normalizedAlias) && normalizedAlias.length > best) {
+            best = normalizedAlias.length;
+        }
+    }
+    return best;
 }
 
 function findItem(query: string, items: MakerItem[]): MakerItem | undefined {
     const normalized = normalize(query);
-    return items.find(item =>
-        [item.name, ...item.aliases].some(alias => normalized.includes(normalize(alias)))
-    );
+    let match: MakerItem | undefined;
+    let matchScore = 0;
+
+    for (const item of items) {
+        const score = itemMatchScore(item, normalized);
+        // Strictly greater keeps the first item on ties (stable, predictable).
+        if (score > matchScore) {
+            match = item;
+            matchScore = score;
+        }
+    }
+
+    return match;
 }
 
 function findMatchingProjects(query: string, projects: MakerProjectIdea[], items: MakerItem[]): MakerProjectIdea[] {
@@ -403,7 +441,11 @@ export function answerMakerQuery(
         };
     }
 
-    if (includesAny(normalized, MAKE_WORDS)) {
+    // An explicit "where is <known item>" wins over the make branch, even when
+    // the item's name contains a make keyword (e.g. "Whyte Labs Project Box").
+    const isExplicitLocation = item && includesAny(normalized, LOCATION_WORDS);
+
+    if (includesAny(normalized, MAKE_WORDS) && !isExplicitLocation) {
         const matchedProjects = findMatchingProjects(query, projects, items);
         return {
             intent: "make",
