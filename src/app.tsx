@@ -19,10 +19,12 @@ import {CommandBar} from "./CommandBar";
 import LoginTab from "./components/LoginTab";
 import {UserViewTab} from "./components/UserViewTab";
 import { applyAppearancePrefs, loadAppearancePrefs } from "./components/Settings/appearancePreferences";
-import { MakerKioskTab } from "./components/MakerKiosk";
+import { MakerKioskTab, MakerKiosk } from "./components/MakerKiosk";
 import vivitaLogo from "./assets/vivita-logo.png";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { InventoryProvider } from "./components/InventoryProvider";
+import { resolveDisplayMode } from "./utils/displayMode";
+import TvDisplay from "./components/TvDisplay";
 import AdminViewTab from "./components/AdminViewTab";
 import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
 import { recordAccountLogin } from "./services/accountSession";
@@ -605,6 +607,7 @@ function App() {
 
     const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
     const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
+    const [displayMode] = useState(() => resolveDisplayMode())
 
     const [tabs, setTabs] = useState<Tab[]>([
         new welcomeTab()
@@ -906,6 +909,24 @@ function App() {
             console.warn("Fullscreen is only available in the Tauri desktop app.", error);
         }
     };
+    if (displayMode === "tv") {
+        return (
+            <InventoryProvider>
+                <TvDisplay />
+            </InventoryProvider>
+        )
+    }
+
+    if (displayMode === "kiosk") {
+        return (
+            <InventoryProvider>
+                <div style={{ position: "fixed", inset: 0, display: "flex", flexDirection: "column" }}>
+                    <MakerKiosk />
+                </div>
+            </InventoryProvider>
+        )
+    }
+
     return (
         <InventoryProvider>
         <main
