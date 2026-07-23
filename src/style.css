@@ -343,3 +343,13 @@ html {
 ::-webkit-scrollbar {
   width: 0px;
 }
+
+/* Tablet: comfortable touch targets on narrow/portrait screens */
+@media (max-width: 900px) {
+  button { min-height: 40px; }
+}
+
+/* Coarse pointer (touch tablets/kiosks): larger hit areas */
+@media (pointer: coarse) {
+  button, a, [role="button"] { min-height: 44px; }
+}
