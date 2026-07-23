@@ -424,7 +424,6 @@ export function UserView({
                             materials={materials}
                             selectedCompartment={selectedCompartment}
                             onCompartmentClick={setSelectedCompartment}
-                            isAdmin={false}
                         />
                     </div>
 

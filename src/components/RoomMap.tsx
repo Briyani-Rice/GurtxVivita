@@ -17,9 +17,6 @@ type RoomMapProps = {
     materials?: Material[];
     onCompartmentClick?: (areaId: string) => void;
     selectedCompartment?: string | null;
-    isAdmin?: boolean;
-    floorplanImage?: string;
-    onFloorplanUpload?: (file: File) => void;
 };
 
 type CameraState = {
