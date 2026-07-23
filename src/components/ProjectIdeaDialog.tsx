@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import type { MakerItem, MakerProjectIdea } from './makerspaceData';
 import type { ProjectIdeaInput } from '../services/firebaseInventory';
+import { useI18n } from '../i18n/i18n';
 
 interface ProjectIdeaDialogProps {
     isOpen: boolean;
@@ -136,6 +137,7 @@ const emptyForm = {
 };
 
 export function ProjectIdeaDialog({ isOpen, onClose, onSave, idea, items }: ProjectIdeaDialogProps) {
+    const { t } = useI18n();
     const [formData, setFormData] = useState(emptyForm);
 
     useEffect(() => {
@@ -183,13 +185,13 @@ export function ProjectIdeaDialog({ isOpen, onClose, onSave, idea, items }: Proj
             <div style={styles.panel} role="dialog" aria-modal="true" aria-labelledby="project-idea-dialog-title">
                 <div style={styles.header}>
                     <h2 id="project-idea-dialog-title" style={styles.title}>
-                        {idea ? 'Edit Project Idea' : 'Add Project Idea'}
+                        {idea ? t('dialog.idea.editTitle') : t('dialog.idea.addTitle')}
                     </h2>
                     <button
                         type="button"
                         onClick={onClose}
                         style={styles.closeButton}
-                        aria-label="Close project idea dialog"
+                        aria-label={t('dialog.close')}
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -198,7 +200,7 @@ export function ProjectIdeaDialog({ isOpen, onClose, onSave, idea, items }: Proj
                 <form onSubmit={handleSubmit} style={styles.form}>
                     <div>
                         <label htmlFor="idea-name" style={styles.label}>
-                            Idea Name *
+                            {t('dialog.idea.name')}
                         </label>
                         <input
                             type="text"
@@ -207,27 +209,27 @@ export function ProjectIdeaDialog({ isOpen, onClose, onSave, idea, items }: Proj
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             style={styles.field}
-                            placeholder="e.g., Light-up Story Scene"
+                            placeholder={t('dialog.idea.namePlaceholder')}
                         />
                     </div>
 
                     <div>
                         <label htmlFor="idea-summary" style={styles.label}>
-                            Summary
+                            {t('dialog.idea.summary')}
                         </label>
                         <textarea
                             id="idea-summary"
                             value={formData.summary}
                             onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
                             style={styles.field}
-                            placeholder="One child-friendly sentence about the make..."
+                            placeholder={t('dialog.idea.summaryPlaceholder')}
                             rows={2}
                         />
                     </div>
 
                     <div>
                         <label htmlFor="idea-difficulty" style={styles.label}>
-                            Difficulty
+                            {t('dialog.idea.difficulty')}
                         </label>
                         <select
                             id="idea-difficulty"
@@ -235,14 +237,14 @@ export function ProjectIdeaDialog({ isOpen, onClose, onSave, idea, items }: Proj
                             onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as MakerProjectIdea['difficulty'] })}
                             style={styles.field}
                         >
-                            <option value="Starter">Starter</option>
-                            <option value="Builder">Builder</option>
-                            <option value="Challenge">Challenge</option>
+                            <option value="Starter">{t('dialog.idea.difficultyStarter')}</option>
+                            <option value="Builder">{t('dialog.idea.difficultyBuilder')}</option>
+                            <option value="Challenge">{t('dialog.idea.difficultyChallenge')}</option>
                         </select>
                     </div>
 
                     <div>
-                        <span style={styles.label}>Materials and tools needed</span>
+                        <span style={styles.label}>{t('dialog.idea.itemsNeeded')}</span>
                         <div style={styles.itemPicker}>
                             {items.map(item => (
                                 <label key={item.id} style={styles.itemOption}>
@@ -259,14 +261,14 @@ export function ProjectIdeaDialog({ isOpen, onClose, onSave, idea, items }: Proj
 
                     <div>
                         <label htmlFor="idea-steps" style={styles.label}>
-                            Steps (one per line)
+                            {t('dialog.idea.steps')}
                         </label>
                         <textarea
                             id="idea-steps"
                             value={formData.stepsText}
                             onChange={(e) => setFormData({ ...formData, stepsText: e.target.value })}
                             style={styles.field}
-                            placeholder={'Sketch your idea.\nBuild a rough version.\nTest and improve it.'}
+                            placeholder={t('dialog.idea.stepsPlaceholder')}
                             rows={4}
                         />
                     </div>
@@ -277,13 +279,13 @@ export function ProjectIdeaDialog({ isOpen, onClose, onSave, idea, items }: Proj
                             onClick={onClose}
                             style={styles.secondaryButton}
                         >
-                            Cancel
+                            {t('dialog.cancel')}
                         </button>
                         <button
                             type="submit"
                             style={styles.primaryButton}
                         >
-                            {idea ? 'Update' : 'Add'}
+                            {idea ? t('dialog.update') : t('dialog.add')}
                         </button>
                     </div>
                 </form>

@@ -20,7 +20,7 @@ import { materialRequiresAdultSupervision } from './inventoryStore';
 import type { MakerItem, MakerProjectIdea } from './makerspaceData';
 import type { ProjectIdeaInput } from '../services/firebaseInventory';
 import { isMaterialAvailable } from '../utils/materialDetails';
-import { translatedStockLabel, useI18n } from '../i18n/i18n';
+import { translateDifficulty, translatedStockLabel, useI18n } from '../i18n/i18n';
 import {
     ResizableHandle,
     ResizablePanel,
@@ -900,7 +900,7 @@ export function AdminView({
                                                 <div style={{ minWidth: 0 }}>
                                                     <h4 style={styles.requestName}>{idea.name}</h4>
                                                     <p style={styles.requestMeta}>
-                                                        {idea.difficulty} · {t('admin.ideaItems', { count: idea.requiredItemIds.length })}
+                                                        {translateDifficulty(language, idea.difficulty)} · {t('admin.ideaItems', { count: idea.requiredItemIds.length })}
                                                     </p>
                                                 </div>
                                                 <div style={styles.cardActions}>

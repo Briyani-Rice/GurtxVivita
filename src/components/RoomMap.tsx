@@ -4,6 +4,10 @@ import {
     getAreaInventory,
     getAreaInventoryTotal,
 } from "../utils/roomMapInventory";
+import { clampZoom, panForZoomAtPoint, type Vec2 } from "../utils/cameraZoom";
+
+const MIN_ZOOM = 0.45;
+const MAX_ZOOM = 2.5;
 
 type RoomMapProps = {
     floors?: Array<{
@@ -33,10 +37,12 @@ type AreaRect = {
     h: number;
 };
 
+// Wide enough to include VIVISTUDIO (spans to x≈1298) so fit-to-view and
+// Reset don't crop it on the right edge.
 const MAP_BOUNDS = {
     x: 60,
     y: 30,
-    width: 1210,
+    width: 1260,
     height: 650,
 };
 
@@ -333,6 +339,9 @@ export function RoomMap({
     const hasFittedInitialView = useRef(false);
     const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
     const pinch = useRef<{ dist: number; zoom: number } | null>(null);
+    // Screen point the current zoom animation should keep fixed (cursor / pinch
+    // midpoint / viewport centre), so zooming moves toward it instead of drifting.
+    const zoomAnchor = useRef<Vec2 | null>(null);
 
     const [cursor, setCursor] = useState("grab");
     const [hoveredAreaId, setHoveredAreaId] = useState<string | null>(null);
@@ -431,7 +440,23 @@ export function RoomMap({
             c.pan.y += c.velocity.y;
             c.velocity.x *= 0.82;
             c.velocity.y *= 0.82;
-            c.zoom += (c.targetZoom - c.zoom) * 0.18;
+
+            const prevZoom = c.zoom;
+            let nextZoom = prevZoom + (c.targetZoom - prevZoom) * 0.18;
+            if (Math.abs(c.targetZoom - nextZoom) < 0.001) {
+                nextZoom = c.targetZoom;
+            }
+
+            if (nextZoom !== prevZoom && zoomAnchor.current) {
+                const anchoredPan = panForZoomAtPoint(c.pan, prevZoom, nextZoom, zoomAnchor.current);
+                c.pan.x = anchoredPan.x;
+                c.pan.y = anchoredPan.y;
+            }
+            c.zoom = nextZoom;
+
+            if (nextZoom === c.targetZoom) {
+                zoomAnchor.current = null;
+            }
 
             draw();
             raf = requestAnimationFrame(loop);
@@ -489,11 +514,32 @@ export function RoomMap({
         selectArea(hitTest(pos.x, pos.y));
     };
 
-    const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-        e.preventDefault();
-        const scale = e.deltaY > 0 ? 0.9 : 1.1;
-        cam.current.targetZoom = Math.max(0.45, Math.min(2.5, cam.current.targetZoom * scale));
+    const zoomBy = (scale: number, anchor: Vec2) => {
+        zoomAnchor.current = anchor;
+        cam.current.targetZoom = clampZoom(cam.current.targetZoom * scale, MIN_ZOOM, MAX_ZOOM);
     };
+
+    const viewportCenter = (): Vec2 => {
+        const rect = containerRef.current?.getBoundingClientRect();
+        return rect ? { x: rect.width / 2, y: rect.height / 2 } : { x: 0, y: 0 };
+    };
+
+    // React attaches wheel listeners passively, so preventDefault() there both
+    // warns and no-ops. Attach a non-passive native listener instead, and zoom
+    // toward the cursor.
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const onWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const scale = e.deltaY > 0 ? 0.9 : 1.1;
+            zoomBy(scale, getPointerPosition(e, canvas));
+        };
+
+        canvas.addEventListener("wheel", onWheel, { passive: false });
+        return () => canvas.removeEventListener("wheel", onWheel);
+    }, []);
 
     const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
         if (e.touches.length === 2) {
@@ -517,7 +563,14 @@ export function RoomMap({
             const a = e.touches[0];
             const b = e.touches[1];
             const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-            cam.current.targetZoom = Math.max(0.45, Math.min(2.5, pinch.current.zoom * (dist / pinch.current.dist)));
+            const canvas = canvasRef.current;
+            if (canvas) {
+                zoomAnchor.current = getPointerPosition(
+                    { clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 },
+                    canvas,
+                );
+            }
+            cam.current.targetZoom = clampZoom(pinch.current.zoom * (dist / pinch.current.dist), MIN_ZOOM, MAX_ZOOM);
             return;
         }
 
@@ -576,19 +629,19 @@ export function RoomMap({
                         setHoveredAreaId(null);
                         setCursor("grab");
                     }}
-                    onWheel={handleWheel}
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
                 />
 
                 <div style={zoomControls}>
-                    <button onClick={() => cam.current.targetZoom = Math.min(2.5, cam.current.targetZoom * 1.18)} style={buttonStyle}>+</button>
-                    <button onClick={() => cam.current.targetZoom = Math.max(0.45, cam.current.targetZoom * 0.84)} style={buttonStyle}>-</button>
+                    <button onClick={() => zoomBy(1.18, viewportCenter())} style={buttonStyle}>+</button>
+                    <button onClick={() => zoomBy(0.84, viewportCenter())} style={buttonStyle}>-</button>
                     <button
                         onClick={() => {
                             const rect = containerRef.current?.getBoundingClientRect();
                             if (!rect) return;
+                            zoomAnchor.current = null;
                             cam.current = fitCameraToMap(rect.width, rect.height);
                         }}
                         style={buttonStyle}

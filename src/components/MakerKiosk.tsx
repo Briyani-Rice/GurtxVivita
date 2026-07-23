@@ -23,6 +23,7 @@ import {
 } from "./makerspaceData";
 import { useInventory } from "./InventoryProvider";
 import { isSafeHttpUrl, openExternalUrl } from "../utils/externalUrl";
+import { getCurrentLanguage, translateDifficulty } from "../i18n/i18n";
 
 type ChatMessage = {
     id: string;
@@ -299,7 +300,7 @@ function ProjectCard({ project }: { project: MakerProjectIdea }) {
         <div style={{ ...styles.itemCard, background: palette.paper }}>
             <span style={styles.badge}>
                 <Lightbulb size={14} />
-                {project.difficulty}
+                {translateDifficulty(getCurrentLanguage(), project.difficulty)}
             </span>
             <strong>{project.name}</strong>
             <span style={{ color: palette.muted, fontSize: 14, lineHeight: 1.4 }}>{project.summary}</span>
