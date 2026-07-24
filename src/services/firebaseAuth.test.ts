@@ -234,4 +234,33 @@ for (const key of [
     assert.match(envExampleSource, new RegExp(`${key}=`), `.env.example should document ${key}`);
 }
 
+// The Tauri runtime globals are injected during webview startup and may be
+// absent at React's first synchronous render, which made the Google button flip
+// between "Sign in with Google" and "Configure desktop Google login" from run to
+// run. Detection must cover the official `isTauri` global and be re-checked after
+// mount so the label settles deterministically on the real runtime.
+assert.match(
+    authSource,
+    /"isTauri" in window/,
+    "isTauriRuntime should also honor the official Tauri v2 `window.isTauri` global",
+);
+
+assert.match(
+    loginSource,
+    /useState\(isGoogleLoginSupported\)/,
+    "LoginTab should seed Google support from a lazy state initializer, not a one-shot const",
+);
+
+assert.match(
+    loginSource,
+    /setGoogleLoginSupported\(isGoogleLoginSupported\(\)\)/,
+    "LoginTab should re-check Google support after mount so a lost startup race self-corrects",
+);
+
+assert.match(
+    loginSource,
+    /setFirebaseConfigured\(isFirebaseAuthConfigured\(\)\)/,
+    "LoginTab should re-check Firebase configuration after mount alongside Google support",
+);
+
 console.log("firebaseAuth source checks passed");

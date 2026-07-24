@@ -49,9 +49,20 @@ function LoginTabContent({
     const [noteIsSuccess, setNoteIsSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
-    const firebaseConfigured = isFirebaseAuthConfigured();
-    const googleLoginSupported = isGoogleLoginSupported();
+    // Tauri injects its runtime globals during webview startup, and they may not
+    // be present at this first synchronous render. Reading the flags once here
+    // used to leave the Google button stuck on whichever value won that startup
+    // race — "Sign in with Google" or "Configure desktop Google login" — from run
+    // to run. Seed from the current value, then re-check after mount (when the
+    // runtime is reliably detectable) so the label settles deterministically.
+    const [firebaseConfigured, setFirebaseConfigured] = useState(isFirebaseAuthConfigured);
+    const [googleLoginSupported, setGoogleLoginSupported] = useState(isGoogleLoginSupported);
     const { t } = useI18n();
+
+    useEffect(() => {
+        setFirebaseConfigured(isFirebaseAuthConfigured());
+        setGoogleLoginSupported(isGoogleLoginSupported());
+    }, []);
 
     const completeLogin = (
         res: { perms?: UserPerms; email?: string | null; displayName?: string | null },

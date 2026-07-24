@@ -44,6 +44,8 @@ function isTauriRuntime(): boolean {
         && (
             "__TAURI_INTERNALS__" in window
             || "__TAURI__" in window
+            // Official Tauri v2 marker; present even when `withGlobalTauri` is off.
+            || "isTauri" in window
         );
 }
 
