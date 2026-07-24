@@ -22,6 +22,7 @@ import {
     type MakerProjectIdea,
 } from "./makerspaceData";
 import { useInventory } from "./InventoryProvider";
+import { askGroqFallback } from "../services/makerAssistantGroq";
 import { isSafeHttpUrl, openExternalUrl } from "../utils/externalUrl";
 import { getCurrentLanguage, translateDifficulty } from "../i18n/i18n";
 
@@ -409,12 +410,39 @@ export function MakerKiosk() {
         if (!query) return;
 
         const answer = answerMakerQuery(query, makerItems, projectIdeas);
+        const childId = makeId();
+        const assistantId = makeId();
+
         setMessages(prev => [
             ...prev,
-            { id: makeId(), role: "child", text: query },
-            { id: makeId(), role: "assistant", text: answer.title, answer },
+            { id: childId, role: "child", text: query },
+            { id: assistantId, role: "assistant", text: answer.title, answer },
         ]);
         setInput("");
+
+        // The rule-based engine answered directly; nothing more to do.
+        if (answer.intent !== "unknown") {
+            return;
+        }
+
+        // No confident local answer — show a thinking state and try Groq. If Groq
+        // is unavailable it returns null and we keep the rule-based fallback bubble.
+        setMessages(prev =>
+            prev.map(m => (m.id === assistantId
+                ? { id: m.id, role: "assistant", text: "VIVI Bot is thinking…" }
+                : m)),
+        );
+
+        askGroqFallback(query).then(reply => {
+            setMessages(prev =>
+                prev.map(m => {
+                    if (m.id !== assistantId) return m;
+                    return reply
+                        ? { id: m.id, role: "assistant", text: reply }
+                        : { id: m.id, role: "assistant", text: answer.title, answer };
+                }),
+            );
+        });
     };
 
     return (
