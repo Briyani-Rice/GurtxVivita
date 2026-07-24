@@ -9,6 +9,7 @@ import {
     type Auth,
     type User as FirebaseUser,
 } from "firebase/auth";
+import { isTauri } from "@tauri-apps/api/core";
 import {
     buildGoogleAuthUrl,
     buildTokenRequestBody,
@@ -22,6 +23,10 @@ import { googleAuthErrorMessage } from "./googleAuthErrors";
 import { UserPerms } from "../types";
 import { getFirebaseApp, hasFirebaseConfig } from "./firebaseApp";
 import { getOrCreateFirebaseUserProfile } from "./firebaseUsers";
+import {
+    getGoogleLoginAvailability,
+    type GoogleLoginAvailability,
+} from "./googleLoginAvailability";
 
 export type FirebaseLoginResult = {
     success: boolean;
@@ -38,16 +43,6 @@ let firebaseAuth: Auth | undefined;
 // Admin emails come from the VITE_FIREBASE_ADMIN_EMAILS env var only — no
 // personal emails are hardcoded in the shipped bundle. See adminEmails().
 const defaultAdminEmails: string[] = [];
-
-function isTauriRuntime(): boolean {
-    return typeof window !== "undefined"
-        && (
-            "__TAURI_INTERNALS__" in window
-            || "__TAURI__" in window
-            // Official Tauri v2 marker; present even when `withGlobalTauri` is off.
-            || "isTauri" in window
-        );
-}
 
 const DESKTOP_LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -131,12 +126,16 @@ export function isFirebaseAuthConfigured(): boolean {
     return hasFirebaseConfig();
 }
 
-export function isGoogleLoginSupported(): boolean {
-    if (!hasFirebaseConfig()) {
-        return false;
-    }
+export function getCurrentGoogleLoginAvailability(): GoogleLoginAvailability {
+    return getGoogleLoginAvailability({
+        firebaseConfigured: hasFirebaseConfig(),
+        desktop: isTauri(),
+        desktopOauthConfigured: desktopOauthClient() !== null,
+    });
+}
 
-    return !isTauriRuntime() || desktopOauthClient() !== null;
+export function isGoogleLoginSupported(): boolean {
+    return getCurrentGoogleLoginAvailability().available;
 }
 
 // Desktop (Tauri) flow: Google blocks OAuth inside embedded webviews, so we
@@ -235,6 +234,15 @@ async function signInWithGoogleDesktop(auth: Auth): Promise<FirebaseLoginResult>
 }
 
 export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
+    const availability = getCurrentGoogleLoginAvailability();
+
+    if (!availability.available) {
+        return {
+            success: false,
+            note: availability.note,
+        };
+    }
+
     const auth = getFirebaseAuth();
 
     if (!auth) {
@@ -244,7 +252,7 @@ export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
         };
     }
 
-    if (isTauriRuntime()) {
+    if (availability.runtime === "desktop") {
         return signInWithGoogleDesktop(auth);
     }
 

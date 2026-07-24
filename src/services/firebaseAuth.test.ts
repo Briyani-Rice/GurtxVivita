@@ -94,8 +94,8 @@ assert.doesNotMatch(
 
 assert.match(
     authSource,
-    /function isTauriRuntime/,
-    "Firebase auth service should detect the packaged Tauri runtime",
+    /import\s*{\s*isTauri\s*}\s*from\s*"@tauri-apps\/api\/core"/,
+    "Firebase auth service should use Tauri's official runtime detector",
 );
 
 assert.match(
@@ -126,6 +126,12 @@ assert.match(
     authSource,
     /VITE_GOOGLE_DESKTOP_CLIENT_ID/,
     "Firebase auth service should read the desktop OAuth client ID from Vite env",
+);
+
+assert.doesNotMatch(
+    authSource,
+    /return clientId && clientSecret \?/,
+    "Desktop OAuth availability should not require the optional client secret",
 );
 
 assert.match(
@@ -184,14 +190,14 @@ assert.match(
 
 assert.match(
     loginSource,
-    /isFirebaseAuthConfigured/,
-    "Login tab should avoid offering an active Google sign-in button when Firebase env is missing",
+    /getCurrentGoogleLoginAvailability/,
+    "Login tab should read Firebase and runtime support from the shared availability result",
 );
 
 assert.match(
     loginSource,
-    /isGoogleLoginSupported/,
-    "Login tab should also disable Google sign-in in runtimes where Firebase popup auth cannot complete",
+    /disabled=\{googleLoading \|\| loading \|\| !googleLoginSupported\}/,
+    "Login tab should disable Google sign-in whenever the structured availability says it cannot complete",
 );
 
 assert.match(
@@ -234,33 +240,31 @@ for (const key of [
     assert.match(envExampleSource, new RegExp(`${key}=`), `.env.example should document ${key}`);
 }
 
-// The Tauri runtime globals are injected during webview startup and may be
-// absent at React's first synchronous render, which made the Google button flip
-// between "Sign in with Google" and "Configure desktop Google login" from run to
-// run. Detection must cover the official `isTauri` global and be re-checked after
-// mount so the label settles deterministically on the real runtime.
+// Availability must be a single structured decision shared by the button and
+// the action it runs. This avoids the label and click path independently
+// interpreting Firebase, desktop, and OAuth configuration.
 assert.match(
     authSource,
-    /"isTauri" in window/,
-    "isTauriRuntime should also honor the official Tauri v2 `window.isTauri` global",
+    /getGoogleLoginAvailability/,
+    "Firebase auth should calculate Google login availability through the pure helper",
+);
+
+assert.match(
+    authSource,
+    /getCurrentGoogleLoginAvailability/,
+    "Firebase auth should expose one structured availability result",
 );
 
 assert.match(
     loginSource,
-    /useState\(isGoogleLoginSupported\)/,
-    "LoginTab should seed Google support from a lazy state initializer, not a one-shot const",
+    /getCurrentGoogleLoginAvailability/,
+    "LoginTab should use the same structured availability result as sign-in",
 );
 
-assert.match(
+assert.doesNotMatch(
     loginSource,
-    /setGoogleLoginSupported\(isGoogleLoginSupported\(\)\)/,
-    "LoginTab should re-check Google support after mount so a lost startup race self-corrects",
-);
-
-assert.match(
-    loginSource,
-    /setFirebaseConfigured\(isFirebaseAuthConfigured\(\)\)/,
-    "LoginTab should re-check Firebase configuration after mount alongside Google support",
+    /useEffect/,
+    "LoginTab should not use a separate mount-time availability patch",
 );
 
 console.log("firebaseAuth source checks passed");
