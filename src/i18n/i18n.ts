@@ -57,6 +57,13 @@ const en: Dict = {
     "user.errQty": "Enter a whole number greater than 0.",
     "user.errMax": "Only {count} {unit} available.",
     "user.errFailed": "Request failed. Please try again.",
+    "user.sortLabel": "Sort",
+    "user.sortDefault": "Recommended",
+    "user.sortNameAsc": "Name A–Z",
+    "user.sortNameDesc": "Name Z–A",
+    "user.sortLocation": "Location",
+    "user.sortAdult": "Needs adult",
+    "user.sortStock": "Stock status",
 
     "stock.inStock": "In stock",
     "stock.low": "Low stock",
@@ -815,6 +822,23 @@ export function translate(language: Language, key: TranslationKey, vars?: Transl
 /** Tab names double as identity, so display falls back to the raw name. */
 export function translateTabName(language: Language, name: string): string {
     return DICTIONARIES[language]?.[`tab.${name}`] ?? en[`tab.${name}`] ?? name;
+}
+
+// Command palette entries keep a stable English `name` as identity; this maps
+// each to its display key so the command bar localizes like the rest of the UI.
+const COMMAND_NAME_KEYS: Record<string, TranslationKey> = {
+    "Welcome": "tab.Welcome",
+    "Maker Bot": "tab.Maker Bot",
+    "Inventory": "link.inventory",
+    "Docs": "link.docs",
+    "Settings": "tab.Settings",
+    "Login": "tab.Login",
+};
+
+/** Localized label for a command-palette entry; falls back to the raw name. */
+export function translateCommandName(language: Language, name: string): string {
+    const key = COMMAND_NAME_KEYS[name];
+    return key ? translate(language, key) : name;
 }
 
 export function translateSettingsPageName(language: Language, name: string): string {
