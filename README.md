@@ -74,6 +74,8 @@ VITE_FIREBASE_ADMIN_EMAILS=admin@example.com,another-admin@example.com
 
 Only Google accounts listed in `VITE_FIREBASE_ADMIN_EMAILS` open `Admin View`; other Google accounts sign in as basic users. The demo username/password login remains available for local prototype use.
 
+If Google sign-in fails, see [docs/google-login-setup.md](docs/google-login-setup.md) for setup and troubleshooting (the fix is usually enabling the Google provider or authorizing the domain in Firebase Console).
+
 ## Running The App
 
 Install dependencies:
