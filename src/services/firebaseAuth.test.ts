@@ -6,6 +6,7 @@ const appSource = readFileSync(new URL("./firebaseApp.ts", import.meta.url), "ut
 const loginSource = readFileSync(new URL("../components/LoginTab.tsx", import.meta.url), "utf8");
 const appEntrySource = readFileSync(new URL("../app.tsx", import.meta.url), "utf8");
 const envExampleSource = readFileSync(new URL("../../.env.example", import.meta.url), "utf8");
+const authErrorsSource = readFileSync(new URL("./googleAuthErrors.ts", import.meta.url), "utf8");
 
 assert.match(
     appSource,
@@ -51,14 +52,26 @@ assert.match(
 
 assert.match(
     authSource,
-    /auth\/configuration-not-found/,
-    "Firebase auth service should explain when Firebase Authentication or Google provider is not enabled",
+    /googleAuthErrorMessage/,
+    "Firebase auth service should map error codes to messages through the shared googleAuthErrors helper",
 );
 
 assert.match(
-    authSource,
+    authErrorsSource,
+    /auth\/configuration-not-found/,
+    "Auth error helper should explain when Firebase Authentication or Google provider is not enabled",
+);
+
+assert.match(
+    authErrorsSource,
     /Enable Firebase Authentication and the Google sign-in provider/,
-    "Firebase auth service should give an actionable fix for missing auth configuration",
+    "Auth error helper should give an actionable fix for missing auth configuration",
+);
+
+assert.match(
+    authErrorsSource,
+    /auth\/unauthorized-domain/,
+    "Auth error helper should explain the unauthorized-domain failure with the Console fix",
 );
 
 assert.match(

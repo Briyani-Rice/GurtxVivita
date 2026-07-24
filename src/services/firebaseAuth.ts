@@ -18,6 +18,7 @@ import {
     parseRedirectUrl,
     parseTokenResponse,
 } from "./googleDesktopOauth";
+import { googleAuthErrorMessage } from "./googleAuthErrors";
 import { UserPerms } from "../types";
 import { getFirebaseApp, hasFirebaseConfig } from "./firebaseApp";
 import { getOrCreateFirebaseUserProfile } from "./firebaseUsers";
@@ -121,19 +122,7 @@ function errorMessage(error: unknown, fallback: string): string {
     const code = errorCode(error);
     const message = error instanceof Error ? error.message : fallback;
 
-    if (code === "auth/configuration-not-found") {
-        return "Enable Firebase Authentication and the Google sign-in provider in Firebase Console, then restart the app.";
-    }
-
-    if (code === "auth/operation-not-allowed") {
-        return "Google sign-in is disabled for this Firebase project. Enable the Google provider in Firebase Authentication.";
-    }
-
-    if (code === "auth/unauthorized-domain") {
-        return "This app domain is not authorized in Firebase Authentication. Add localhost and 127.0.0.1 to Authorized domains.";
-    }
-
-    return code ? `${code}: ${message}` : message;
+    return googleAuthErrorMessage(code, message);
 }
 
 export function isFirebaseAuthConfigured(): boolean {
