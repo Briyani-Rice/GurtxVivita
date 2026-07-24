@@ -39,7 +39,7 @@ assert.match(app, /<Toaster /, "#12.4: a Toaster must be mounted for toasts to r
 const auth = read("../services/firebaseAuth.ts");
 assert.match(auth, /redirecting:\s*true/, "#16.1: the redirect fallback should flag itself as in-progress");
 const loginTab = read("./LoginTab.tsx");
-assert.match(loginTab, /setNoteIsSuccess\(Boolean\(res\.redirecting\)\)/, "#16.1: a redirecting note should not render as an error");
+assert.match(loginTab, /setNoteIsSuccess\(isProgressNote\(res\)\)/, "#16.1: a redirecting note should not render as an error");
 
 // Issue #16.4 — featured items matched by name, not drift-prone static ids.
 const kiosk = read("./MakerKiosk.tsx");

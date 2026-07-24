@@ -11,6 +11,7 @@ import {
     type FirebaseLoginResult,
 } from "../services/firebaseAuth";
 import { recordAccountLogin } from "../services/accountSession";
+import { isProgressNote } from "../services/googleAuthErrors";
 import { useI18n } from "../i18n/i18n";
 
 type LoginTabContentProps = BasicTabProps & {
@@ -144,7 +145,7 @@ function LoginTabContent({
                 // A redirect that is under way is progress, not an error, so it
                 // should not be shown in red.
                 setNote(res.note);
-                setNoteIsSuccess(Boolean(res.redirecting));
+                setNoteIsSuccess(isProgressNote(res));
                 return;
             }
 
