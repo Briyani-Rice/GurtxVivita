@@ -29,9 +29,12 @@ const en: Dict = {
     "welcome.searchPlaceholder": "Search materials, tools, or rooms...",
     "welcome.hint": "Press {shortcut} or use the command bar above to go anywhere.",
     "link.makerBot": "Maker Bot",
-    "link.inventory": "Inventory",
+    "link.inventory": "Room Map & Inventory",
     "link.docs": "Docs",
     "link.settings": "Settings",
+
+    "command.searchPlaceholder": "Search...",
+    "command.noResults": "No matching commands",
 
     "user.map": "map",
     "user.materials": "materials",
