@@ -295,6 +295,34 @@ function normalize(value: string): string {
     return value.toLowerCase().replace(/[^a-z0-9:+ ]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// Words that carry intent or grammar rather than identity. They are ignored
+// when scoring partial-name matches so "where is the <thing>" keys off the
+// <thing>, and so intent words in an item name never spuriously match.
+const MATCH_STOPWORDS = new Set<string>([
+    ...LOCATION_WORDS, ...USE_WORDS, ...MAKE_WORDS, ...INVENTORY_WORDS,
+    "the", "a", "an", "of", "and", "or", "for", "with", "to", "in", "on",
+    "is", "are", "am", "i", "you", "it", "me", "my", "please", "can", "could",
+]);
+
+// Meaningful words (>= 3 chars, not a stopword) from a phrase, deduplicated.
+function significantTokens(text: string): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const token of normalize(text).split(" ")) {
+        if (token.length < 3 || MATCH_STOPWORDS.has(token) || seen.has(token)) continue;
+        seen.add(token);
+        out.push(token);
+    }
+    return out;
+}
+
+// A prefix match (either direction, min 3 chars) so plurals and simple
+// suffixes line up: "leds" ~ "led", "scissors" ~ "scissor", "printers" ~
+// "printer". Kept deliberately conservative to avoid unrelated collisions.
+function tokensRelated(a: string, b: string): boolean {
+    return a === b || a.startsWith(b) || b.startsWith(a);
+}
+
 // Whole-word intent matching. Substring matching mis-routed item names that
 // contain an intent word (e.g. "Toki Maker" -> "make", "Dowels" -> "do"),
 // sending location questions to the project-ideas branch.
@@ -303,10 +331,20 @@ function includesAny(query: string, words: string[]): boolean {
     return words.some(word => tokens.has(word));
 }
 
-// Returns the length of the most specific alias that appears in the query,
-// or 0 if none does. "hot glue gun" (12) beats a decoy aliased "glue gun" (8),
-// so the child reaches the correct — and correctly safety-flagged — item.
-function itemMatchScore(item: MakerItem, normalizedQuery: string): number {
+// Scores how well an item matches the query, in two tiers:
+//
+//   Tier 1 (full alias in query) — the whole item name/alias appears verbatim.
+//     "hot glue gun" (12) beats a decoy aliased "glue gun" (8), so the child
+//     reaches the correct — and correctly safety-flagged — item. Any tier-1
+//     hit outranks every tier-2 hit via a large offset, preserving specificity.
+//
+//   Tier 2 (significant word overlap) — no full alias appears, so we fall back
+//     to shared meaningful words. Real Firestore items only alias their full
+//     name, and children type partial names ("filament", not "3D Printer
+//     Filament"); without this tier only certain items ever answered.
+const FULL_MATCH_OFFSET = 1_000_000;
+
+function itemMatchScore(item: MakerItem, normalizedQuery: string, queryTokens: string[]): number {
     let best = 0;
     for (const alias of [item.name, ...item.aliases]) {
         const normalizedAlias = normalize(alias);
@@ -314,16 +352,27 @@ function itemMatchScore(item: MakerItem, normalizedQuery: string): number {
             best = normalizedAlias.length;
         }
     }
-    return best;
+    if (best > 0) return FULL_MATCH_OFFSET + best;
+
+    // Match only against the item's own name — descriptions add noise that
+    // would pull unrelated items into range.
+    let tokenScore = 0;
+    for (const itemToken of significantTokens(item.name)) {
+        if (queryTokens.some(q => tokensRelated(q, itemToken))) {
+            tokenScore += itemToken.length;
+        }
+    }
+    return tokenScore;
 }
 
 function findItem(query: string, items: MakerItem[]): MakerItem | undefined {
     const normalized = normalize(query);
+    const queryTokens = significantTokens(query);
     let match: MakerItem | undefined;
     let matchScore = 0;
 
     for (const item of items) {
-        const score = itemMatchScore(item, normalized);
+        const score = itemMatchScore(item, normalized, queryTokens);
         // Strictly greater keeps the first item on ties (stable, predictable).
         if (score > matchScore) {
             match = item;
