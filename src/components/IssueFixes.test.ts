@@ -5,7 +5,9 @@ const read = (rel: string) => readFileSync(new URL(rel, import.meta.url), "utf8"
 
 // Issue #7 — command bar empty state + keyboard flow.
 const commandBar = read("../CommandBar.tsx");
-assert.match(commandBar, /No matching commands/, "#7: command bar should show an empty-state message");
+// The empty-state message is localized via the command.noResults key rather
+// than a hardcoded English string, so the command bar follows the active language.
+assert.match(commandBar, /command\.noResults/, "#7: command bar should show a localized empty-state message");
 assert.match(commandBar, /key === "Enter"/, "#7: Enter should run the selected command");
 assert.match(commandBar, /ArrowDown/, "#7: arrow keys should move the selection");
 

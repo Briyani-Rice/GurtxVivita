@@ -1,6 +1,7 @@
 import { ReactElement, useEffect, useState, useRef } from "react";
 import { CommandArgumentType } from "./types";
 import { commands } from "./app";
+import { translateCommandName, useI18n } from "./i18n/i18n";
 
 function getTypeString(arg: CommandArgumentType): String {
     switch (arg) {
@@ -20,12 +21,17 @@ export type CmdProps = {
 };
 
 export function CommandBar({ setVisibility }: CmdProps): ReactElement {
+    const { language, t } = useI18n();
     const [text, setText] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(0);
     const menuRef = useRef<HTMLDivElement | null>(null);
 
+    // Match against both the stable English name and the localized label so the
+    // search works whether the user types in English or the active language.
+    const query = text.toLowerCase();
     const visCommands = commands.filter(command =>
-        command.name.toLowerCase().includes(text.toLowerCase())
+        command.name.toLowerCase().includes(query) ||
+        translateCommandName(language, command.name).toLowerCase().includes(query)
     );
 
     // Keep the highlighted row in range as the filter narrows the list.
@@ -132,7 +138,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                         runCommand(selectedIndex);
                     }
                 }}
-                placeholder="Search..."
+                placeholder={t("command.searchPlaceholder")}
                 style={{
                     color:"var(--viventory-text)",
                     fontFamily: "monospace",
@@ -169,7 +175,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                             color: "var(--viventory-muted-text)",
                         }}
                     >
-                        No matching commands
+                        {t("command.noResults")}
                     </div>
                 ) : visCommands.map((value, index) => {
                     const args = value.args
@@ -197,7 +203,7 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                             }}
                             onClick={()=> runCommand(index)}
                         >
-                            {`> ${value.name} ${args}`}
+                            {`> ${translateCommandName(language, value.name)} ${args}`}
                         </button>
                     );
                 })}

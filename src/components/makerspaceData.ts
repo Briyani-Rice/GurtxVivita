@@ -291,8 +291,12 @@ const USE_WORDS = ["use", "how", "instructions", "guide", "work", "safe", "safet
 const MAKE_WORDS = ["make", "build", "create", "project", "idea", "ideas", "do"];
 const INVENTORY_WORDS = ["available", "inventory", "materials", "tools", "equipment", "list"];
 
+// Keep letters and digits from ANY script (\p{L}\p{N}) so non-Latin item names
+// survive normalization. The old [a-z0-9:+] class stripped every CJK character,
+// collapsing e.g. "纸箱" to "" so it could never be matched — the Maker Bot then
+// silently answered only for Latin-named items. Punctuation is still dropped.
 function normalize(value: string): string {
-    return value.toLowerCase().replace(/[^a-z0-9:+ ]/g, " ").replace(/\s+/g, " ").trim();
+    return value.toLowerCase().replace(/[^\p{L}\p{N}:+ ]/gu, " ").replace(/\s+/g, " ").trim();
 }
 
 // Words that carry intent or grammar rather than identity. They are ignored
