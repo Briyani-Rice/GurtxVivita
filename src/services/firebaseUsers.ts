@@ -3,9 +3,16 @@ import type { User as FirebaseUser } from "firebase/auth";
 import { UserPerms } from "../types";
 import { getFirebaseApp, getFirebaseFirestore } from "./firebaseApp";
 import { buildUserProfile, type FirebaseUserProfile } from "./userProfile";
+import { withTimeout } from "../utils/withTimeout";
 
 export const USER_COLLECTION = "user";
 export type { FirebaseUserProfile } from "./userProfile";
+
+// Firestore has no built-in deadline: if the backend is unreachable (offline,
+// blocked, or the database is not provisioned), getDoc/setDoc can pend forever.
+// That would hang the login spinner indefinitely, so we give the best-effort
+// profile write a hard ceiling and let sign-in proceed on the computed perms.
+const PROFILE_PERSIST_TIMEOUT_MS = 8000;
 
 export async function getOrCreateFirebaseUserProfile(
     user: FirebaseUser,
@@ -20,8 +27,9 @@ export async function getOrCreateFirebaseUserProfile(
 
     // Persisting the profile is best-effort: if Firestore rules deny the write,
     // or the database is locked/unreachable, the user is still signed in with the
-    // perms we computed. A profile-write failure must never fail the whole login.
-    try {
+    // perms we computed. A profile-write failure — or a hang — must never fail or
+    // stall the whole login.
+    const persist = async (): Promise<FirebaseUserProfile> => {
         const db = getFirebaseFirestore();
         const ref = doc(db, USER_COLLECTION, user.uid);
         const snapshot = await getDoc(ref);
@@ -38,6 +46,17 @@ export async function getOrCreateFirebaseUserProfile(
         }, { merge: true });
 
         return profile;
+    };
+
+    try {
+        return await withTimeout(
+            persist(),
+            PROFILE_PERSIST_TIMEOUT_MS,
+            () => {
+                console.warn("User profile persistence timed out; continuing with computed perms.");
+                return buildUserProfile(input, {}, fallbackPerms);
+            },
+        );
     } catch (error) {
         console.warn("User profile persistence failed; continuing with computed perms.", error);
         return buildUserProfile(input, {}, fallbackPerms);
