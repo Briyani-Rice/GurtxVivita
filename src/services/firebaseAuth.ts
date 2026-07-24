@@ -46,11 +46,11 @@ const defaultAdminEmails: string[] = [];
 
 const DESKTOP_LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
 
-function desktopOauthClient(): { clientId: string; clientSecret: string } | null {
+function desktopOauthClient(): { clientId: string; clientSecret?: string } | null {
     const clientId = String(import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID ?? "").trim();
     const clientSecret = String(import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_SECRET ?? "").trim();
 
-    return clientId && clientSecret ? { clientId, clientSecret } : null;
+    return clientId ? { clientId, ...(clientSecret ? { clientSecret } : {}) } : null;
 }
 
 function getFirebaseAuth(): Auth | null {
@@ -147,7 +147,7 @@ async function signInWithGoogleDesktop(auth: Auth): Promise<FirebaseLoginResult>
     if (!client) {
         return {
             success: false,
-            note: "Set VITE_GOOGLE_DESKTOP_CLIENT_ID and VITE_GOOGLE_DESKTOP_CLIENT_SECRET to enable Google login in the desktop app.",
+            note: "Set VITE_GOOGLE_DESKTOP_CLIENT_ID to enable Google login in the desktop app.",
         };
     }
 

@@ -93,18 +93,23 @@ export function parseRedirectUrl(
 export function buildTokenRequestBody(opts: {
     code: string;
     clientId: string;
-    clientSecret: string;
+    clientSecret?: string;
     redirectUri: string;
     codeVerifier: string;
 }): URLSearchParams {
-    return new URLSearchParams({
+    const body = new URLSearchParams({
         grant_type: "authorization_code",
         code: opts.code,
         client_id: opts.clientId,
-        client_secret: opts.clientSecret,
         redirect_uri: opts.redirectUri,
         code_verifier: opts.codeVerifier,
     });
+
+    if (opts.clientSecret) {
+        body.set("client_secret", opts.clientSecret);
+    }
+
+    return body;
 }
 
 export function parseTokenResponse(payload: unknown): { idToken: string } | { error: string } {

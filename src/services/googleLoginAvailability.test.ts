@@ -34,7 +34,7 @@ assert.deepEqual(
         available: false,
         runtime: "desktop",
         reason: "desktop-oauth-config",
-        note: "Desktop Google login needs a Google Cloud OAuth client of type Desktop app. Set VITE_GOOGLE_DESKTOP_CLIENT_ID and VITE_GOOGLE_DESKTOP_CLIENT_SECRET, then rebuild the app.",
+        note: "Desktop Google login needs a Google Cloud OAuth client of type Desktop app. Set VITE_GOOGLE_DESKTOP_CLIENT_ID, then rebuild the app.",
     },
 );
 
