@@ -163,7 +163,7 @@ function AccountContent() {
                 </div>
             </section>
 
-            <aside
+            <div
                 style={{
                     border: "1px solid var(--viventory-border)",
                     borderRadius: 8,
@@ -202,7 +202,7 @@ function AccountContent() {
                         Accounts you use here will appear after your first login.
                     </p>
                 )}
-            </aside>
+            </div>
         </div>
     );
 }

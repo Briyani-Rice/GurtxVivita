@@ -27,6 +27,9 @@ import AdminViewTab from "./components/AdminViewTab";
 import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
 import { recordAccountLogin } from "./services/accountSession";
 import { translateTabName, useI18n } from "./i18n/i18n";
+import {platform} from "@tauri-apps/plugin-os";
+import {FaHome, FaRobot} from "react-icons/fa";
+import {FaGear} from "react-icons/fa6";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -37,10 +40,6 @@ export type BasicTabProps = {
     setTab: (index: number, tab: Tab) => void;
     handleClosingTab: (index: number) => void;
     handleMaterialSearch: (query: string) => void;
-    
-    
-
-
 }
 
 let commandTabProps: BasicTabProps | undefined
@@ -141,124 +140,124 @@ function WelcomeContent() {
 
     return(
 
-            <div
+        <div
+            style={{
+                height: "100%",
+                width: "100%",
+                boxSizing: "border-box",
+                background: "var(--viventory-welcome-bg)",
+                color: "var(--viventory-text)",
+                overflow: "auto",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "clamp(24px, 6vw, 64px)",
+            }}
+        >
+            <main
                 style={{
-                    height: "100%",
                     width: "100%",
-                    boxSizing: "border-box",
-                    background: "var(--viventory-welcome-bg)",
-                    color: "var(--viventory-text)",
-                    overflow: "auto",
+                    maxWidth: "520px",
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: "center",
-                    padding: "clamp(24px, 6vw, 64px)",
+                    textAlign: "center",
+                    gap: "22px",
                 }}
             >
-                <main
+                <img
+                    src={vivitaLogo}
+                    alt="VIVITA"
+                    style={{
+                        width: "170px",
+                        height: "auto",
+                        display: "block",
+                        filter: "var(--viventory-logo-filter)",
+                    }}
+                />
+                <h1 style={{
+                    margin: 0,
+                    fontSize: "clamp(30px, 4.5vw, 42px)",
+                    lineHeight: 1.1,
+                    fontWeight: 700,
+                    letterSpacing: "-0.5px",
+                    color: "var(--viventory-text)",
+                }}>
+                    {t("welcome.heading")}
+                </h1>
+                <p style={{
+                    margin: 0,
+                    maxWidth: "420px",
+                    fontSize: "16px",
+                    lineHeight: 1.5,
+                    color: "var(--viventory-muted-text)",
+                }}>
+                    {t("welcome.sub")}
+                </p>
+                <form
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        const input = event.currentTarget.elements.namedItem(searchInputId) as HTMLInputElement | null;
+                        welcomeTab.props.handleMaterialSearch(input?.value ?? "");
+                    }}
                     style={{
                         width: "100%",
-                        maxWidth: "520px",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        textAlign: "center",
-                        gap: "22px",
                     }}
                 >
-                    <img
-                        src={vivitaLogo}
-                        alt="VIVITA"
-                        style={{
-                            width: "170px",
-                            height: "auto",
-                            display: "block",
-                            filter: "var(--viventory-logo-filter)",
-                        }}
-                    />
-                    <h1 style={{
-                        margin: 0,
-                        fontSize: "clamp(30px, 4.5vw, 42px)",
-                        lineHeight: 1.1,
-                        fontWeight: 700,
-                        letterSpacing: "-0.5px",
-                        color: "var(--viventory-text)",
-                    }}>
-                        {t("welcome.heading")}
-                    </h1>
-                    <p style={{
-                        margin: 0,
-                        maxWidth: "420px",
-                        fontSize: "16px",
-                        lineHeight: 1.5,
-                        color: "var(--viventory-muted-text)",
-                    }}>
-                        {t("welcome.sub")}
-                    </p>
-                    <form
-                        onSubmit={(event) => {
-                            event.preventDefault();
-                            const input = event.currentTarget.elements.namedItem(searchInputId) as HTMLInputElement | null;
-                            welcomeTab.props.handleMaterialSearch(input?.value ?? "");
-                        }}
+                    <input
+                        id={searchInputId}
+                        name={searchInputId}
+                        type="search"
+                        placeholder={t("welcome.searchPlaceholder")}
                         style={{
                             width: "100%",
+                            minHeight: "48px",
+                            padding: "0 16px",
+                            fontSize: "15px",
+                            border: "1px solid var(--viventory-border)",
+                            borderRadius: "8px",
+                            background: "var(--viventory-surface)",
+                            color: "var(--viventory-text)",
+                            outline: "none",
+                            boxSizing: "border-box",
                         }}
-                    >
-                        <input
-                            id={searchInputId}
-                            name={searchInputId}
-                            type="search"
-                            placeholder={t("welcome.searchPlaceholder")}
+                    />
+                </form>
+                <nav
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        justifyContent: "center",
+                        gap: "4px 22px",
+                    }}
+                >
+                    {quickLinks.map(link => (
+                        <button
+                            key={link.label}
+                            onClick={link.open}
                             style={{
-                                width: "100%",
-                                minHeight: "48px",
-                                padding: "0 16px",
-                                fontSize: "15px",
-                                border: "1px solid var(--viventory-border)",
-                                borderRadius: "8px",
-                                background: "var(--viventory-surface)",
-                                color: "var(--viventory-text)",
-                                outline: "none",
-                                boxSizing: "border-box",
+                                background: "none",
+                                border: "none",
+                                padding: "6px 0",
+                                fontSize: "14px",
+                                fontWeight: 600,
+                                color: "var(--viventory-welcome-accent)",
+                                cursor: "pointer",
                             }}
-                        />
-                    </form>
-                    <nav
-                        style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            justifyContent: "center",
-                            gap: "4px 22px",
-                        }}
-                    >
-                        {quickLinks.map(link => (
-                            <button
-                                key={link.label}
-                                onClick={link.open}
-                                style={{
-                                    background: "none",
-                                    border: "none",
-                                    padding: "6px 0",
-                                    fontSize: "14px",
-                                    fontWeight: 600,
-                                    color: "var(--viventory-welcome-accent)",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                {link.label}
-                            </button>
-                        ))}
-                    </nav>
-                    <p style={{
-                        margin: 0,
-                        fontSize: "12px",
-                        color: "var(--viventory-muted-text)",
-                    }}>
-                        {t("welcome.hint")}
-                    </p>
-                </main>
-            </div>)
+                        >
+                            {link.label}
+                        </button>
+                    ))}
+                </nav>
+                <p style={{
+                    margin: 0,
+                    fontSize: "12px",
+                    color: "var(--viventory-muted-text)",
+                }}>
+                    {t("welcome.hint")}
+                </p>
+            </main>
+        </div>)
 }
 //@ts-ignore
 type RenderTabBarTabProps = {
@@ -268,7 +267,7 @@ type RenderTabBarTabProps = {
     currentTabIndex:number;
     setTabIndex:(index: number) => void;
     moveTab:(from:number,to:number)=>void;
-    tabsLength:number;  
+    tabsLength:number;
 }
 
 // @ts-ignore
@@ -402,14 +401,14 @@ type RenderTabBarProps = {
 }
 
 function RenderTabBar({
-              tabs,
-              setTabs,
-              onClose,
-              currentTabIndex,
-              setTabIndex,
-              handleNewTab,
-              moveTab
-          }: RenderTabBarProps): React.ReactElement {
+                          tabs,
+                          setTabs,
+                          onClose,
+                          currentTabIndex,
+                          setTabIndex,
+                          handleNewTab,
+                          moveTab
+                      }: RenderTabBarProps): React.ReactElement {
 
     const [isHovered, setIsHovered] = useState(false)
     const sensors = useSensors(
@@ -528,19 +527,110 @@ function RenderTabBar({
     )
 }
 
+function RenderMobileTabBar({
+                                tabs,
+                                setTabs,
+                                tabIndex,
+                                setTabIndex,
+                                handleNewTab,
+                                setTab,
+                                handleClosingTab,
+                                handleMaterialSearch}:BasicTabProps):React.ReactElement{
+
+    const currentName = tabs[tabIndex]?.name
+
+    const openOrFocus = (name: string, factory: () => Tab) => {
+        const existingIndex = tabs.findIndex(tab => tab.name === name)
+
+        if (existingIndex !== -1) {
+            setTabIndex(existingIndex)
+            return
+        }
+
+        const newIndex = handleNewTab()
+        setTab(newIndex, factory())
+    }
+
+    const navButtonStyle = (active: boolean): React.CSSProperties => ({
+        padding: "10px 20px",
+        background: "none",
+        border: "none",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "2px",
+        color: active ? "var(--viventory-welcome-accent)" : "inherit",
+        fontWeight: active ? 700 : 500,
+        cursor: "pointer",
+    })
+
+    return (
+        <div style={{
+            position: "fixed",
+            bottom: "16px",
+            left: "10%",
+            width: "80%",
+            height: "60px",
+            zIndex: 10,
+            background: "rgba(255, 255, 255, 0.8)",
+            backdropFilter: "blur(10px)",
+            borderRadius: "30px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)"
+        }}>
+            <button
+                style={navButtonStyle(currentName === "Welcome")}
+                onClick={() => openOrFocus("Welcome", () => new welcomeTab())}
+            >
+                <FaHome/>
+                Home
+            </button>
+            <button
+                style={navButtonStyle(currentName === "Maker Bot")}
+                onClick={() => openOrFocus("Maker Bot", () => new MakerKioskTab())}
+            >
+                <FaRobot />
+                MakerBot
+            </button>
+            <button
+                style={navButtonStyle(currentName === "Settings")}
+                onClick={() => openOrFocus("Settings", () => new Settings())}
+            >
+                <FaGear />
+                Settings
+            </button>
+        </div>)
+}
 function RenderTab(
     tabs: Tab[],
-    tabIndex: number
+    tabIndex: number,
+    mobile: boolean = false
 ): React.ReactElement {
 
     return (
         <div
-            style={{
-                flex: 1,
-                borderRadius: "0px",
-                overflow: "hidden",
-                minHeight: 0
-            }}
+            style={
+                mobile
+                    // Let this grow with its content — it lives inside a
+                    // scrollable ancestor now, so it must NOT clip
+                    // (overflow:hidden) or zero its min size (minHeight:0),
+                    // both of which would force it back to the container's
+                    // fixed height and re-introduce the clipping bug.
+                    ? {
+                        flex: "none",
+                        borderRadius: "0px",
+                        overflow: "visible",
+                        minHeight: "100%",
+                    }
+                    : {
+                        flex: 1,
+                        borderRadius: "0px",
+                        overflow: "hidden",
+                        minHeight: 0
+                    }
+            }
         >
             {
                 tabs.length > 0 &&
@@ -552,6 +642,8 @@ function RenderTab(
         </div>
     )
 }
+
+
 
 function AppCommandEntry({ setCmdBarVis }: { setCmdBarVis: (visible: boolean) => void }) {
     const { t } = useI18n();
@@ -884,51 +976,113 @@ function App() {
     };
     return (
         <InventoryProvider>
-        <main
-            className="app-shell"
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0px",
-                height: "100vh",
-                width: "100vw",
-                overflow: "hidden",
-                boxSizing: "border-box",
-                background: "var(--viventory-bg)",
-                color: "var(--viventory-text)",
-                fontSize: "var(--viventory-font-size)",
-            }}
-        >
-            {cmdBarVis && <CommandBar setVisibility={setCmdBarVis} />}
+            {(platform()=="android"||platform()=="ios")?
+                <main
+                    className="app-shell"
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0px",
+                        height: "100vh",
+                        width: "100vw",
+                        overflow: "hidden",
+                        boxSizing: "border-box",
+                        background: "var(--viventory-bg)",
+                        color: "var(--viventory-text)",
+                        fontSize: "var(--viventory-font-size)",
+                    }}>
+                    {/*
+                        This wrapper must be a flex container itself, or the
+                        child's flex:1/minHeight:0 below do nothing and the
+                        content silently gets clipped by this <main>'s
+                        overflow:hidden with no way to scroll.
+                    */}
+                    <div style={{
+                        position: "relative",
+                        flex: 1,
+                        minHeight: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        overflow: "hidden",
+                    }}>
+                        <div
+                            style={{
+                                flex: 1,
+                                minHeight: 0,
+                                overflowY: "auto",
+                                overflowX: "hidden",
+                                WebkitOverflowScrolling: "touch",
+                                display: "flex",
+                                flexDirection: "column",
+                                // Clearance so scrolled content never renders
+                                // behind/through the floating nav bar below
+                                // (fixed bottom:16 + height:60). This lives
+                                // here, not in each Tab, so every tab gets
+                                // it automatically.
+                                paddingBottom: "92px",
+                                boxSizing: "border-box",
+                            }}
+                        >
+                            {RenderTab(tabs, tabIndex, true)}
+                        </div>
 
-            {!isFullscreen && <Titlebar
-                    tabs={tabs}
-                    setTabIndex={setTabIndex}
-                    handleNewTab={handleNewTab}
-                    setTab={setTab}
-                />}
-            <AppCommandEntry setCmdBarVis={setCmdBarVis} />
-            <div
-                style={{
-                    flex: 1,
-                    minHeight: 0,
-                    display: "flex",
-                    flexDirection: "column"
-                }}
-            >
-                <RenderTabBar
-                    tabs={tabs}
-                    setTabs={setTabs}
-                    onClose={handleClosingTab}
-                    currentTabIndex={tabIndex}
-                    setTabIndex={setTabIndex}
-                    handleNewTab={handleNewTab}
-                    moveTab={moveTab}
-                />
+                        <RenderMobileTabBar
+                            tabs={tabs}
+                            setTabs={setTabs}
+                            tabIndex={tabIndex}
+                            setTabIndex={setTabIndex}
+                            handleNewTab={handleNewTab}
+                            setTab={setTab}
+                            handleClosingTab={handleClosingTab}
+                            handleMaterialSearch={handleMaterialSearch}
+                        />
+                    </div>
+                </main>:
+                <main
+                    className="app-shell"
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0px",
+                        height: "100vh",
+                        width: "100vw",
+                        overflow: "hidden",
+                        boxSizing: "border-box",
+                        background: "var(--viventory-bg)",
+                        color: "var(--viventory-text)",
+                        fontSize: "var(--viventory-font-size)",
+                    }}
+                >
+                    {cmdBarVis && <CommandBar setVisibility={setCmdBarVis} />}
 
-                {RenderTab(tabs, tabIndex)}
-            </div>
-        </main>
+                    {!isFullscreen && <Titlebar
+                        tabs={tabs}
+                        setTabIndex={setTabIndex}
+                        handleNewTab={handleNewTab}
+                        setTab={setTab}
+                    />}
+                    <AppCommandEntry setCmdBarVis={setCmdBarVis} />
+                    <div
+                        style={{
+                            flex: 1,
+                            minHeight: 0,
+                            display: "flex",
+                            flexDirection: "column"
+                        }}
+                    >
+                        <RenderTabBar
+                            tabs={tabs}
+                            setTabs={setTabs}
+                            onClose={handleClosingTab}
+                            currentTabIndex={tabIndex}
+                            setTabIndex={setTabIndex}
+                            handleNewTab={handleNewTab}
+                            moveTab={moveTab}
+                        />
+
+                        {RenderTab(tabs, tabIndex)}
+                    </div>
+                </main>}
         </InventoryProvider>
     )
 }

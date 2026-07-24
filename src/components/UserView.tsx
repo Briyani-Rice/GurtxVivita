@@ -12,6 +12,7 @@ import {
 import { Material, FloorData, MaterialRequest } from '../types';
 import { RoomMap } from './RoomMap';
 import { UserPrefs } from './SettingsView';
+import {platform} from "@tauri-apps/plugin-os";
 
 type UserTab = 'map' | 'materials';
 
@@ -400,6 +401,7 @@ export function UserView({
 
     return (
         <div style={styles.container}>
+            {(!(platform()=="android"||platform()=="ios")) ?
             <div style={styles.tabBar}>
                 {(['map', 'materials'] as UserTab[]).map(tab => (
                     <button
@@ -411,6 +413,8 @@ export function UserView({
                     </button>
                 ))}
             </div>
+                :<></>
+            }
 
             {activeTab === 'map' && (
                 <div style={styles.mapWrapper}>

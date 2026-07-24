@@ -325,26 +325,6 @@ function AppearanceContent() {
                 />
             </label>
             </section>
-            <aside
-                style={{
-                    borderRadius: 8,
-                    padding: 22,
-                    background: "linear-gradient(135deg, var(--viventory-welcome-accent), var(--viventory-welcome-accent-2))",
-                    color: "#1f1300",
-                    minHeight: 220,
-                    boxShadow: "0 18px 42px rgba(180, 83, 9, 0.22)",
-                }}
-            >
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 850, textTransform: "uppercase" }}>
-                    Preview card
-                </p>
-                <h3 style={{ margin: "18px 0 10px", fontSize: 28, letterSpacing: 0 }}>
-                    VIVITA Maker Guide
-                </h3>
-                <p style={{ margin: 0, color: "#1f1300", lineHeight: 1.45 }}>
-                    Theme, font size, and language changes apply immediately across the workspace.
-                </p>
-            </aside>
         </div>
     );
 }
