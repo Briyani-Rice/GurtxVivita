@@ -19,14 +19,18 @@ import {CommandBar} from "./CommandBar";
 import LoginTab from "./components/LoginTab";
 import {UserViewTab} from "./components/UserViewTab";
 import { applyAppearancePrefs, loadAppearancePrefs } from "./components/Settings/appearancePreferences";
-import { MakerKioskTab } from "./components/MakerKiosk";
+import { MakerKioskTab, MakerKiosk } from "./components/MakerKiosk";
 import vivitaLogo from "./assets/vivita-logo.png";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { InventoryProvider } from "./components/InventoryProvider";
+import { resolveDisplayMode } from "./utils/displayMode";
+import TvDisplay from "./components/TvDisplay";
 import AdminViewTab from "./components/AdminViewTab";
 import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
 import { recordAccountLogin } from "./services/accountSession";
 import { translateTabName, useI18n } from "./i18n/i18n";
+import { hasPrimaryModifier, isApplePlatform } from "./utils/shortcutModifier";
+import { Toaster } from "./components/ui/sonner";
 
 export type BasicTabProps = {
     tabs: Tab[];
@@ -255,7 +259,7 @@ function WelcomeContent() {
                         fontSize: "12px",
                         color: "var(--viventory-muted-text)",
                     }}>
-                        {t("welcome.hint")}
+                        {t("welcome.hint", { shortcut: isApplePlatform() ? "⌘Y" : "Ctrl+Y" })}
                     </p>
                 </main>
             </div>)
@@ -431,23 +435,25 @@ function RenderTabBar({
 
                 if (!over || active.id === over.id) return
 
-                const oldIndex =
-                    tabs.findIndex(
-                        t => t.id === active.id
-                    )
+                // Track the active tab by id: reordering any tab across the
+                // active one shifts its index, so recompute where it lands
+                // instead of only handling the "dragged the active tab" case.
+                const activeTabId = tabs[currentTabIndex]?.id
 
-                const newIndex =
-                    tabs.findIndex(
-                        t => t.id === over.id
-                    )
+                setTabs((items) => {
+                    const oldIndex = items.findIndex(t => t.id === active.id)
+                    const newIndex = items.findIndex(t => t.id === over.id)
+                    if (oldIndex === -1 || newIndex === -1) return items
 
-                setTabs((items) =>
-                    arrayMove(items, oldIndex, newIndex)
-                )
+                    const reordered = arrayMove(items, oldIndex, newIndex)
 
-                if (currentTabIndex === oldIndex) {
-                    setTabIndex(newIndex)
-                }
+                    const nextActiveIndex = reordered.findIndex(t => t.id === activeTabId)
+                    if (nextActiveIndex !== -1) {
+                        setTabIndex(nextActiveIndex)
+                    }
+
+                    return reordered
+                })
             }}
         >
             <SortableContext
@@ -528,11 +534,15 @@ function RenderTabBar({
     )
 }
 
-function RenderTab(
+function RenderTabs(
     tabs: Tab[],
     tabIndex: number
 ): React.ReactElement {
 
+    // Every tab stays mounted; only the active one is displayed. Hiding with
+    // display:none (instead of rendering just the active tab) preserves each
+    // tab's React state — the Maker Bot conversation, in-progress searches,
+    // half-filled forms — when the user switches away and back.
     return (
         <div
             style={{
@@ -542,13 +552,19 @@ function RenderTab(
                 minHeight: 0
             }}
         >
-            {
-                tabs.length > 0 &&
-                tabIndex >= 0 &&
-                tabIndex < tabs.length
-                    ? tabs[tabIndex].content
-                    : null
-            }
+            {tabs.map((tab, index) => (
+                <div
+                    key={tab.id}
+                    style={{
+                        height: "100%",
+                        width: "100%",
+                        overflow: "hidden",
+                        display: index === tabIndex ? "block" : "none",
+                    }}
+                >
+                    {tab.content}
+                </div>
+            ))}
         </div>
     )
 }
@@ -591,6 +607,7 @@ function App() {
 
     const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
     const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
+    const [displayMode] = useState(() => resolveDisplayMode())
 
     const [tabs, setTabs] = useState<Tab[]>([
         new welcomeTab()
@@ -680,11 +697,15 @@ function App() {
                 return [new welcomeTab()]
             }
 
-            if (tabIndex >= newTabs.length) {
-                setTabIndex(newTabs.length - 1)
-            } else if (tabIndex === index) {
-                setTabIndex(Math.max(0, index - 1))
-            }
+            // Keep the highlighted tab pointing at the same tab after the close.
+            // Using the functional form avoids depending on a stale tabIndex
+            // closure, and the index must shift left when a tab before the
+            // active one is removed.
+            setTabIndex((prevIndex) => {
+                if (index < prevIndex) return prevIndex - 1
+                if (index === prevIndex) return Math.min(prevIndex, newTabs.length - 1)
+                return prevIndex
+            })
 
             return newTabs
         })
@@ -814,21 +835,27 @@ function App() {
     })
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.metaKey && event.key === 'y') {
+            // Primary modifier is ⌘ on macOS, Ctrl on Windows/Linux/web, so the
+            // shortcuts work on every platform the app ships to.
+            const primary = hasPrimaryModifier(event);
+            const key = event.key.toLowerCase();
+
+            if (primary && key === 'y') {
+                event.preventDefault();
                 setCmdBarVis((prev) => !prev);
             }
 
-            if (event.metaKey && event.ctrlKey && event.key.toLowerCase() === 'f') {
+            if (event.metaKey && event.ctrlKey && key === 'f') {
                 event.preventDefault();
                 void toggleFullscreen();
             }
 
-            if (event.metaKey && event.key.toLowerCase() === 't') {
+            if (primary && key === 't') {
                 event.preventDefault();
                 handleNewTab();
             }
 
-            if (event.metaKey && event.key.toLowerCase() === 'w') {
+            if (primary && key === 'w') {
                 event.preventDefault();
                 handleClosingTab(tabIndex);
             }
@@ -841,7 +868,7 @@ function App() {
             }
 
             if (
-                event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey &&
+                primary && !event.altKey && !event.shiftKey &&
                 /^[1-9]$/.test(event.key) && tabs.length > 0
             ) {
                 event.preventDefault();
@@ -853,7 +880,7 @@ function App() {
             }
 
             if (
-                event.metaKey && event.shiftKey &&
+                primary && event.shiftKey &&
                 (event.code === 'BracketRight' || event.code === 'BracketLeft') &&
                 tabs.length > 0
             ) {
@@ -882,6 +909,24 @@ function App() {
             console.warn("Fullscreen is only available in the Tauri desktop app.", error);
         }
     };
+    if (displayMode === "tv") {
+        return (
+            <InventoryProvider>
+                <TvDisplay />
+            </InventoryProvider>
+        )
+    }
+
+    if (displayMode === "kiosk") {
+        return (
+            <InventoryProvider>
+                <div style={{ position: "fixed", inset: 0, display: "flex", flexDirection: "column" }}>
+                    <MakerKiosk />
+                </div>
+            </InventoryProvider>
+        )
+    }
+
     return (
         <InventoryProvider>
         <main
@@ -899,6 +944,7 @@ function App() {
                 fontSize: "var(--viventory-font-size)",
             }}
         >
+            <Toaster position="bottom-right" richColors />
             {cmdBarVis && <CommandBar setVisibility={setCmdBarVis} />}
 
             {!isFullscreen && <Titlebar
@@ -926,7 +972,7 @@ function App() {
                     moveTab={moveTab}
                 />
 
-                {RenderTab(tabs, tabIndex)}
+                {RenderTabs(tabs, tabIndex)}
             </div>
         </main>
         </InventoryProvider>

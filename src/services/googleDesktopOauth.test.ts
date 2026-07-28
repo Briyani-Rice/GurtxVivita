@@ -80,6 +80,18 @@ async function main() {
     assert.equal(body.get("redirect_uri"), "http://localhost:14155");
     assert.equal(body.get("code_verifier"), "ver");
 
+    const publicClientBody = buildTokenRequestBody({
+        code: "4/publicClient",
+        clientId: "desktop-cid",
+        redirectUri: "http://localhost:14155",
+        codeVerifier: "public-ver",
+    });
+    assert.equal(
+        publicClientBody.has("client_secret"),
+        false,
+        "Desktop PKCE token exchange should work without a client secret",
+    );
+
     // Token response parsing
     assert.deepEqual(parseTokenResponse({ id_token: "jwt123" }), { idToken: "jwt123" });
     assert.ok("error" in parseTokenResponse({ access_token: "no-id-token" }));

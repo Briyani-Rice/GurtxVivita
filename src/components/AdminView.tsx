@@ -5,6 +5,7 @@ import {
     Edit2,
     GripVertical,
     Inbox,
+    Lightbulb,
     MapPin,
     Package,
     Plus,
@@ -14,8 +15,12 @@ import {
 } from 'lucide-react';
 import { Material, Compartment, MaterialRequest, FloorData } from '../types';
 import { MaterialDialog } from './MaterialDialog';
+import { ProjectIdeaDialog } from './ProjectIdeaDialog';
+import { materialRequiresAdultSupervision } from './inventoryStore';
+import type { MakerItem, MakerProjectIdea } from './makerspaceData';
+import type { ProjectIdeaInput } from '../services/firebaseInventory';
 import { isMaterialAvailable } from '../utils/materialDetails';
-import { translatedStockLabel, useI18n } from '../i18n/i18n';
+import { translateDifficulty, translatedStockLabel, useI18n } from '../i18n/i18n';
 import {
     ResizableHandle,
     ResizablePanel,
@@ -28,9 +33,14 @@ interface AdminViewProps {
     compartments: Compartment[];
     materials: Material[];
     requests: MaterialRequest[];
+    makerItems: MakerItem[];
+    projectIdeas: MakerProjectIdea[];
     onAddMaterial: (material: Omit<Material, 'id' | 'createdAt'>) => void;
     onEditMaterial: (id: string, material: Omit<Material, 'id' | 'createdAt'>) => void;
     onDeleteMaterial: (id: string) => void;
+    onAddProjectIdea: (idea: ProjectIdeaInput) => void;
+    onEditProjectIdea: (id: string, idea: ProjectIdeaInput) => void;
+    onDeleteProjectIdea: (id: string) => void;
     onApproveRequest: (id: string) => void;
     onDeclineRequest: (id: string) => void;
     getterEmptyMaterials: () => Material[];
@@ -416,7 +426,13 @@ const makeStockPillStyle = (material: Material): CSSProperties => {
     };
 };
 
+// Stored staff flags win; keyword inference only covers older records
+// (see materialRequiresAdultSupervision in inventoryStore).
 function materialNeedsAdultSupervision(material: Material): boolean {
+    if (material.safetyLevel) {
+        return materialRequiresAdultSupervision(material);
+    }
+
     const text = `${material.name} ${material.description}`.toLowerCase();
     return /\b(adult|supervision|hot|solder|saw|drill|knife|cutter|3d printer|printer|laser|blade)\b/.test(text);
 }
@@ -445,9 +461,14 @@ export function AdminView({
                               compartments,
                               materials,
                               requests,
+                              makerItems,
+                              projectIdeas,
                               onAddMaterial,
                               onEditMaterial,
                               onDeleteMaterial,
+                              onAddProjectIdea,
+                              onEditProjectIdea,
+                              onDeleteProjectIdea,
                               onApproveRequest,
                               onDeclineRequest,
                               getterEmptyMaterials,
@@ -460,6 +481,8 @@ export function AdminView({
     );
     const [isMaterialDialogOpen, setIsMaterialDialogOpen] = useState(false);
     const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+    const [isIdeaDialogOpen, setIsIdeaDialogOpen] = useState(false);
+    const [editingIdea, setEditingIdea] = useState<MakerProjectIdea | null>(null);
     const [materialSearch, setMaterialSearch] = useState('');
     const [sortMode, setSortMode] = useState<MaterialSortMode>('name-asc');
     const [stockFilter, setStockFilter] = useState<StockFilterMode>('all');
@@ -508,6 +531,15 @@ export function AdminView({
     const openAddMaterial = () => {
         setEditingMaterial(null);
         setIsMaterialDialogOpen(true);
+    };
+
+    const handleSaveProjectIdea = (idea: ProjectIdeaInput) => {
+        if (editingIdea) {
+            onEditProjectIdea(editingIdea.id, idea);
+            setEditingIdea(null);
+        } else {
+            onAddProjectIdea(idea);
+        }
     };
 
     return (
@@ -834,6 +866,75 @@ export function AdminView({
                             )}
                         </div>
 
+                        <section style={{ ...styles.sideSection, borderTop: '1px solid var(--viventory-border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                                <div>
+                                    <p style={styles.sectionLabel}>
+                                        <Lightbulb size={15} />
+                                        {t('admin.projectIdeas')}
+                                    </p>
+                                    <p style={styles.paneMeta}>
+                                        {t('admin.projectIdeasSub')}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditingIdea(null);
+                                        setIsIdeaDialogOpen(true);
+                                    }}
+                                    style={makeButtonStyle('primary')}
+                                >
+                                    <Plus size={16} />
+                                    {t('admin.addIdea')}
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, maxHeight: 220, overflow: 'auto' }}>
+                                {projectIdeas.length === 0 ? (
+                                    <p style={styles.paneMeta}>{t('admin.noIdeas')}</p>
+                                ) : (
+                                    projectIdeas.map(idea => (
+                                        <article key={idea.id} style={styles.requestCard}>
+                                            <div style={styles.requestTop}>
+                                                <div style={{ minWidth: 0 }}>
+                                                    <h4 style={styles.requestName}>{idea.name}</h4>
+                                                    <p style={styles.requestMeta}>
+                                                        {translateDifficulty(language, idea.difficulty)} · {t('admin.ideaItems', { count: idea.requiredItemIds.length })}
+                                                    </p>
+                                                </div>
+                                                <div style={styles.cardActions}>
+                                                    <button
+                                                        type="button"
+                                                        aria-label={`Edit ${idea.name}`}
+                                                        title={`Edit ${idea.name}`}
+                                                        onClick={() => {
+                                                            setEditingIdea(idea);
+                                                            setIsIdeaDialogOpen(true);
+                                                        }}
+                                                        style={makeButtonStyle('ghost')}
+                                                    >
+                                                        <Edit2 size={15} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        aria-label={`Delete ${idea.name}`}
+                                                        title={`Delete ${idea.name}`}
+                                                        onClick={() => {
+                                                            if (confirm('Delete this project idea?')) onDeleteProjectIdea(idea.id);
+                                                        }}
+                                                        style={makeButtonStyle('ghost')}
+                                                    >
+                                                        <Trash2 size={15} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    ))
+                                )}
+                            </div>
+                        </section>
+
                         {emptyMaterials.length > 0 && (
                             <section style={styles.sideSection}>
                                 <p style={styles.sectionLabel}>
@@ -860,6 +961,14 @@ export function AdminView({
                 material={editingMaterial}
                 compartments={compartments}
                 selectedCompartmentId={selectedElement ?? undefined}
+            />
+
+            <ProjectIdeaDialog
+                isOpen={isIdeaDialogOpen}
+                onClose={() => { setIsIdeaDialogOpen(false); setEditingIdea(null); }}
+                onSave={handleSaveProjectIdea}
+                idea={editingIdea}
+                items={makerItems}
             />
         </div>
     );

@@ -1,6 +1,7 @@
 import { ReactElement, useEffect, useState, useRef } from "react";
 import { CommandArgumentType } from "./types";
 import { commands } from "./app";
+import { translateCommandName, useI18n } from "./i18n/i18n";
 
 function getTypeString(arg: CommandArgumentType): String {
     switch (arg) {
@@ -20,12 +21,30 @@ export type CmdProps = {
 };
 
 export function CommandBar({ setVisibility }: CmdProps): ReactElement {
+    const { language, t } = useI18n();
     const [text, setText] = useState("");
+    const [selectedIndex, setSelectedIndex] = useState(0);
     const menuRef = useRef<HTMLDivElement | null>(null);
 
+    // Match against both the stable English name and the localized label so the
+    // search works whether the user types in English or the active language.
+    const query = text.toLowerCase();
     const visCommands = commands.filter(command =>
-        command.name.toLowerCase().includes(text.toLowerCase())
+        command.name.toLowerCase().includes(query) ||
+        translateCommandName(language, command.name).toLowerCase().includes(query)
     );
+
+    // Keep the highlighted row in range as the filter narrows the list.
+    useEffect(() => {
+        setSelectedIndex(index => Math.min(index, Math.max(0, visCommands.length - 1)));
+    }, [visCommands.length]);
+
+    const runCommand = (index: number) => {
+        const command = visCommands[index];
+        if (!command) return;
+        command.onRun();
+        setVisibility(false);
+    };
 
     const [bounds, setBounds] = useState({ left: 0, width: 0 });
 
@@ -107,7 +126,19 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                 type="search"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Search..."
+                onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setSelectedIndex(index => Math.min(index + 1, visCommands.length - 1));
+                    } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        setSelectedIndex(index => Math.max(index - 1, 0));
+                    } else if (e.key === "Enter") {
+                        e.preventDefault();
+                        runCommand(selectedIndex);
+                    }
+                }}
+                placeholder={t("command.searchPlaceholder")}
                 style={{
                     color:"var(--viventory-text)",
                     fontFamily: "monospace",
@@ -135,32 +166,44 @@ export function CommandBar({ setVisibility }: CmdProps): ReactElement {
                     paddingTop: "8px",
                 }}
             >
-                {visCommands.map((value) => {
+                {visCommands.length === 0 ? (
+                    <div
+                        style={{
+                            fontFamily: "monospace",
+                            fontSize: "13px",
+                            padding: "9px 10px",
+                            color: "var(--viventory-muted-text)",
+                        }}
+                    >
+                        {t("command.noResults")}
+                    </div>
+                ) : visCommands.map((value, index) => {
                     const args = value.args
                         .map(arg => `[${arg.Name} ${getTypeString(arg.Type)}]`)
                         .join(" ");
+                    const isSelected = index === selectedIndex;
 
                     return (
                         <button
                             key={value.name}
+                            onMouseEnter={() => setSelectedIndex(index)}
                             style={{
                                 width: "100%",
                                 textAlign: "left",
                                 fontFamily: "monospace",
                                 fontSize: "13px",
                                 padding: "9px 10px",
-                                background: "var(--viventory-surface)",
-                                border: "1px solid var(--viventory-border)",
+                                background: isSelected ? "var(--viventory-active-tab)" : "var(--viventory-surface)",
+                                border: isSelected
+                                    ? "1px solid var(--viventory-tab-active-border)"
+                                    : "1px solid var(--viventory-border)",
                                 borderRadius: "4px",
                                 cursor: "pointer",
                                 color:"var(--viventory-text)"
                             }}
-                            onClick={()=>{
-                                value.onRun()
-                                setVisibility(false)
-                            }}
+                            onClick={()=> runCommand(index)}
                         >
-                            {`> ${value.name} ${args}`}
+                            {`> ${translateCommandName(language, value.name)} ${args}`}
                         </button>
                     );
                 })}

@@ -9,7 +9,8 @@ The app is built as a Vite + React frontend with a Tauri desktop shell.
 - Child-facing Maker Bot kiosk for finding items, learning safe usage, and getting project ideas.
 - Interactive room map for locating storage areas and checking material quantities.
 - User view for searching materials and submitting requests.
-- Admin view for adding, editing, and deleting materials.
+- Admin view for adding, editing, and deleting materials, including usage instructions, image/video links, and the adult-supervision safety flag.
+- Admin-managed project ideas linked to the materials they need, synced to the Maker Bot in near real time.
 - Admin request queue for approving or declining material requests.
 - Documentation tab with in-app Markdown docs.
 - Appearance settings for light, dark, or system theme, font size, and language.
@@ -23,7 +24,7 @@ The `Maker Bot` tab is designed for a dedicated makerspace tablet. Children can 
 - `How do I use a micro:bit?`
 - `What can I make with cardboard and LEDs?`
 
-The current implementation is rule-based rather than API-powered, which keeps the prototype free to run and ensures safety warnings appear predictably before instructions for adult-supervision tools.
+The rule-based engine answers instantly and offline, ensuring safety warnings appear predictably before instructions for adult-supervision tools. For questions it can't answer, VIVI Bot falls back to a Groq-backed LLM via a Cloud Function whose API key stays server-side — see [docs/groq-chatbot-setup.md](docs/groq-chatbot-setup.md) to enable it. Leaving it unconfigured keeps the bot fully rule-based.
 
 The Maker Bot supports the core requirements from the makerspace user requirements document:
 
@@ -45,10 +46,15 @@ Password: User12345
 After login, the app opens `Admin View`, where staff can:
 
 - Add, edit, and delete materials.
+- Edit each material's usage instructions and attach image or video links.
+- Flag or unflag tools as needing adult supervision (the Maker Bot shows the safety warning before instructions).
+- Add, edit, and delete project ideas and link them to required materials/tools.
 - Review pending material requests.
 - Approve requests and reduce stock quantities.
 - Decline requests.
 - See out-of-stock items.
+
+Materials, requests, and project ideas are stored in Firestore (`materials`, `materialRequests`, and `projectIdeas` collections) and streamed live with `onSnapshot`, so admin edits reach the kiosk in near real time. See the in-app Documentation tab for the Admin User Guide, Technical Architecture, and Handover & Maintenance Guide.
 
 ## Firebase Google Login
 
@@ -67,6 +73,10 @@ VITE_FIREBASE_ADMIN_EMAILS=admin@example.com,another-admin@example.com
 ```
 
 Only Google accounts listed in `VITE_FIREBASE_ADMIN_EMAILS` open `Admin View`; other Google accounts sign in as basic users. The demo username/password login remains available for local prototype use.
+
+For the Tauri desktop app, also create a Google Cloud OAuth client with application type **Desktop app** and set `VITE_GOOGLE_DESKTOP_CLIENT_ID`. The PKCE flow does not require a client secret; `VITE_GOOGLE_DESKTOP_CLIENT_SECRET` remains optional for compatibility.
+
+If Google sign-in fails, see [docs/google-login-setup.md](docs/google-login-setup.md) for setup and troubleshooting (the fix is usually enabling the Google provider or authorizing the domain in Firebase Console).
 
 ## Running The App
 
@@ -96,43 +106,30 @@ Build the frontend:
 npm run build
 ```
 
-## PocketBase Materials Storage
+## Materials Storage (Firestore)
 
-Admin material add, edit, delete, and request-approval stock updates are stored through PocketBase. By default, the app connects to:
+Materials, material requests, and project ideas are stored in **Firebase Firestore** — this is the source of truth for all admin CRUD. `src/components/InventoryProvider.tsx` subscribes to the collections with `onSnapshot`, so admin edits reach the kiosk in near real time. Configure the Firebase web app values in a local env file (see the Firebase Google Login section above for the `VITE_FIREBASE_*` variables).
 
-```text
-http://127.0.0.1:8090
-```
-
-To use another PocketBase server, create a local env file:
-
-```bash
-VITE_POCKETBASE_URL=https://your-pocketbase.example.com
-```
-
-Create a base collection named `materials` with these fields:
+Collections used (created automatically on first write):
 
 ```text
-name          text, required
-description   text
-quantity      number, required
-unit          text, required
-compartmentId text, required
+materials         name, description, quantity, unit, compartmentId,
+                  safetyLevel, instructions[], imageUrl, videoUrl
+materialRequests  materialId, materialName, requestedQuantity, reason, status
+projectIdeas      name, summary, difficulty, requiredItemIds[], steps[]
 ```
 
-For local prototype use, set the collection API rules to allow the admin app to list, view, create, update, and delete records. If PocketBase is not running, the admin view falls back to starter data and shows an error when staff try to save changes.
+If Firestore is unreachable the app falls back to the seeded starter data and shows a non-blocking toast; changes made offline are kept for the session but do not sync until Firestore is reachable again.
+
+> Note: `src/services/pocketbaseMaterials.ts` is legacy and is **not** used by the app.
 
 ## Useful Checks
 
-The project currently uses small source-level regression checks plus the production build:
+The project uses small source-level regression checks run with `tsx`, plus the production build:
 
 ```bash
-node --experimental-strip-types src/services/pocketbaseMaterials.test.ts
-node --experimental-strip-types src/components/AdminViewTabPocketBase.test.ts
-node --experimental-strip-types src/utils/makerspaceAssistant.test.ts
-node --experimental-strip-types src/components/MakerKiosk.test.ts
-node --experimental-strip-types src/components/AdminView.test.ts
-node --experimental-strip-types src/components/Settings/SettingsPages/Appearance.test.ts
+npm test        # runs every *.test.ts / *.test.tsx under src/
+npm run lint
 npm run build
 ```
 
@@ -153,7 +150,7 @@ src/components/Docs/                 In-app Markdown documentation
 - Tauri desktop mode requires Rust and Cargo.
 - This project is still a prototype, so some data is stored locally in component state or browser storage.
 - Appearance preferences are saved in localStorage and reapplied when the app starts.
-- Maker Bot data is currently seeded in code and can be moved to a cloud database such as Firebase or Supabase later.
+- Maker Bot data is seeded in code as a fallback and is merged with the live Firestore inventory at runtime.
 
 ## Project Links
 

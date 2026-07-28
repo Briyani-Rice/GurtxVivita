@@ -9,6 +9,7 @@ import {
     type Auth,
     type User as FirebaseUser,
 } from "firebase/auth";
+import { isTauri } from "@tauri-apps/api/core";
 import {
     buildGoogleAuthUrl,
     buildTokenRequestBody,
@@ -18,38 +19,38 @@ import {
     parseRedirectUrl,
     parseTokenResponse,
 } from "./googleDesktopOauth";
+import { googleAuthErrorMessage } from "./googleAuthErrors";
 import { UserPerms } from "../types";
 import { getFirebaseApp, hasFirebaseConfig } from "./firebaseApp";
 import { getOrCreateFirebaseUserProfile } from "./firebaseUsers";
+import {
+    getGoogleLoginAvailability,
+    type GoogleLoginAvailability,
+} from "./googleLoginAvailability";
 
 export type FirebaseLoginResult = {
     success: boolean;
     note: string;
+    // The popup was blocked and a full-page redirect is now under way. This is
+    // an in-progress state, not a failure, so callers should not show it in red.
+    redirecting?: boolean;
     perms?: UserPerms;
     email?: string | null;
     displayName?: string | null;
 };
 
 let firebaseAuth: Auth | undefined;
-const defaultAdminEmails = [
-    "le_son_tung@s2025.ssts.edu.sg",
-];
-
-function isTauriRuntime(): boolean {
-    return typeof window !== "undefined"
-        && (
-            "__TAURI_INTERNALS__" in window
-            || "__TAURI__" in window
-        );
-}
+// Admin emails come from the VITE_FIREBASE_ADMIN_EMAILS env var only — no
+// personal emails are hardcoded in the shipped bundle. See adminEmails().
+const defaultAdminEmails: string[] = [];
 
 const DESKTOP_LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
 
-function desktopOauthClient(): { clientId: string; clientSecret: string } | null {
+function desktopOauthClient(): { clientId: string; clientSecret?: string } | null {
     const clientId = String(import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID ?? "").trim();
     const clientSecret = String(import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_SECRET ?? "").trim();
 
-    return clientId && clientSecret ? { clientId, clientSecret } : null;
+    return clientId ? { clientId, ...(clientSecret ? { clientSecret } : {}) } : null;
 }
 
 function getFirebaseAuth(): Auth | null {
@@ -118,31 +119,23 @@ function errorMessage(error: unknown, fallback: string): string {
     const code = errorCode(error);
     const message = error instanceof Error ? error.message : fallback;
 
-    if (code === "auth/configuration-not-found") {
-        return "Enable Firebase Authentication and the Google sign-in provider in Firebase Console, then restart the app.";
-    }
-
-    if (code === "auth/operation-not-allowed") {
-        return "Google sign-in is disabled for this Firebase project. Enable the Google provider in Firebase Authentication.";
-    }
-
-    if (code === "auth/unauthorized-domain") {
-        return "This app domain is not authorized in Firebase Authentication. Add localhost and 127.0.0.1 to Authorized domains.";
-    }
-
-    return code ? `${code}: ${message}` : message;
+    return googleAuthErrorMessage(code, message);
 }
 
 export function isFirebaseAuthConfigured(): boolean {
     return hasFirebaseConfig();
 }
 
-export function isGoogleLoginSupported(): boolean {
-    if (!hasFirebaseConfig()) {
-        return false;
-    }
+export function getCurrentGoogleLoginAvailability(): GoogleLoginAvailability {
+    return getGoogleLoginAvailability({
+        firebaseConfigured: hasFirebaseConfig(),
+        desktop: isTauri(),
+        desktopOauthConfigured: desktopOauthClient() !== null,
+    });
+}
 
-    return !isTauriRuntime() || desktopOauthClient() !== null;
+export function isGoogleLoginSupported(): boolean {
+    return getCurrentGoogleLoginAvailability().available;
 }
 
 // Desktop (Tauri) flow: Google blocks OAuth inside embedded webviews, so we
@@ -154,7 +147,7 @@ async function signInWithGoogleDesktop(auth: Auth): Promise<FirebaseLoginResult>
     if (!client) {
         return {
             success: false,
-            note: "Set VITE_GOOGLE_DESKTOP_CLIENT_ID and VITE_GOOGLE_DESKTOP_CLIENT_SECRET to enable Google login in the desktop app.",
+            note: "Set VITE_GOOGLE_DESKTOP_CLIENT_ID to enable Google login in the desktop app.",
         };
     }
 
@@ -241,6 +234,15 @@ async function signInWithGoogleDesktop(auth: Auth): Promise<FirebaseLoginResult>
 }
 
 export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
+    const availability = getCurrentGoogleLoginAvailability();
+
+    if (!availability.available) {
+        return {
+            success: false,
+            note: availability.note,
+        };
+    }
+
     const auth = getFirebaseAuth();
 
     if (!auth) {
@@ -250,7 +252,7 @@ export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
         };
     }
 
-    if (isTauriRuntime()) {
+    if (availability.runtime === "desktop") {
         return signInWithGoogleDesktop(auth);
     }
 
@@ -271,6 +273,7 @@ export async function signInWithGoogle(): Promise<FirebaseLoginResult> {
 
             return {
                 success: false,
+                redirecting: true,
                 note: "Redirecting to Google sign-in...",
             };
         }

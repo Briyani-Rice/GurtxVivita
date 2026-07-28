@@ -25,7 +25,7 @@ assert.match(
 
 assert.match(
     source,
-    /event\.metaKey && event\.ctrlKey && event\.key\.toLowerCase\(\) === 'f'/,
+    /event\.metaKey && event\.ctrlKey && key === 'f'/,
     "Ctrl+Cmd+F should toggle fullscreen mode on macOS",
 );
 

@@ -6,8 +6,8 @@ const providerSource = readFileSync(new URL("./InventoryProvider.tsx", import.me
 
 assert.match(
     providerSource,
-    /listMaterialRecords/,
-    "Shared inventory provider should load materials from Firebase",
+    /subscribeMaterialRecords/,
+    "Shared inventory provider should stream materials from Firebase in near real time",
 );
 
 assert.match(
@@ -30,8 +30,8 @@ assert.match(
 
 assert.match(
     providerSource,
-    /listMaterialRequestRecords/,
-    "Shared inventory provider should load material requests from Firebase",
+    /subscribeMaterialRequestRecords/,
+    "Shared inventory provider should stream material requests from Firebase in near real time",
 );
 
 assert.match(
@@ -50,6 +50,12 @@ assert.match(
     providerSource,
     /declineMaterialRequestRecord/,
     "Admin declines should update Firebase request status",
+);
+
+assert.match(
+    providerSource,
+    /approveRequestWithoutStockRecord\(request\)/,
+    "Approving a request whose material is gone should still persist to Firebase, or the live subscription reverts it to pending",
 );
 
 assert.match(

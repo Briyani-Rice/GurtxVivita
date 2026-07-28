@@ -6,6 +6,7 @@ const appSource = readFileSync(new URL("./firebaseApp.ts", import.meta.url), "ut
 const loginSource = readFileSync(new URL("../components/LoginTab.tsx", import.meta.url), "utf8");
 const appEntrySource = readFileSync(new URL("../app.tsx", import.meta.url), "utf8");
 const envExampleSource = readFileSync(new URL("../../.env.example", import.meta.url), "utf8");
+const authErrorsSource = readFileSync(new URL("./googleAuthErrors.ts", import.meta.url), "utf8");
 
 assert.match(
     appSource,
@@ -51,14 +52,26 @@ assert.match(
 
 assert.match(
     authSource,
-    /auth\/configuration-not-found/,
-    "Firebase auth service should explain when Firebase Authentication or Google provider is not enabled",
+    /googleAuthErrorMessage/,
+    "Firebase auth service should map error codes to messages through the shared googleAuthErrors helper",
 );
 
 assert.match(
-    authSource,
+    authErrorsSource,
+    /auth\/configuration-not-found/,
+    "Auth error helper should explain when Firebase Authentication or Google provider is not enabled",
+);
+
+assert.match(
+    authErrorsSource,
     /Enable Firebase Authentication and the Google sign-in provider/,
-    "Firebase auth service should give an actionable fix for missing auth configuration",
+    "Auth error helper should give an actionable fix for missing auth configuration",
+);
+
+assert.match(
+    authErrorsSource,
+    /auth\/unauthorized-domain/,
+    "Auth error helper should explain the unauthorized-domain failure with the Console fix",
 );
 
 assert.match(
@@ -73,16 +86,16 @@ assert.match(
     "Firebase auth service should support admin email allow-listing",
 );
 
-assert.match(
+assert.doesNotMatch(
     authSource,
-    /le_son_tung@s2025\.ssts\.edu\.sg/,
-    "Firebase auth service should make Le Son Tung's school Google account admin",
+    /@s2025\.ssts\.edu\.sg/,
+    "Firebase auth service should not hardcode a personal admin email in the bundle (admins come from VITE_FIREBASE_ADMIN_EMAILS)",
 );
 
 assert.match(
     authSource,
-    /function isTauriRuntime/,
-    "Firebase auth service should detect the packaged Tauri runtime",
+    /import\s*{\s*isTauri\s*}\s*from\s*"@tauri-apps\/api\/core"/,
+    "Firebase auth service should use Tauri's official runtime detector",
 );
 
 assert.match(
@@ -113,6 +126,12 @@ assert.match(
     authSource,
     /VITE_GOOGLE_DESKTOP_CLIENT_ID/,
     "Firebase auth service should read the desktop OAuth client ID from Vite env",
+);
+
+assert.doesNotMatch(
+    authSource,
+    /return clientId && clientSecret \?/,
+    "Desktop OAuth availability should not require the optional client secret",
 );
 
 assert.match(
@@ -171,14 +190,14 @@ assert.match(
 
 assert.match(
     loginSource,
-    /isFirebaseAuthConfigured/,
-    "Login tab should avoid offering an active Google sign-in button when Firebase env is missing",
+    /getCurrentGoogleLoginAvailability/,
+    "Login tab should read Firebase and runtime support from the shared availability result",
 );
 
 assert.match(
     loginSource,
-    /isGoogleLoginSupported/,
-    "Login tab should also disable Google sign-in in runtimes where Firebase popup auth cannot complete",
+    /disabled=\{googleLoading \|\| loading \|\| !googleLoginSupported\}/,
+    "Login tab should disable Google sign-in whenever the structured availability says it cannot complete",
 );
 
 assert.match(
@@ -220,5 +239,32 @@ for (const key of [
 ]) {
     assert.match(envExampleSource, new RegExp(`${key}=`), `.env.example should document ${key}`);
 }
+
+// Availability must be a single structured decision shared by the button and
+// the action it runs. This avoids the label and click path independently
+// interpreting Firebase, desktop, and OAuth configuration.
+assert.match(
+    authSource,
+    /getGoogleLoginAvailability/,
+    "Firebase auth should calculate Google login availability through the pure helper",
+);
+
+assert.match(
+    authSource,
+    /getCurrentGoogleLoginAvailability/,
+    "Firebase auth should expose one structured availability result",
+);
+
+assert.match(
+    loginSource,
+    /getCurrentGoogleLoginAvailability/,
+    "LoginTab should use the same structured availability result as sign-in",
+);
+
+assert.doesNotMatch(
+    loginSource,
+    /useEffect/,
+    "LoginTab should not use a separate mount-time availability patch",
+);
 
 console.log("firebaseAuth source checks passed");

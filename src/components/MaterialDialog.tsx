@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Material, Compartment } from '../types';
 import type { CSSProperties } from 'react';
+import { useI18n } from '../i18n/i18n';
 
 interface MaterialDialogProps {
     isOpen: boolean;
@@ -122,12 +123,17 @@ export function MaterialDialog({
                                    compartments,
                                    selectedCompartmentId
                                }: MaterialDialogProps) {
+    const { t } = useI18n();
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         quantity: 0,
         unit: 'pcs',
-        compartmentId: ''
+        compartmentId: '',
+        needsAdult: false,
+        instructionsText: '',
+        imageUrl: '',
+        videoUrl: ''
     });
 
     useEffect(() => {
@@ -137,7 +143,11 @@ export function MaterialDialog({
                 description: material.description,
                 quantity: material.quantity,
                 unit: material.unit,
-                compartmentId: material.compartmentId
+                compartmentId: material.compartmentId,
+                needsAdult: material.safetyLevel === 'adult',
+                instructionsText: (material.instructions ?? []).join('\n'),
+                imageUrl: material.imageUrl ?? '',
+                videoUrl: material.videoUrl ?? ''
             });
         } else {
             setFormData({
@@ -145,14 +155,30 @@ export function MaterialDialog({
                 description: '',
                 quantity: 0,
                 unit: 'pcs',
-                compartmentId: selectedCompartmentId || ''
+                compartmentId: selectedCompartmentId || '',
+                needsAdult: false,
+                instructionsText: '',
+                imageUrl: '',
+                videoUrl: ''
             });
         }
     }, [material, selectedCompartmentId, isOpen]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData);
+        const { needsAdult, instructionsText, imageUrl, videoUrl, ...base } = formData;
+        onSave({
+            ...base,
+            // Saved explicitly (never undefined) so staff can also unflag a tool.
+            safetyLevel: needsAdult ? 'adult' : 'normal',
+            instructions: instructionsText
+                .split('\n')
+                .map(step => step.trim())
+                .filter(Boolean),
+            // Omit blanks so Firestore docs stay clean (undefined is stripped on write).
+            imageUrl: imageUrl.trim() || undefined,
+            videoUrl: videoUrl.trim() || undefined
+        });
         onClose();
     };
 
@@ -163,13 +189,13 @@ export function MaterialDialog({
             <div style={styles.panel} role="dialog" aria-modal="true" aria-labelledby="material-dialog-title">
                 <div style={styles.header}>
                     <h2 id="material-dialog-title" style={styles.title}>
-                        {material ? 'Edit Material' : 'Add Material'}
+                        {material ? t('dialog.material.editTitle') : t('dialog.material.addTitle')}
                     </h2>
                     <button
                         type="button"
                         onClick={onClose}
                         style={styles.closeButton}
-                        aria-label="Close material dialog"
+                        aria-label={t('dialog.close')}
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -178,7 +204,7 @@ export function MaterialDialog({
                 <form onSubmit={handleSubmit} style={styles.form}>
                     <div>
                         <label htmlFor="name" style={styles.label}>
-                            Material Name *
+                            {t('dialog.material.name')}
                         </label>
                         <input
                             type="text"
@@ -187,20 +213,20 @@ export function MaterialDialog({
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             style={styles.field}
-                            placeholder="e.g., Cardboard, Coloured Paper"
+                            placeholder={t('dialog.material.namePlaceholder')}
                         />
                     </div>
 
                     <div>
                         <label htmlFor="description" style={styles.label}>
-                            Description
+                            {t('dialog.material.description')}
                         </label>
                         <textarea
                             id="description"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             style={styles.field}
-                            placeholder="Additional details..."
+                            placeholder={t('dialog.material.descriptionPlaceholder')}
                             rows={3}
                         />
                     </div>
@@ -208,7 +234,7 @@ export function MaterialDialog({
                     <div style={styles.grid}>
                         <div>
                             <label htmlFor="quantity" style={styles.label}>
-                                Quantity *
+                                {t('dialog.material.quantity')}
                             </label>
                             <input
                                 type="number"
@@ -223,7 +249,7 @@ export function MaterialDialog({
 
                         <div>
                             <label htmlFor="unit" style={styles.label}>
-                                Unit *
+                                {t('dialog.material.unit')}
                             </label>
                             <select
                                 id="unit"
@@ -246,7 +272,7 @@ export function MaterialDialog({
 
                     <div>
                         <label htmlFor="compartment" style={styles.label}>
-                            Compartment *
+                            {t('dialog.material.compartment')}
                         </label>
                         <select
                             id="compartment"
@@ -255,7 +281,7 @@ export function MaterialDialog({
                             onChange={(e) => setFormData({ ...formData, compartmentId: e.target.value })}
                             style={styles.field}
                         >
-                            <option value="">Select compartment...</option>
+                            <option value="">{t('dialog.material.compartmentSelect')}</option>
                             {compartments.map((comp) => (
                                 <option key={comp.id} value={comp.id}>
                                     {comp.number} - {comp.name}
@@ -264,19 +290,72 @@ export function MaterialDialog({
                         </select>
                     </div>
 
+                    <div>
+                        <label htmlFor="instructions" style={styles.label}>
+                            {t('dialog.material.howToUse')}
+                        </label>
+                        <textarea
+                            id="instructions"
+                            value={formData.instructionsText}
+                            onChange={(e) => setFormData({ ...formData, instructionsText: e.target.value })}
+                            style={styles.field}
+                            placeholder={t('dialog.material.howToUsePlaceholder')}
+                            rows={4}
+                        />
+                    </div>
+
+                    <div style={styles.grid}>
+                        <div>
+                            <label htmlFor="imageUrl" style={styles.label}>
+                                {t('dialog.material.imageLink')}
+                            </label>
+                            <input
+                                type="url"
+                                id="imageUrl"
+                                value={formData.imageUrl}
+                                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                                style={styles.field}
+                                placeholder="https://..."
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="videoUrl" style={styles.label}>
+                                {t('dialog.material.videoLink')}
+                            </label>
+                            <input
+                                type="url"
+                                id="videoUrl"
+                                value={formData.videoUrl}
+                                onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                                style={styles.field}
+                                placeholder="https://..."
+                            />
+                        </div>
+                    </div>
+
+                    <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 0, cursor: 'pointer' }}>
+                        <input
+                            type="checkbox"
+                            checked={formData.needsAdult}
+                            onChange={(e) => setFormData({ ...formData, needsAdult: e.target.checked })}
+                        />
+                        {t('dialog.material.needsAdult')}
+                    </label>
+
                     <div style={styles.actions}>
                         <button
                             type="button"
                             onClick={onClose}
                             style={styles.secondaryButton}
                         >
-                            Cancel
+                            {t('dialog.cancel')}
                         </button>
                         <button
                             type="submit"
                             style={styles.primaryButton}
                         >
-                            {material ? 'Update' : 'Add'}
+                            {material ? t('dialog.update') : t('dialog.add')}
                         </button>
                     </div>
                 </form>

@@ -16,13 +16,15 @@ import type { Tab } from "../types";
 import heroImage from "../assets/hero.png";
 import {
     answerMakerQuery,
-    projectIdeas,
     type MakerAnswer,
     type MakerAnswerSection,
     type MakerItem,
     type MakerProjectIdea,
 } from "./makerspaceData";
 import { useInventory } from "./InventoryProvider";
+import { askGroqFallback } from "../services/makerAssistantGroq";
+import { isSafeHttpUrl, openExternalUrl } from "../utils/externalUrl";
+import { getCurrentLanguage, translateDifficulty } from "../i18n/i18n";
 
 type ChatMessage = {
     id: string;
@@ -264,7 +266,7 @@ const styles: Record<string, React.CSSProperties> = {
         background: "rgba(165, 214, 209, 0.34)",
         color: palette.deepSky,
         padding: "4px 9px",
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: 800,
     },
 };
@@ -299,7 +301,7 @@ function ProjectCard({ project }: { project: MakerProjectIdea }) {
         <div style={{ ...styles.itemCard, background: palette.paper }}>
             <span style={styles.badge}>
                 <Lightbulb size={14} />
-                {project.difficulty}
+                {translateDifficulty(getCurrentLanguage(), project.difficulty)}
             </span>
             <strong>{project.name}</strong>
             <span style={{ color: palette.muted, fontSize: 14, lineHeight: 1.4 }}>{project.summary}</span>
@@ -334,6 +336,23 @@ function AssistantAnswer({ answer }: { answer: MakerAnswer }) {
         <>
             <strong style={{ fontSize: 18 }}>{answer.title}</strong>
             {answer.sections.map(formatSection)}
+            {isSafeHttpUrl(answer.item?.imageUrl) && (
+                <img
+                    src={answer.item!.imageUrl}
+                    alt={`Photo of ${answer.item!.name}`}
+                    style={{ display: "block", maxWidth: "100%", maxHeight: 220, borderRadius: 6, marginTop: 12, border: `1px solid ${palette.line}` }}
+                    onError={event => { event.currentTarget.style.display = "none"; }}
+                />
+            )}
+            {isSafeHttpUrl(answer.item?.videoUrl) && (
+                <button
+                    type="button"
+                    onClick={() => { void openExternalUrl(answer.item!.videoUrl!); }}
+                    style={{ ...styles.badge, background: palette.sky, color: "#FFFDF6", marginTop: 12, fontSize: 14, border: "none", cursor: "pointer" }}
+                >
+                    ▶ Watch a short video
+                </button>
+            )}
             {answer.projects.length > 0 && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginTop: 12 }}>
                     {answer.projects.map(project => <ProjectCard key={project.id} project={project} />)}
@@ -355,6 +374,7 @@ function AssistantAnswer({ answer }: { answer: MakerAnswer }) {
 export function MakerKiosk() {
     const inventory = useInventory();
     const makerItems = inventory.makerItems;
+    const projectIdeas = inventory.projectIdeas;
     const [input, setInput] = useState("");
     const conversationEndRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<ChatMessage[]>(() => [
@@ -366,10 +386,20 @@ export function MakerKiosk() {
         },
     ]);
 
-    const featuredItems = useMemo(
-        () => makerItems.filter(item => ["hot-glue-gun", "microbit", "cardboard", "leds"].includes(item.id)),
-        [makerItems],
-    );
+    // Match featured items by name, not by static id: once a same-named
+    // material exists in Firestore its id becomes a Firestore doc id, so an
+    // id allowlist would silently stop featuring anything.
+    const featuredItems = useMemo(() => {
+        const wanted = ["glue gun", "micro:bit", "microbit", "cardboard", "led"];
+        const picked: typeof makerItems = [];
+        for (const keyword of wanted) {
+            const match = makerItems.find(item =>
+                item.name.toLowerCase().includes(keyword) && !picked.includes(item));
+            if (match) picked.push(match);
+            if (picked.length >= 4) break;
+        }
+        return picked;
+    }, [makerItems]);
 
     useEffect(() => {
         conversationEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -380,12 +410,39 @@ export function MakerKiosk() {
         if (!query) return;
 
         const answer = answerMakerQuery(query, makerItems, projectIdeas);
+        const childId = makeId();
+        const assistantId = makeId();
+
         setMessages(prev => [
             ...prev,
-            { id: makeId(), role: "child", text: query },
-            { id: makeId(), role: "assistant", text: answer.title, answer },
+            { id: childId, role: "child", text: query },
+            { id: assistantId, role: "assistant", text: answer.title, answer },
         ]);
         setInput("");
+
+        // The rule-based engine answered directly; nothing more to do.
+        if (answer.intent !== "unknown") {
+            return;
+        }
+
+        // No confident local answer — show a thinking state and try Groq. If Groq
+        // is unavailable it returns null and we keep the rule-based fallback bubble.
+        setMessages(prev =>
+            prev.map(m => (m.id === assistantId
+                ? { id: m.id, role: "assistant", text: "VIVI Bot is thinking…" }
+                : m)),
+        );
+
+        askGroqFallback(query).then(reply => {
+            setMessages(prev =>
+                prev.map(m => {
+                    if (m.id !== assistantId) return m;
+                    return reply
+                        ? { id: m.id, role: "assistant", text: reply }
+                        : { id: m.id, role: "assistant", text: answer.title, answer };
+                }),
+            );
+        });
     };
 
     return (

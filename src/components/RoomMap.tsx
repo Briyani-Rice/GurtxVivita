@@ -2,8 +2,11 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import type { FloorElement, Material } from "../types";
 import {
     getAreaInventory,
-    getAreaInventoryTotal,
 } from "../utils/roomMapInventory";
+import { clampZoom, panForZoomAtPoint, type Vec2 } from "../utils/cameraZoom";
+
+const MIN_ZOOM = 0.45;
+const MAX_ZOOM = 2.5;
 
 type RoomMapProps = {
     floors?: Array<{
@@ -14,9 +17,6 @@ type RoomMapProps = {
     materials?: Material[];
     onCompartmentClick?: (areaId: string) => void;
     selectedCompartment?: string | null;
-    isAdmin?: boolean;
-    floorplanImage?: string;
-    onFloorplanUpload?: (file: File) => void;
 };
 
 type CameraState = {
@@ -33,10 +33,12 @@ type AreaRect = {
     h: number;
 };
 
+// Wide enough to include VIVISTUDIO (spans to x≈1298) so fit-to-view and
+// Reset don't crop it on the right edge.
 const MAP_BOUNDS = {
     x: 60,
     y: 30,
-    width: 1210,
+    width: 1260,
     height: 650,
 };
 
@@ -97,8 +99,14 @@ function screenToWorld(x: number, y: number, cam: CameraState) {
     };
 }
 
+function isDarkTheme(): boolean {
+    return typeof document !== "undefined"
+        && document.documentElement.dataset.viventoryTheme === "dark";
+}
+
 function drawBackground(ctx: CanvasRenderingContext2D, W: number, H: number) {
-    ctx.fillStyle = "#f8fafc";
+    // Match the app theme so the map is not a bright white block in dark mode.
+    ctx.fillStyle = isDarkTheme() ? "#161D26" : "#f8fafc";
     ctx.fillRect(0, 0, W, H);
 }
 
@@ -307,6 +315,8 @@ function drawElement(
     if (materialCount > 0) {
         ctx.font = `${Math.max(10, 12 * cam.zoom)}px sans-serif`;
         ctx.fillStyle = "#2563eb";
+        // Count of distinct materials (types), matching the side panel — not the
+        // summed quantity, which made one 120-sheet material read as "120 items".
         ctx.fillText(`${materialCount} item${materialCount === 1 ? "" : "s"}`, r.x + r.w / 2, r.y + r.h / 2 + 13);
     }
 
@@ -333,6 +343,9 @@ export function RoomMap({
     const hasFittedInitialView = useRef(false);
     const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
     const pinch = useRef<{ dist: number; zoom: number } | null>(null);
+    // Screen point the current zoom animation should keep fixed (cursor / pinch
+    // midpoint / viewport centre), so zooming moves toward it instead of drifting.
+    const zoomAnchor = useRef<Vec2 | null>(null);
 
     const [cursor, setCursor] = useState("grab");
     const [hoveredAreaId, setHoveredAreaId] = useState<string | null>(null);
@@ -386,7 +399,7 @@ export function RoomMap({
                     c,
                     hoveredAreaId === el.id,
                     selectedAreaId === el.id,
-                    getAreaInventoryTotal(materials, el.id)
+                    getAreaInventory(materials, el.id).length
                 );
             }
         }
@@ -431,7 +444,23 @@ export function RoomMap({
             c.pan.y += c.velocity.y;
             c.velocity.x *= 0.82;
             c.velocity.y *= 0.82;
-            c.zoom += (c.targetZoom - c.zoom) * 0.18;
+
+            const prevZoom = c.zoom;
+            let nextZoom = prevZoom + (c.targetZoom - prevZoom) * 0.18;
+            if (Math.abs(c.targetZoom - nextZoom) < 0.001) {
+                nextZoom = c.targetZoom;
+            }
+
+            if (nextZoom !== prevZoom && zoomAnchor.current) {
+                const anchoredPan = panForZoomAtPoint(c.pan, prevZoom, nextZoom, zoomAnchor.current);
+                c.pan.x = anchoredPan.x;
+                c.pan.y = anchoredPan.y;
+            }
+            c.zoom = nextZoom;
+
+            if (nextZoom === c.targetZoom) {
+                zoomAnchor.current = null;
+            }
 
             draw();
             raf = requestAnimationFrame(loop);
@@ -489,11 +518,32 @@ export function RoomMap({
         selectArea(hitTest(pos.x, pos.y));
     };
 
-    const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-        e.preventDefault();
-        const scale = e.deltaY > 0 ? 0.9 : 1.1;
-        cam.current.targetZoom = Math.max(0.45, Math.min(2.5, cam.current.targetZoom * scale));
+    const zoomBy = (scale: number, anchor: Vec2) => {
+        zoomAnchor.current = anchor;
+        cam.current.targetZoom = clampZoom(cam.current.targetZoom * scale, MIN_ZOOM, MAX_ZOOM);
     };
+
+    const viewportCenter = (): Vec2 => {
+        const rect = containerRef.current?.getBoundingClientRect();
+        return rect ? { x: rect.width / 2, y: rect.height / 2 } : { x: 0, y: 0 };
+    };
+
+    // React attaches wheel listeners passively, so preventDefault() there both
+    // warns and no-ops. Attach a non-passive native listener instead, and zoom
+    // toward the cursor.
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const onWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const scale = e.deltaY > 0 ? 0.9 : 1.1;
+            zoomBy(scale, getPointerPosition(e, canvas));
+        };
+
+        canvas.addEventListener("wheel", onWheel, { passive: false });
+        return () => canvas.removeEventListener("wheel", onWheel);
+    }, []);
 
     const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
         if (e.touches.length === 2) {
@@ -517,7 +567,14 @@ export function RoomMap({
             const a = e.touches[0];
             const b = e.touches[1];
             const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-            cam.current.targetZoom = Math.max(0.45, Math.min(2.5, pinch.current.zoom * (dist / pinch.current.dist)));
+            const canvas = canvasRef.current;
+            if (canvas) {
+                zoomAnchor.current = getPointerPosition(
+                    { clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 },
+                    canvas,
+                );
+            }
+            cam.current.targetZoom = clampZoom(pinch.current.zoom * (dist / pinch.current.dist), MIN_ZOOM, MAX_ZOOM);
             return;
         }
 
@@ -547,7 +604,7 @@ export function RoomMap({
     };
 
     return (
-        <div style={{ display: "flex", width: "100%", height: "100%", background: "#f8fafc" }}>
+        <div style={{ display: "flex", width: "100%", height: "100%", background: "var(--viventory-bg)" }}>
             <div
                 ref={containerRef}
                 style={{
@@ -576,19 +633,19 @@ export function RoomMap({
                         setHoveredAreaId(null);
                         setCursor("grab");
                     }}
-                    onWheel={handleWheel}
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
                 />
 
                 <div style={zoomControls}>
-                    <button onClick={() => cam.current.targetZoom = Math.min(2.5, cam.current.targetZoom * 1.18)} style={buttonStyle}>+</button>
-                    <button onClick={() => cam.current.targetZoom = Math.max(0.45, cam.current.targetZoom * 0.84)} style={buttonStyle}>-</button>
+                    <button onClick={() => zoomBy(1.18, viewportCenter())} style={buttonStyle}>+</button>
+                    <button onClick={() => zoomBy(0.84, viewportCenter())} style={buttonStyle}>-</button>
                     <button
                         onClick={() => {
                             const rect = containerRef.current?.getBoundingClientRect();
                             if (!rect) return;
+                            zoomAnchor.current = null;
                             cam.current = fitCameraToMap(rect.width, rect.height);
                         }}
                         style={buttonStyle}
@@ -599,13 +656,13 @@ export function RoomMap({
             </div>
 
             <aside style={detailPanel}>
-                <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase" }}>
+                <div style={{ fontSize: 12, color: "var(--viventory-muted-text)", textTransform: "uppercase" }}>
                     Selected area
                 </div>
-                <h2 style={{ margin: "6px 0 4px", fontSize: 22, lineHeight: 1.15 }}>
+                <h2 style={{ margin: "6px 0 4px", fontSize: 22, lineHeight: 1.15, color: "var(--viventory-text)" }}>
                     {selectedArea?.name ?? "Select an area"}
                 </h2>
-                <div style={{ color: "#475569", fontSize: 13 }}>
+                <div style={{ color: "var(--viventory-muted-text)", fontSize: 13 }}>
                     {selectedMaterials.length} material type{selectedMaterials.length === 1 ? "" : "s"} stored here
                 </div>
 
@@ -613,15 +670,15 @@ export function RoomMap({
                     {selectedMaterials.length > 0 ? selectedMaterials.map(material => (
                         <div key={material.id} style={materialRow}>
                             <div>
-                                <div style={{ fontWeight: 700 }}>{material.name}</div>
-                                <div style={{ color: "#64748b", fontSize: 12 }}>{material.description}</div>
+                                <div style={{ fontWeight: 700, color: "var(--viventory-text)" }}>{material.name}</div>
+                                <div style={{ color: "var(--viventory-muted-text)", fontSize: 12 }}>{material.description}</div>
                             </div>
                             <div style={quantityPill}>
                                 {material.quantity} {material.unit}
                             </div>
                         </div>
                     )) : (
-                        <div style={{ color: "#64748b", fontSize: 14 }}>
+                        <div style={{ color: "var(--viventory-muted-text)", fontSize: 14 }}>
                             No materials are assigned to this area yet.
                         </div>
                     )}
@@ -643,8 +700,9 @@ const zoomControls: React.CSSProperties = {
 const buttonStyle: React.CSSProperties = {
     minWidth: 54,
     height: 34,
-    border: "1px solid #cbd5e1",
-    background: "#ffffff",
+    border: "1px solid var(--viventory-border)",
+    background: "var(--viventory-surface)",
+    color: "var(--viventory-text)",
     borderRadius: 6,
     cursor: "pointer",
     fontWeight: 700,
@@ -652,8 +710,9 @@ const buttonStyle: React.CSSProperties = {
 
 const detailPanel: React.CSSProperties = {
     width: 320,
-    borderLeft: "1px solid #dbe3ea",
-    background: "#ffffff",
+    borderLeft: "1px solid var(--viventory-border)",
+    background: "var(--viventory-surface)",
+    color: "var(--viventory-text)",
     padding: 18,
     boxSizing: "border-box",
     overflowY: "auto",
@@ -665,7 +724,7 @@ const materialRow: React.CSSProperties = {
     justifyContent: "space-between",
     gap: 12,
     padding: "10px 0",
-    borderBottom: "1px solid #e2e8f0",
+    borderBottom: "1px solid var(--viventory-border)",
 };
 
 const quantityPill: React.CSSProperties = {

@@ -27,4 +27,10 @@ assert.doesNotMatch(
     "RoomMap reset should not jump back to the old top-left crop",
 );
 
+assert.doesNotMatch(
+    source,
+    /onWheel=\{handleWheel\}/,
+    "RoomMap should not reference the removed React wheel handler",
+);
+
 console.log("RoomMap reset source checks passed");

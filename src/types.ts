@@ -21,6 +21,12 @@ export interface Material {
     supplier?: string;
     cricut?: boolean;
     stockStatus?: MaterialStockStatus;
+    // Staff-managed content for the Maker Bot (requirements doc 5.4):
+    // an explicit adult-supervision flag, usage steps, and media links.
+    safetyLevel?: "normal" | "adult";
+    instructions?: string[];
+    imageUrl?: string;
+    videoUrl?: string;
 }
 
 export type ElementType = 'compartment' | 'outofbounds' | 'stairs' | 'lift' | 'chair' | 'table' | 'workplace';

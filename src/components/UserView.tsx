@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { filterMaterialsBySearch } from '../utils/materialSearch';
 import { isMaterialAvailable } from '../utils/materialDetails';
-import { translatedStockLabel, useI18n } from '../i18n/i18n';
+import { sortMaterials, MATERIAL_SORT_KEYS, MaterialSortKey } from '../utils/materialSort';
+import { translatedStockLabel, useI18n, TranslationKey } from '../i18n/i18n';
 import {
     Search,
     Send,
@@ -14,6 +15,15 @@ import { RoomMap } from './RoomMap';
 import { UserPrefs } from './SettingsView';
 
 type UserTab = 'map' | 'materials';
+
+const SORT_LABEL_KEYS: Record<MaterialSortKey, TranslationKey> = {
+    'default': 'user.sortDefault',
+    'name-asc': 'user.sortNameAsc',
+    'name-desc': 'user.sortNameDesc',
+    'location': 'user.sortLocation',
+    'adult-first': 'user.sortAdult',
+    'stock': 'user.sortStock',
+};
 
 interface UserViewProps {
     floors: FloorData[];
@@ -36,6 +46,9 @@ type Styles = {
     materialsHero: React.CSSProperties;
     searchBar: React.CSSProperties;
     input: React.CSSProperties;
+    sortField: React.CSSProperties;
+    sortLabel: React.CSSProperties;
+    sortSelect: React.CSSProperties;
     grid: React.CSSProperties;
     emptyState: React.CSSProperties;
     card: (empty: boolean) => React.CSSProperties;
@@ -133,11 +146,42 @@ const styles: Styles = {
     searchBar: {
         padding: 0,
         marginBottom: 16,
-        background: 'transparent'
+        background: 'transparent',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 12,
+        alignItems: 'center'
+    },
+
+    sortField: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8
+    },
+
+    sortLabel: {
+        fontSize: 13,
+        fontWeight: 750,
+        color: 'var(--viventory-muted-text)',
+        whiteSpace: 'nowrap'
+    },
+
+    sortSelect: {
+        padding: '13px 14px',
+        borderRadius: 999,
+        border: '1px solid var(--viventory-border)',
+        background: 'var(--viventory-surface)',
+        color: 'var(--viventory-text)',
+        fontSize: 15,
+        fontWeight: 650,
+        outline: 'none',
+        cursor: 'pointer',
+        boxShadow: '0 10px 26px rgba(15, 23, 42, 0.08)'
     },
 
     input: {
         width: '100%',
+        boxSizing: 'border-box',
         padding: '15px 16px 15px 44px',
         borderRadius: 999,
         border: '1px solid var(--viventory-border)',
@@ -160,7 +204,10 @@ const styles: Styles = {
         borderRadius: 8,
         color: 'var(--viventory-muted-text)',
         background: 'var(--viventory-welcome-card)',
-        fontSize: 15
+        fontSize: 15,
+        // A long unbroken query must wrap instead of spilling past the container.
+        overflowWrap: 'anywhere',
+        wordBreak: 'break-word'
     },
 
     card: (empty: boolean) => ({
@@ -323,9 +370,11 @@ export function UserView({
     const [submitting, setSubmitting] = useState(false);
     const [requestError, setRequestError] = useState('');
     const [selectedCompartment, setSelectedCompartment] = useState<string | null>(null);
+    const [sort, setSort] = useState<MaterialSortKey>('default');
     const { language, t } = useI18n();
 
     const filteredMaterials = filterMaterialsBySearch(materials, search);
+    const displayedMaterials = sortMaterials(filteredMaterials, sort);
     const hasMaterialSearch = search.trim().length > 0;
 
     useEffect(() => {
@@ -420,7 +469,6 @@ export function UserView({
                             materials={materials}
                             selectedCompartment={selectedCompartment}
                             onCompartmentClick={setSelectedCompartment}
-                            isAdmin={false}
                         />
                     </div>
 
@@ -473,12 +521,12 @@ export function UserView({
                             }}
                         >
                             <Package size={18} />
-                            {t('user.shown', { count: filteredMaterials.length })}
+                            {t('user.shown', { count: displayedMaterials.length })}
                         </div>
                     </div>
 
                     <div style={styles.searchBar}>
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
                             <Search
                                 style={{
                                     position: 'absolute',
@@ -494,11 +542,26 @@ export function UserView({
                                 placeholder={t('user.searchPlaceholder')}
                             />
                         </div>
+                        <label style={styles.sortField}>
+                            <span style={styles.sortLabel}>{t('user.sortLabel')}</span>
+                            <select
+                                style={styles.sortSelect}
+                                value={sort}
+                                onChange={e => setSort(e.target.value as MaterialSortKey)}
+                                aria-label={t('user.sortLabel')}
+                            >
+                                {MATERIAL_SORT_KEYS.map(key => (
+                                    <option key={key} value={key}>
+                                        {t(SORT_LABEL_KEYS[key])}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
                     </div>
 
-                    {filteredMaterials.length > 0 ? (
+                    {displayedMaterials.length > 0 ? (
                         <div style={styles.grid}>
-                            {filteredMaterials.map(m => {
+                            {displayedMaterials.map(m => {
                                 const available = isMaterialAvailable(m);
                                 const chips = [
                                     m.category,

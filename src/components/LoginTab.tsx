@@ -1,21 +1,31 @@
 import { Tab, User, UserPerms } from "../types";
 import {BasicTabProps} from "../app";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import { Eye, EyeClosed } from "lucide-react";
 import AdminViewTab from "./AdminViewTab";
 import { UserViewTab } from "./UserViewTab";
 import {
-    isFirebaseAuthConfigured,
-    isGoogleLoginSupported,
+    getCurrentGoogleLoginAvailability,
     signInWithGoogle,
     type FirebaseLoginResult,
 } from "../services/firebaseAuth";
 import { recordAccountLogin } from "../services/accountSession";
+import { isProgressNote } from "../services/googleAuthErrors";
 import { useI18n } from "../i18n/i18n";
 
 type LoginTabContentProps = BasicTabProps & {
     actL: number;
     loginTabId: string;
+};
+
+const loginActionStyle: React.CSSProperties = {
+    width: "100%",
+    minHeight: "44px",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    boxSizing: "border-box",
+    font: "inherit",
+    fontWeight: 600,
 };
 
 export default class LoginTab implements Tab {
@@ -48,8 +58,8 @@ function LoginTabContent({
     const [noteIsSuccess, setNoteIsSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
-    const firebaseConfigured = isFirebaseAuthConfigured();
-    const googleLoginSupported = isGoogleLoginSupported();
+    const googleLoginAvailability = getCurrentGoogleLoginAvailability();
+    const googleLoginSupported = googleLoginAvailability.available;
     const { t } = useI18n();
 
     const completeLogin = (
@@ -141,7 +151,10 @@ function LoginTabContent({
             const res: FirebaseLoginResult = await signInWithGoogle();
 
             if (!res.success) {
+                // A redirect that is under way is progress, not an error, so it
+                // should not be shown in red.
                 setNote(res.note);
+                setNoteIsSuccess(isProgressNote(res));
                 return;
             }
 
@@ -266,11 +279,14 @@ function LoginTabContent({
                 {/* Login button */}
                 <button
                     onClick={handleLogin}
-                    disabled={loading}
+                    disabled={loading || googleLoading}
                     style={{
-                        width: "100%",
-                        padding: "10px",
-                        cursor: "pointer",
+                        ...loginActionStyle,
+                        cursor: loading || googleLoading ? "wait" : "pointer",
+                        border: "1px solid var(--viventory-control)",
+                        background: "var(--viventory-control)",
+                        color: "var(--viventory-control-text)",
+                        opacity: loading || googleLoading ? 0.72 : 1,
                     }}
                 >
                     {loading ? t("login.loggingIn") : t("login.button")}
@@ -279,32 +295,40 @@ function LoginTabContent({
                 <button
                     onClick={handleGoogleLogin}
                     disabled={googleLoading || loading || !googleLoginSupported}
-                    title={
-                        googleLoginSupported
-                            ? "Sign in with Google"
-                            : firebaseConfigured
-                                ? "Set VITE_GOOGLE_DESKTOP_CLIENT_ID and VITE_GOOGLE_DESKTOP_CLIENT_SECRET in .env to enable Google login in the desktop app"
-                            : "Add Firebase Vite environment variables to enable Google login"
-                    }
+                    title={googleLoginSupported ? t("login.google") : googleLoginAvailability.note}
                     style={{
-                        width: "100%",
+                        ...loginActionStyle,
                         marginTop: "10px",
-                        padding: "10px",
-                        cursor: googleLoginSupported ? "pointer" : "not-allowed",
-                        border: "1px solid #ddd",
+                        cursor: googleLoading || loading
+                            ? "wait"
+                            : googleLoginSupported
+                                ? "pointer"
+                                : "not-allowed",
+                        border: "1px solid var(--viventory-border)",
                         background: "#fff",
-                        color: "black",
-                        opacity: googleLoginSupported ? 1 : 0.65,
+                        color: "#24262B",
+                        opacity: googleLoginSupported && !loading && !googleLoading ? 1 : 0.65,
                     }}
                 >
                     {googleLoading
                         ? t("login.googleOpening")
-                        : googleLoginSupported
-                            ? t("login.google")
-                            : firebaseConfigured
-                                ? t("login.googleConfigureDesktop")
-                                : t("login.googleConfigure")}
+                        : t("login.google")}
                 </button>
+
+                {!googleLoginAvailability.available && (
+                    <p
+                        style={{
+                            marginTop: "8px",
+                            color: "#6b5d45",
+                            fontSize: "0.85rem",
+                            lineHeight: 1.35,
+                        }}
+                    >
+                        {googleLoginAvailability.reason === "desktop-oauth-config"
+                            ? t("login.googleConfigureDesktop")
+                            : t("login.googleConfigure")}
+                    </p>
+                )}
 
                 {/* Status */}
                 {note && (

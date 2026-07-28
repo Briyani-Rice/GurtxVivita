@@ -59,13 +59,13 @@ assert.doesNotMatch(
 
 assert.match(
     i18nSource,
-    /Press ⌘Y or use the command bar/,
-    "Welcome page should point makers at the command bar",
+    /Press \{shortcut\} or use the command bar/,
+    "Welcome page hint should point makers at the command bar with a platform-aware shortcut",
 );
 assert.match(
     appSource,
-    /t\("welcome\.hint"\)/,
-    "Welcome page should render the translated command bar hint",
+    /t\("welcome\.hint",\s*\{\s*shortcut:/,
+    "Welcome page should render the translated command bar hint with the platform shortcut",
 );
 
 assert.doesNotMatch(
