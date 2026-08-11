@@ -412,19 +412,6 @@ function locationBody(item: MakerItem): string {
     return `${item.name} is in ${item.location.zone}, at ${item.location.shelf}. ${item.location.detail}`;
 }
 
-function inventorySummary(items: MakerItem[]): string {
-    const grouped = items.reduce<Record<MakerItemType, MakerItem[]>>((acc, item) => {
-        acc[item.type].push(item);
-        return acc;
-    }, { material: [], tool: [], equipment: [] });
-
-    return [
-        `Materials: ${grouped.material.map(item => item.name).join(", ")}`,
-        `Tools: ${grouped.tool.map(item => item.name).join(", ")}`,
-        `Equipment: ${grouped.equipment.map(item => item.name).join(", ")}`,
-    ].join("\n");
-}
-
 export function answerMakerQuery(
     query: string,
     items: MakerItem[] = makerspaceItems,
@@ -440,8 +427,8 @@ export function answerMakerQuery(
             sections: [
                 {
                     kind: "answer",
-                    title: "Makerspace inventory",
-                    body: inventorySummary(items),
+                    title: "Just ask",
+                    body: "Tell me what you are looking for and I will tell you where it is, how to use it safely, and what you can make with it.",
                 },
             ],
             projects: [],

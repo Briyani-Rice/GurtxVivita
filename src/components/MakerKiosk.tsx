@@ -1,16 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     AlertTriangle,
     Bot,
     ChevronRight,
     Lightbulb,
     MapPin,
-    Package,
     Search,
     Send,
-    ShieldCheck,
     Sparkles,
-    Wrench,
 } from "lucide-react";
 import type { Tab } from "../types";
 import heroImage from "../assets/hero.png";
@@ -18,7 +15,6 @@ import {
     answerMakerQuery,
     type MakerAnswer,
     type MakerAnswerSection,
-    type MakerItem,
     type MakerProjectIdea,
 } from "./makerspaceData";
 import { useInventory } from "./InventoryProvider";
@@ -309,28 +305,6 @@ function ProjectCard({ project }: { project: MakerProjectIdea }) {
     );
 }
 
-function ItemCard({ item }: { item: MakerItem }) {
-    return (
-        <div style={styles.itemCard}>
-            <span style={styles.badge}>
-                {item.type === "tool" ? <Wrench size={14} /> : <Package size={14} />}
-                {item.type}
-            </span>
-            <strong>{item.name}</strong>
-            <span style={{ color: palette.muted, fontSize: 14 }}>{item.location.zone}</span>
-            <span style={{ color: palette.ink, fontWeight: 800 }}>
-                {item.quantity} {item.unit}
-            </span>
-            {item.safetyLevel === "adult" && (
-                <span style={{ ...styles.badge, background: palette.warning, color: palette.pegboardText }}>
-                    <ShieldCheck size={14} />
-                    Adult help
-                </span>
-            )}
-        </div>
-    );
-}
-
 function AssistantAnswer({ answer }: { answer: MakerAnswer }) {
     return (
         <>
@@ -385,21 +359,6 @@ export function MakerKiosk() {
             answer: answerMakerQuery("", makerItems, projectIdeas),
         },
     ]);
-
-    // Match featured items by name, not by static id: once a same-named
-    // material exists in Firestore its id becomes a Firestore doc id, so an
-    // id allowlist would silently stop featuring anything.
-    const featuredItems = useMemo(() => {
-        const wanted = ["glue gun", "micro:bit", "microbit", "cardboard", "led"];
-        const picked: typeof makerItems = [];
-        for (const keyword of wanted) {
-            const match = makerItems.find(item =>
-                item.name.toLowerCase().includes(keyword) && !picked.includes(item));
-            if (match) picked.push(match);
-            if (picked.length >= 4) break;
-        }
-        return picked;
-    }, [makerItems]);
 
     useEffect(() => {
         conversationEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -515,13 +474,6 @@ export function MakerKiosk() {
                         </p>
                     </div>
                 </div>
-
-                <section>
-                    <h2 style={styles.railTitle}>Popular things to find</h2>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
-                        {featuredItems.map(item => <ItemCard key={item.id} item={item} />)}
-                    </div>
-                </section>
 
                 <section style={styles.visualPanel}>
                     <div style={{ padding: 14 }}>
