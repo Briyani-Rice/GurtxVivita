@@ -29,7 +29,7 @@ export interface MakerProjectIdea {
     steps: string[];
 }
 
-export type MakerIntent = "locate" | "use" | "make" | "inventory" | "unknown";
+export type MakerIntent = "greeting" | "locate" | "use" | "make" | "inventory" | "unknown";
 
 export interface MakerAnswerSection {
     kind: "answer" | "safety" | "steps" | "tip";
@@ -286,6 +286,14 @@ export function inferMakerSafety(name: string, description = ""): MakerItem["saf
     return ADULT_SAFETY_PATTERN.test(`${name} ${description}`.toLowerCase()) ? "adult" : "normal";
 }
 
+const GREETING_WORDS = [
+    "hi", "hii", "hiya", "hello", "helo", "hey", "heya", "yo", "howdy",
+    "greetings", "morning", "afternoon", "evening", "sup", "aloha", "hola",
+];
+// Words allowed to sit alongside a greeting without making it a real question,
+// so "hey there" and "hi VIVI Bot" still read as hellos.
+const GREETING_FILLER = new Set(["there", "good", "vivi", "bot", "maker", "everyone", "all", "you", "are", "how", "again"]);
+
 const LOCATION_WORDS = ["where", "find", "located", "location", "shelf", "zone"];
 const USE_WORDS = ["use", "how", "instructions", "guide", "work", "safe", "safety"];
 const MAKE_WORDS = ["make", "build", "create", "project", "idea", "ideas", "do"];
@@ -333,6 +341,25 @@ function tokensRelated(a: string, b: string): boolean {
 function includesAny(query: string, words: string[]): boolean {
     const tokens = new Set(query.split(" "));
     return words.some(word => tokens.has(word));
+}
+
+// A greeting only counts when the WHOLE message is a greeting: "hi" is a hello,
+// but "hi, where is the cardboard?" is a location question that happens to open
+// politely. The length cap keeps a stray "hey" inside a longer sentence from
+// swallowing the real question.
+function isGreeting(normalized: string): boolean {
+    const tokens = normalized.split(" ").filter(Boolean);
+    if (tokens.length === 0 || tokens.length > 4) return false;
+
+    let sawGreeting = false;
+    for (const token of tokens) {
+        if (GREETING_WORDS.includes(token)) {
+            sawGreeting = true;
+            continue;
+        }
+        if (!GREETING_FILLER.has(token)) return false;
+    }
+    return sawGreeting;
 }
 
 // Scores how well an item matches the query, in two tiers:
@@ -419,6 +446,28 @@ export function answerMakerQuery(
 ): MakerAnswer {
     const normalized = normalize(query);
     const item = findItem(query, items);
+
+    // Greet before anything else so a hello never falls through to the "I could
+    // not find a safe answer" fallback, which reads as a rebuff to a child.
+    if (!item && isGreeting(normalized)) {
+        return {
+            intent: "greeting",
+            title: "Hi there! I am VIVI Bot 👋",
+            sections: [
+                {
+                    kind: "answer",
+                    title: "Nice to meet you",
+                    body: "I can help you find things around the makerspace, use them safely, and come up with something fun to build. What are you making today?",
+                },
+            ],
+            projects: [],
+            suggestedPrompts: [
+                "Where is cardboard?",
+                "How do I use the hot glue gun?",
+                "What can I make with LEDs?",
+            ],
+        };
+    }
 
     if (!normalized || includesAny(normalized, INVENTORY_WORDS) && !item) {
         return {
@@ -539,12 +588,12 @@ export function answerMakerQuery(
 
     return {
         intent: "unknown",
-        title: "I am not sure yet",
+        title: "Hmm, I do not know that one yet",
         sections: [
             {
                 kind: "answer",
-                title: "Ask a staff member",
-                body: "I could not find a safe answer for that. Please ask a staff member, or try asking where something is, how to use it, or what you can make.",
+                title: "Let us find out together",
+                body: "That one is outside what I know so far — a staff member will be happy to help. You can also ask me where something is, how to use it, or what you can make.",
             },
         ],
         projects: [],
