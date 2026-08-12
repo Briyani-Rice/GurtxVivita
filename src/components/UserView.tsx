@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
 import { filterMaterialsBySearch } from '../utils/materialSearch';
+import {
+    ALL_CATEGORIES,
+    collectMaterialCategories,
+    filterMaterialsByCategory,
+} from '../utils/materialCategories';
 import { isMaterialAvailable } from '../utils/materialDetails';
 import { sortMaterials, MATERIAL_SORT_KEYS, MaterialSortKey } from '../utils/materialSort';
 import { translatedStockLabel, useI18n, TranslationKey } from '../i18n/i18n';
@@ -33,6 +38,11 @@ interface UserViewProps {
     prefs?: UserPrefs;
     initialTab?: UserTab;
     initialMaterialSearch?: string;
+    /**
+     * Kiosk mode drives map/materials from its own bottom bar, so the internal
+     * tab strip is suppressed there to avoid two competing navigations.
+     */
+    showTabBar?: boolean;
 }
 
 type Styles = {
@@ -359,7 +369,8 @@ export function UserView({
                              onSubmitRequest,
                              prefs,
                              initialTab = 'map',
-                             initialMaterialSearch = ''
+                             initialMaterialSearch = '',
+                             showTabBar = true
                          }: UserViewProps) {
     const [activeTab, setActiveTab] = useState<UserTab>(initialTab);
     const [search, setSearch] = useState(initialMaterialSearch);
@@ -371,11 +382,22 @@ export function UserView({
     const [requestError, setRequestError] = useState('');
     const [selectedCompartment, setSelectedCompartment] = useState<string | null>(null);
     const [sort, setSort] = useState<MaterialSortKey>('default');
+    const [category, setCategory] = useState<string>(ALL_CATEGORIES);
     const { language, t } = useI18n();
 
-    const filteredMaterials = filterMaterialsBySearch(materials, search);
+    // Options come from the full inventory, not the filtered set, so choosing a
+    // category never removes the other categories from the picker.
+    const categoryOptions = collectMaterialCategories(materials);
+    const searchedMaterials = filterMaterialsBySearch(materials, search);
+    const filteredMaterials = filterMaterialsByCategory(searchedMaterials, category);
     const displayedMaterials = sortMaterials(filteredMaterials, sort);
     const hasMaterialSearch = search.trim().length > 0;
+
+    // When an outer shell owns navigation (kiosk mode), following initialTab lets
+    // it switch panes without remounting and losing the search and filter state.
+    useEffect(() => {
+        setActiveTab(initialTab);
+    }, [initialTab]);
 
     useEffect(() => {
         const handleMaterialSearch = (event: Event) => {
@@ -449,17 +471,19 @@ export function UserView({
 
     return (
         <div style={styles.container}>
-            <div style={styles.tabBar}>
-                {(['map', 'materials'] as UserTab[]).map(tab => (
-                    <button
-                        key={tab}
-                        style={styles.tabBtn(activeTab === tab)}
-                        onClick={() => setActiveTab(tab)}
-                    >
-                        {t(tab === 'map' ? 'user.map' : 'user.materials')}
-                    </button>
-                ))}
-            </div>
+            {showTabBar && (
+                <div style={styles.tabBar}>
+                    {(['map', 'materials'] as UserTab[]).map(tab => (
+                        <button
+                            key={tab}
+                            style={styles.tabBtn(activeTab === tab)}
+                            onClick={() => setActiveTab(tab)}
+                        >
+                            {t(tab === 'map' ? 'user.map' : 'user.materials')}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {activeTab === 'map' && (
                 <div style={styles.mapWrapper}>
@@ -543,6 +567,22 @@ export function UserView({
                             />
                         </div>
                         <label style={styles.sortField}>
+                            <span style={styles.sortLabel}>{t('user.categoryLabel')}</span>
+                            <select
+                                style={styles.sortSelect}
+                                value={category}
+                                onChange={e => setCategory(e.target.value)}
+                                aria-label={t('user.categoryLabel')}
+                            >
+                                <option value={ALL_CATEGORIES}>{t('user.categoryAll')}</option>
+                                {categoryOptions.map(option => (
+                                    <option key={option.name} value={option.name}>
+                                        {option.name} ({option.count})
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label style={styles.sortField}>
                             <span style={styles.sortLabel}>{t('user.sortLabel')}</span>
                             <select
                                 style={styles.sortSelect}
@@ -611,7 +651,9 @@ export function UserView({
                         <div style={styles.emptyState}>
                             {hasMaterialSearch
                                 ? t('user.noResults', { query: search.trim() })
-                                : t('user.noMaterials')}
+                                : category !== ALL_CATEGORIES
+                                    ? t('user.noResults', { query: category })
+                                    : t('user.noMaterials')}
                         </div>
                     )}
 

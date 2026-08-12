@@ -19,11 +19,12 @@ import {CommandBar} from "./CommandBar";
 import LoginTab from "./components/LoginTab";
 import {UserViewTab} from "./components/UserViewTab";
 import { applyAppearancePrefs, loadAppearancePrefs } from "./components/Settings/appearancePreferences";
-import { MakerKioskTab, MakerKiosk } from "./components/MakerKiosk";
+import { MakerKioskTab } from "./components/MakerKiosk";
 import vivitaLogo from "./assets/vivita-logo.png";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { InventoryProvider } from "./components/InventoryProvider";
 import { resolveDisplayMode } from "./utils/displayMode";
+import { KioskShell } from "./components/KioskShell";
 import TvDisplay from "./components/TvDisplay";
 import AdminViewTab from "./components/AdminViewTab";
 import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
@@ -920,9 +921,7 @@ function App() {
     if (displayMode === "kiosk") {
         return (
             <InventoryProvider>
-                <div style={{ position: "fixed", inset: 0, display: "flex", flexDirection: "column" }}>
-                    <MakerKiosk />
-                </div>
+                <KioskShell />
             </InventoryProvider>
         )
     }
