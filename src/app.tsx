@@ -23,8 +23,9 @@ import { MakerKioskTab } from "./components/MakerKiosk";
 import vivitaLogo from "./assets/vivita-logo.png";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { InventoryProvider } from "./components/InventoryProvider";
-import { resolveDisplayMode } from "./utils/displayMode";
+import { needsDeviceModeChoice, resolveDisplayMode, type DisplayMode } from "./utils/displayMode";
 import { KioskShell } from "./components/KioskShell";
+import { DeviceModePicker } from "./components/DeviceModePicker";
 import TvDisplay from "./components/TvDisplay";
 import AdminViewTab from "./components/AdminViewTab";
 import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
@@ -608,7 +609,15 @@ function App() {
 
     const [cmdBarVis,setCmdBarVis] = useState<boolean>(false)
     const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
-    const [displayMode] = useState(() => resolveDisplayMode())
+    const [displayMode, setDisplayMode] = useState<DisplayMode>(() => resolveDisplayMode())
+    // Native builds have no URL to carry ?display=, so a device that has never
+    // been told what it is gets asked once, before any shell is chosen.
+    const [choosingDeviceMode, setChoosingDeviceMode] = useState(() => needsDeviceModeChoice())
+
+    const handleDeviceModeChosen = (mode: DisplayMode) => {
+        setDisplayMode(mode)
+        setChoosingDeviceMode(false)
+    }
 
     const [tabs, setTabs] = useState<Tab[]>([
         new welcomeTab()
@@ -910,6 +919,10 @@ function App() {
             console.warn("Fullscreen is only available in the Tauri desktop app.", error);
         }
     };
+    if (choosingDeviceMode) {
+        return <DeviceModePicker onChoose={handleDeviceModeChosen} />
+    }
+
     if (displayMode === "tv") {
         return (
             <InventoryProvider>
@@ -921,7 +934,7 @@ function App() {
     if (displayMode === "kiosk") {
         return (
             <InventoryProvider>
-                <KioskShell />
+                <KioskShell onRequestModeChange={() => setChoosingDeviceMode(true)} />
             </InventoryProvider>
         )
     }

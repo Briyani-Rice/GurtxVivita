@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import {
     DISPLAY_MODE_STORAGE_KEY,
     type DisplayModeStorage,
+    isNativeRuntime,
+    needsDeviceModeChoice,
     parseDisplayMode,
     readStoredDisplayMode,
     resolveDisplayMode,
@@ -87,5 +89,38 @@ const hostile: DisplayModeStorage = {
 assert.equal(readStoredDisplayMode(hostile), null);
 assert.equal(resolveDisplayMode("", hostile), "normal");
 assert.equal(resolveDisplayMode("?display=kiosk", hostile), "kiosk", "resolves despite write failure");
+
+// --- native device-mode choice ---
+
+// The web build is never interrogated: no URL parameter just means "full app".
+assert.equal(needsDeviceModeChoice("", fakeStorage(), false), false, "web is never asked");
+assert.equal(needsDeviceModeChoice("?display=kiosk", fakeStorage(), false), false);
+
+// A native device with nothing stored has to be asked once.
+assert.equal(needsDeviceModeChoice("", fakeStorage(), true), true, "fresh native install is asked");
+
+// ...but not when the URL already answers the question (dev builds load over http).
+assert.equal(needsDeviceModeChoice("?display=tv", fakeStorage(), true), false);
+
+// ...and not once a mode has been stored.
+assert.equal(
+    needsDeviceModeChoice("", fakeStorage({ [DISPLAY_MODE_STORAGE_KEY]: "kiosk" }), true),
+    false,
+    "a device that has already been set up is not asked again",
+);
+
+// Garbage in storage counts as unanswered, so the device asks rather than
+// silently falling back to the desktop shell on a TV.
+assert.equal(
+    needsDeviceModeChoice("", fakeStorage({ [DISPLAY_MODE_STORAGE_KEY]: "banana" }), true),
+    true,
+);
+
+// isNativeRuntime keys off the globals Tauri injects.
+assert.equal(isNativeRuntime({}), false);
+assert.equal(isNativeRuntime(undefined), false);
+assert.equal(isNativeRuntime(null), false);
+assert.equal(isNativeRuntime({ __TAURI_INTERNALS__: {} }), true);
+assert.equal(isNativeRuntime({ __TAURI__: {} }), true);
 
 console.log("displayMode tests passed");

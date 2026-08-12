@@ -61,6 +61,42 @@ export function storeDisplayMode(
  * specific screen. Native iOS/Android/TV builds have no URL to carry it, so a
  * mode supplied that way is persisted and reused on later launches.
  */
+/**
+ * True inside the Tauri webview (desktop, iOS, Android, Android TV).
+ *
+ * Native builds are the case that matters here: they have no URL to carry
+ * `?display=`, so the device has to be told what it is some other way.
+ */
+export function isNativeRuntime(win: unknown = typeof window === "undefined" ? undefined : window): boolean {
+    return typeof win === "object"
+        && win !== null
+        && ("__TAURI_INTERNALS__" in win || "__TAURI__" in win);
+}
+
+/**
+ * Whether this device still has to be asked what it is.
+ *
+ * Only native builds are ever asked. On the web the query parameter is the
+ * answer, and a plain visit should keep landing on the full app rather than
+ * being interrogated. A native device is asked exactly once; after that the
+ * stored mode answers for it.
+ */
+export function needsDeviceModeChoice(
+    search: string = typeof window !== "undefined" ? window.location.search : "",
+    storage: DisplayModeStorage | null = defaultStorage(),
+    native: boolean = isNativeRuntime(),
+): boolean {
+    if (parseDisplayMode(new URLSearchParams(search).get("display"))) {
+        return false;
+    }
+
+    if (!native) {
+        return false;
+    }
+
+    return readStoredDisplayMode(storage) === null;
+}
+
 export function resolveDisplayMode(
     search: string = typeof window !== "undefined" ? window.location.search : "",
     storage: DisplayModeStorage | null = defaultStorage(),

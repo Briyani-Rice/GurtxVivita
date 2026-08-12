@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Search, MessageCircle, Map } from 'lucide-react';
 import { UserView } from './UserView';
 import { MakerKiosk } from './MakerKiosk';
@@ -60,6 +60,22 @@ const styles = {
         background: 'var(--viventory-panel, var(--viventory-bg))',
     } as React.CSSProperties,
 
+    // Staff escape hatch. Deliberately unlabelled and in the corner: a locked
+    // kiosk still has to be recoverable, but a child tapping around must not
+    // fall out of the app. Long-press is the gate, not obscurity alone.
+    escapeHatch: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: 56,
+        height: 56,
+        padding: 0,
+        border: 'none',
+        background: 'transparent',
+        cursor: 'default',
+        opacity: 0,
+    } as React.CSSProperties,
+
     navBtn: (active: boolean): React.CSSProperties => ({
         flex: 1,
         display: 'flex',
@@ -80,13 +96,43 @@ const styles = {
     }),
 };
 
-export function KioskShell() {
+/** How long staff must hold the corner before the device-mode picker opens. */
+export const ESCAPE_HATCH_HOLD_MS = 2000;
+
+export function KioskShell({ onRequestModeChange }: { onRequestModeChange?: () => void } = {}) {
     const [destination, setDestination] = useState<KioskDestination>('find');
+    const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const inventory = useInventory();
     const { t } = useI18n();
 
+    const startHold = () => {
+        if (!onRequestModeChange || holdTimer.current) return;
+        holdTimer.current = setTimeout(() => {
+            holdTimer.current = null;
+            onRequestModeChange();
+        }, ESCAPE_HATCH_HOLD_MS);
+    };
+
+    const cancelHold = () => {
+        if (holdTimer.current) {
+            clearTimeout(holdTimer.current);
+            holdTimer.current = null;
+        }
+    };
+
     return (
         <div style={styles.shell}>
+            {onRequestModeChange && (
+                <button
+                    type="button"
+                    style={styles.escapeHatch}
+                    aria-label={t('device.changeMode')}
+                    onPointerDown={startHold}
+                    onPointerUp={cancelHold}
+                    onPointerLeave={cancelHold}
+                    onPointerCancel={cancelHold}
+                />
+            )}
             <div style={styles.pane}>
                 {destination === 'ask' ? (
                     <MakerKiosk />

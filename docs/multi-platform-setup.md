@@ -113,24 +113,40 @@ rewriting `devUrl`, but confirm it before debugging a blank screen.
 ## 4. TV
 
 Android TV is the practical TV target: it is the same Android build with a different
-manifest and input model. It needs three things beyond the phone build:
+manifest and input model.
 
-1. A **leanback launcher intent** and `android.software.leanback` feature declaration in
-   `AndroidManifest.xml`, so the app appears on the TV home screen.
-2. **D-pad focus navigation.** A TV has no touchscreen and no pointer. Every interactive
-   element must be reachable and visibly focused via arrow keys. The current UI has no
-   focus-ring styling and assumes pointer input, so this is real work, not a manifest flag.
-3. **Overscan-safe margins** — roughly 5% padding, since TV panels crop the frame edges.
+**The manifest side is already done.** `tauri android init` generates
+`android.software.leanback` and the `LEANBACK_LAUNCHER` intent category, so the app
+already appears on an Android TV home screen. No manual edit is needed.
+
+What is genuinely still missing:
+
+1. **D-pad focus navigation.** A TV has no touchscreen and no pointer. Every interactive
+   element must be reachable and visibly focused via arrow keys. The app has no
+   focus-ring styling today, so this is real work.
+2. **Overscan-safe margins**, since TV panels crop the frame edges. `KioskShell` already
+   respects `env(safe-area-inset-*)`; `TvDisplay` does not.
+3. **Deciding what TV mode shows.** `tv` currently renders the passive `TvDisplay`, not
+   the `KioskShell` bottom-tab experience. Both are defensible — a TV as an ambient
+   information screen, or as a large interactive kiosk — but it is an open decision.
 
 Apple TV is *not* reachable this way: tvOS is a separate platform that Tauri does not
 target. If a TV experience is needed on Apple hardware, the web build at
 `gurtxvivita-4c370.web.app?display=tv` in a browser remains the fallback.
 
-## 5. Known design gap: device mode on native
+## 5. Device mode on native — resolved
 
-Device mode is currently resolved from the URL query string —
-`?display=tv|kiosk` in `src/utils/displayMode.ts`. Native iOS/Android/TV builds have no
-URL to carry that parameter, so **device mode must move to persisted local settings** with
-the query parameter kept as a web-only override. This is a prerequisite for the agreed
-"hard kid/staff split, device decides" model and should be resolved as part of the
-interface simplification work, not bolted on afterwards.
+Device mode used to be resolved only from the URL query string (`?display=tv|kiosk`).
+Native builds have no URL to carry that, so an installed kiosk or TV app would have
+booted into the full desktop shell.
+
+This is now handled in `src/utils/displayMode.ts`:
+
+- The mode is **persisted** to `localStorage` under `viventory.displayMode`.
+- `?display=` still wins on the web and overwrites the stored value, so
+  `?display=normal` resets a device.
+- A **native** build with nothing stored shows `DeviceModePicker` once on first launch
+  and saves the answer. The web build is never asked — a plain visit still lands on the
+  full app.
+- Staff can reopen the picker from a kiosk by **holding the top-right corner for two
+  seconds**, so a locked-down tablet stays recoverable without a reinstall.

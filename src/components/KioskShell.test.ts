@@ -11,8 +11,30 @@ const userViewSource = readFileSync(new URL("./UserView.tsx", import.meta.url), 
 // to drop children straight into.
 assert.match(
     appSource,
-    /displayMode === "kiosk"[\s\S]{0,200}<KioskShell \/>/,
+    /displayMode === "kiosk"[\s\S]{0,300}<KioskShell[\s/>]/,
     "Kiosk display mode should render KioskShell",
+);
+
+// A locked-down kiosk must stay recoverable: the shell is handed a way back to
+// the device-mode picker, and it is gated behind a hold rather than a tap.
+assert.match(
+    appSource,
+    /<KioskShell onRequestModeChange=\{\(\) => setChoosingDeviceMode\(true\)\}/,
+    "KioskShell should be able to reopen the device-mode picker",
+);
+assert.match(
+    shellSource,
+    /ESCAPE_HATCH_HOLD_MS = (\d+)/,
+    "Escape hatch should be time-gated",
+);
+assert.ok(
+    Number(shellSource.match(/ESCAPE_HATCH_HOLD_MS = (\d+)/)![1]) >= 1000,
+    "Escape hatch hold should be long enough that a child does not trigger it by accident",
+);
+assert.match(
+    shellSource,
+    /onPointerLeave=\{cancelHold\}/,
+    "Escape hatch must cancel the hold when the finger slides off",
 );
 
 // The desktop tab strip and command bar must not reach the child-facing shell.
