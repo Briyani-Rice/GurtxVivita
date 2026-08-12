@@ -16,7 +16,8 @@
     "os:default",
     "core:window:default",
     "core:window:allow-start-dragging",
-    "oauth:default",
+    "oauth:allow-start",
+    "oauth:allow-cancel",
     {
       "identifier": "http:default",
       "allow": [{ "url": "https://oauth2.googleapis.com/*" }]

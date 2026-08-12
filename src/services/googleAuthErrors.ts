@@ -13,6 +13,31 @@ const MESSAGES: Record<string, string> = {
         "Network error reaching Google. Check the connection and try again.",
 };
 
+// Tauri plugin commands reject with plain strings (e.g. an ACL denial), and
+// Firebase rejects with Error objects. Reading only Error.message threw the
+// string ones away and reported the caller's generic fallback instead, which
+// made an "oauth.start not allowed" ACL denial indistinguishable from a network
+// failure. Keep whatever detail the rejection carries.
+export function errorDetail(error: unknown, fallback: string): string {
+    if (typeof error === "string") {
+        return error.trim() || fallback;
+    }
+
+    if (error instanceof Error) {
+        return error.message.trim() || fallback;
+    }
+
+    if (typeof error === "object" && error !== null && "message" in error) {
+        const message = String((error as { message?: unknown }).message ?? "").trim();
+
+        if (message) {
+            return message;
+        }
+    }
+
+    return fallback;
+}
+
 export function googleAuthErrorMessage(code: string | undefined, fallback: string): string {
     if (code && MESSAGES[code]) {
         return MESSAGES[code];

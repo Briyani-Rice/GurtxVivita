@@ -19,7 +19,7 @@ import {
     parseRedirectUrl,
     parseTokenResponse,
 } from "./googleDesktopOauth";
-import { googleAuthErrorMessage } from "./googleAuthErrors";
+import { errorDetail, googleAuthErrorMessage } from "./googleAuthErrors";
 import { UserPerms } from "../types";
 import { getFirebaseApp, hasFirebaseConfig } from "./firebaseApp";
 import { getOrCreateFirebaseUserProfile } from "./firebaseUsers";
@@ -117,9 +117,8 @@ function errorCode(error: unknown): string | undefined {
 
 function errorMessage(error: unknown, fallback: string): string {
     const code = errorCode(error);
-    const message = error instanceof Error ? error.message : fallback;
 
-    return googleAuthErrorMessage(code, message);
+    return googleAuthErrorMessage(code, errorDetail(error, fallback));
 }
 
 export function isFirebaseAuthConfigured(): boolean {
