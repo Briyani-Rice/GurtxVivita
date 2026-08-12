@@ -128,10 +128,14 @@ assert.match(
     "Firebase auth service should read the desktop OAuth client ID from Vite env",
 );
 
-assert.doesNotMatch(
+// Google rejects the Desktop app code exchange without client_secret
+// ("client_secret is missing"), so an ID on its own can never complete a login.
+// Treat the pair as the unit of configuration rather than enabling a button that
+// is guaranteed to fail at the last step.
+assert.match(
     authSource,
     /return clientId && clientSecret \?/,
-    "Desktop OAuth availability should not require the optional client secret",
+    "Desktop OAuth config should require both the client ID and the client secret",
 );
 
 assert.match(

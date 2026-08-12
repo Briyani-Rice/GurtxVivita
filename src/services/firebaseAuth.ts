@@ -46,11 +46,15 @@ const defaultAdminEmails: string[] = [];
 
 const DESKTOP_LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
 
-function desktopOauthClient(): { clientId: string; clientSecret?: string } | null {
+// Google requires client_secret when a Desktop app client exchanges the auth
+// code, even though the flow uses PKCE — an ID without a secret always fails at
+// the exchange with "client_secret is missing". Treat the pair as one unit so
+// the button reports missing config instead of failing at the last step.
+function desktopOauthClient(): { clientId: string; clientSecret: string } | null {
     const clientId = String(import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID ?? "").trim();
     const clientSecret = String(import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_SECRET ?? "").trim();
 
-    return clientId ? { clientId, ...(clientSecret ? { clientSecret } : {}) } : null;
+    return clientId && clientSecret ? { clientId, clientSecret } : null;
 }
 
 function getFirebaseAuth(): Auth | null {

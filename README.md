@@ -74,7 +74,7 @@ VITE_FIREBASE_ADMIN_EMAILS=admin@example.com,another-admin@example.com
 
 Only Google accounts listed in `VITE_FIREBASE_ADMIN_EMAILS` open `Admin View`; other Google accounts sign in as basic users. The demo username/password login remains available for local prototype use.
 
-For the Tauri desktop app, also create a Google Cloud OAuth client with application type **Desktop app** and set `VITE_GOOGLE_DESKTOP_CLIENT_ID`. The PKCE flow does not require a client secret; `VITE_GOOGLE_DESKTOP_CLIENT_SECRET` remains optional for compatibility.
+For the Tauri desktop app, also create a Google Cloud OAuth client with application type **Desktop app** and set both `VITE_GOOGLE_DESKTOP_CLIENT_ID` and `VITE_GOOGLE_DESKTOP_CLIENT_SECRET`. Google requires `client_secret` on the token exchange for Desktop app clients even though the flow uses PKCE — without it the exchange fails with "client_secret is missing". Google documents this secret as non-confidential for installed apps, so shipping it in the desktop bundle is expected; it is not a password and grants nothing on its own.
 
 If Google sign-in fails, see [docs/google-login-setup.md](docs/google-login-setup.md) for setup and troubleshooting (the fix is usually enabling the Google provider or authorizing the domain in Firebase Console).
 

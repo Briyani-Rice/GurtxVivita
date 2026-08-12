@@ -46,5 +46,15 @@ system browser and receives the result on a temporary loopback address.
 
 4. Rebuild or restart the desktop app.
 
-The desktop flow uses PKCE. Google documents `client_secret` as optional for native
-apps, so `VITE_GOOGLE_DESKTOP_CLIENT_SECRET` is not required.
+The desktop flow uses PKCE, but Google still requires `client_secret` when a **Desktop
+app** client exchanges the authorization code — omitting it fails with
+`Google token exchange failed: client_secret is missing.` Copy the client secret from
+the same Console page and set it too:
+
+```text
+VITE_GOOGLE_DESKTOP_CLIENT_SECRET=...
+```
+
+Google documents this value as non-confidential for installed apps (it ships inside the
+app bundle and cannot be kept private), so it is not treated as a password. PKCE is what
+actually protects the exchange.
