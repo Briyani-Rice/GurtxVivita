@@ -43,7 +43,7 @@ const specific = answerMakerQuery("where is the 3d printer filament", items, [])
 assert.equal(specific.item?.id, filament.id, "full name should still resolve exactly");
 
 // A query that shares no meaningful word with any item stays unknown so the
-// Groq fallback can take over.
+// assistant fallback can take over.
 const none = answerMakerQuery("where is the anvil", items, []);
 assert.equal(none.intent, "unknown", "unrelated query should not force a false match");
 

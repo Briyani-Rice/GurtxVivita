@@ -22,10 +22,10 @@ This document captures a focused review of the existing codebase and an onboardi
    - Issue: two `export default AdminViewTab` declarations are present at the end of the file.  
    - Impact: syntax/module error during build, preventing module resolution and import.
 
-2. Missing module import used by chatbot feature  
-   - File: `src/components/Chatbot/ChatBotView.tsx` imports `../../Secrets` for `GROQ_API_KEY`.  
-   - Issue: no `Secrets` module file is present in the repository.  
-   - Impact: build/import failure if component path is imported/built, or runtime key handling ambiguity.
+2. Missing module import used by chatbot feature — *resolved*  
+   - File: `src/components/Chatbot/ChatBotView.tsx` imports `../../Secrets` for `OPENROUTER_API_KEY`.  
+   - Issue: `src/Secrets.ts` is gitignored, so a fresh clone had no `Secrets` module.  
+   - Resolution: `src/Secrets.example.ts` is committed as a template — copy it to `src/Secrets.ts`. See [docs/openrouter-chatbot-setup.md](docs/openrouter-chatbot-setup.md).
 
 ## High-confidence findings
 3. Electron security hardening gap (`nodeIntegration: true`)  

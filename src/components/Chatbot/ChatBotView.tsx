@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { Material, FloorData, FloorElement } from "../../types";
 // @ts-ignore
-import { GROQ_API_KEY } from "../../Secrets";
+import { OPENROUTER_API_KEY } from "../../Secrets";
 // @ts-ignore
 import guidelinesRaw from "./ChatBotGuidelines.md?raw";
 
@@ -41,11 +41,14 @@ interface ChatBotViewProps {
 
 // ─── Models ───────────────────────────────────────────────────────────────────
 
+// OpenRouter free-tier models only (IDs ending in `:free`). Free models are capped
+// at 20 requests/minute and 50/day — 1000/day once 10+ credits have been bought.
 const MODELS = [
-    { id: "llama-3.1-8b-instant",    label: "Llama 3.1 8B",  note: "Fast · Recommended" },
-    { id: "gemma2-9b-it",            label: "Gemma 2 9B",    note: "Balanced"            },
-    { id: "llama3-8b-8192",          label: "Llama 3 8B",    note: "Reliable"            },
-    { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", note: "Powerful · Slower"  },
+    { id: "openai/gpt-oss-20b:free",                label: "GPT-OSS 20B",   note: "Fast · Recommended"  },
+    { id: "google/gemma-4-26b-a4b-it:free",         label: "Gemma 4 26B",   note: "Balanced"            },
+    { id: "google/gemma-4-31b-it:free",             label: "Gemma 4 31B",   note: "Reliable"            },
+    { id: "nvidia/nemotron-3-nano-30b-a3b:free",    label: "Nemotron Nano", note: "Fast · Long context" },
+    { id: "nvidia/nemotron-3-super-120b-a12b:free", label: "Nemotron 120B", note: "Powerful · Slower"   },
 ];
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
@@ -300,12 +303,23 @@ function inlineMd(text: string): React.ReactNode {
     return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
 }
 
-// ─── Groq API ─────────────────────────────────────────────────────────────────
+// ─── OpenRouter API ───────────────────────────────────────────────────────────
 
-async function callGroq(model: string, systemPrompt: string, history: { role: "user" | "assistant"; content: string }[]): Promise<string> {
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
+
+async function callOpenRouter(model: string, systemPrompt: string, history: { role: "user" | "assistant"; content: string }[]): Promise<string> {
+    if (!OPENROUTER_API_KEY) {
+        throw Object.assign(new Error("No API key configured."), { status: 0 });
+    }
+    const res = await fetch(OPENROUTER_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+            // OpenRouter uses these to attribute traffic to the app.
+            "HTTP-Referer": window.location.origin,
+            "X-Title": "Viventory",
+        },
         body: JSON.stringify({ model, max_tokens: 768, temperature: 0.7, messages: [{ role: "system", content: systemPrompt }, ...history] }),
     });
     if (!res.ok) {
@@ -316,13 +330,15 @@ async function callGroq(model: string, systemPrompt: string, history: { role: "u
     return data.choices?.[0]?.message?.content?.trim() ?? "Sorry, I couldn't generate a response.";
 }
 
-function parseGroqError(err: any): string {
+function parseOpenRouterError(err: any): string {
     const status = err?.status, msg = (err?.message ?? "").toLowerCase();
-    if (status === 401) return "Invalid API key — please update GROQ_API_KEY in Secrets.ts.";
+    if (status === 0)   return "No API key set — add OPENROUTER_API_KEY to src/Secrets.ts.";
+    if (status === 401) return "Invalid API key — please update OPENROUTER_API_KEY in Secrets.ts.";
+    if (status === 402) return "Daily free-model limit reached. Free models allow 50 requests/day; adding credits on openrouter.ai raises this to 1000/day.";
     if (status === 429) return "Rate limit reached — wait a moment and try again.";
-    if (status === 503 || msg.includes("unavailable")) return "Groq servers are temporarily unavailable.";
-    if (msg.includes("model")) return "Model unavailable. Try Llama 3.1 8B instead.";
-    return err?.message || "Failed to reach Groq. Check your API key and connection.";
+    if (status === 503 || msg.includes("unavailable")) return "OpenRouter is temporarily unavailable.";
+    if (msg.includes("model")) return "Model unavailable. Try GPT-OSS 20B instead.";
+    return err?.message || "Failed to reach OpenRouter. Check your API key and connection.";
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -364,7 +380,7 @@ export function ChatBotView({
         setError(null);
 
         try {
-            const rawReply = await callGroq(
+            const rawReply = await callOpenRouter(
                 selectedModel,
                 buildSystemPrompt(materials, floors, isAdmin),
                 history
@@ -391,7 +407,7 @@ export function ChatBotView({
                 actions,
             }]);
         } catch (err: any) {
-            setError(parseGroqError(err));
+            setError(parseOpenRouterError(err));
         } finally {
             setIsLoading(false);
         }

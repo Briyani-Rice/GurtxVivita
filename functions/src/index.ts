@@ -1,10 +1,10 @@
 import { onRequest } from "firebase-functions/v2/https";
-import { buildGroqRequestBody, parseGroqReply, sanitizeQuery } from "./groqPrompt.js";
+import { buildAssistantRequestBody, parseAssistantReply, sanitizeQuery } from "./assistantPrompt.js";
 
-const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
 export const makerAssistant = onRequest(
-    { secrets: ["GROQ_API_KEY"], cors: true, timeoutSeconds: 20, maxInstances: 5 },
+    { secrets: ["OPENROUTER_API_KEY"], cors: true, timeoutSeconds: 20, maxInstances: 5 },
     async (req, res) => {
         if (req.method !== "POST") {
             res.status(405).json({ error: "Use POST." });
@@ -17,24 +17,27 @@ export const makerAssistant = onRequest(
             return;
         }
 
-        const apiKey = process.env.GROQ_API_KEY;
+        const apiKey = process.env.OPENROUTER_API_KEY;
         if (!apiKey) {
             res.status(502).json({ error: "Assistant is not configured." });
             return;
         }
 
         try {
-            const groqRes = await fetch(GROQ_ENDPOINT, {
+            const openRouterRes = await fetch(OPENROUTER_ENDPOINT, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${apiKey}`,
+                    // OpenRouter uses these to attribute traffic to the app.
+                    "HTTP-Referer": "https://gurtxvivita-4c370.web.app",
+                    "X-Title": "Viventory",
                 },
-                body: JSON.stringify(buildGroqRequestBody(query)),
+                body: JSON.stringify(buildAssistantRequestBody(query)),
             });
 
-            const reply = parseGroqReply(await groqRes.json().catch(() => null));
-            if (!groqRes.ok || !reply) {
+            const reply = parseAssistantReply(await openRouterRes.json().catch(() => null));
+            if (!openRouterRes.ok || !reply) {
                 res.status(502).json({ error: "The assistant could not answer right now." });
                 return;
             }

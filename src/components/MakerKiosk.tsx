@@ -18,7 +18,7 @@ import {
     type MakerProjectIdea,
 } from "./makerspaceData";
 import { useInventory } from "./InventoryProvider";
-import { askGroqFallback } from "../services/makerAssistantGroq";
+import { askAssistantFallback } from "../services/makerAssistantClient";
 import { isSafeHttpUrl, openExternalUrl } from "../utils/externalUrl";
 import { getCurrentLanguage, translateDifficulty } from "../i18n/i18n";
 
@@ -384,15 +384,16 @@ export function MakerKiosk() {
             return;
         }
 
-        // No confident local answer — show a thinking state and try Groq. If Groq
-        // is unavailable it returns null and we keep the rule-based fallback bubble.
+        // No confident local answer — show a thinking state and try the assistant
+        // function. If it is unavailable it returns null and we keep the rule-based
+        // fallback bubble.
         setMessages(prev =>
             prev.map(m => (m.id === assistantId
                 ? { id: m.id, role: "assistant", text: "VIVI Bot is thinking…" }
                 : m)),
         );
 
-        askGroqFallback(query).then(reply => {
+        askAssistantFallback(query).then(reply => {
             setMessages(prev =>
                 prev.map(m => {
                     if (m.id !== assistantId) return m;

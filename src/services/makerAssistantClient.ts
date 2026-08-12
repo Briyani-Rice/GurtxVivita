@@ -12,7 +12,7 @@ function defaultUrl(): string {
 // Calls the makerAssistant Cloud Function. Returns the reply on success, or null
 // on any problem (unconfigured URL, timeout, network error, bad response) so the
 // caller can fall back to the rule-based answer without special-casing failures.
-export async function askGroqFallback(query: string, opts: AskOptions = {}): Promise<string | null> {
+export async function askAssistantFallback(query: string, opts: AskOptions = {}): Promise<string | null> {
     const trimmed = query.trim();
     const url = (opts.url ?? defaultUrl()).trim();
     const fetchImpl = opts.fetchImpl ?? fetch;

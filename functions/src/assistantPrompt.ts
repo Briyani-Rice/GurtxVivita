@@ -1,8 +1,9 @@
-export const GROQ_MODEL = "llama-3.3-70b-versatile";
+export const ASSISTANT_MODEL = "openai/gpt-oss-20b:free";
 
 const SYSTEM_PROMPT = [
-    "You are VIVI Bot, a friendly assistant for children in a VIVITA makerspace.",
+    "You are VIVI Bot, a warm and playful assistant for children in a VIVITA makerspace.",
     "Answer in 2-4 short, encouraging sentences a 8-12 year old can read.",
+    "Be friendly first: greet them back, sound excited about what they want to make, and never make a child feel their question was silly or wrong.",
     "Only discuss making, crafting, tools, materials, and project ideas available in a makerspace.",
     "Always keep it safe: for anything with heat, blades, or electricity, remind them to ask an adult or staff member for help.",
     "If a request is unsafe or unrelated to making things, gently redirect them to ask a staff member.",
@@ -21,9 +22,9 @@ export function sanitizeQuery(raw: unknown): string | null {
     return trimmed;
 }
 
-export function buildGroqRequestBody(query: string) {
+export function buildAssistantRequestBody(query: string) {
     return {
-        model: GROQ_MODEL,
+        model: ASSISTANT_MODEL,
         messages: [
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: query },
@@ -33,7 +34,7 @@ export function buildGroqRequestBody(query: string) {
     };
 }
 
-export function parseGroqReply(json: unknown): string | null {
+export function parseAssistantReply(json: unknown): string | null {
     if (typeof json !== "object" || json === null) {
         return null;
     }

@@ -24,7 +24,7 @@ The `Maker Bot` tab is designed for a dedicated makerspace tablet. Children can 
 - `How do I use a micro:bit?`
 - `What can I make with cardboard and LEDs?`
 
-The rule-based engine answers instantly and offline, ensuring safety warnings appear predictably before instructions for adult-supervision tools. For questions it can't answer, VIVI Bot falls back to a Groq-backed LLM via a Cloud Function whose API key stays server-side — see [docs/groq-chatbot-setup.md](docs/groq-chatbot-setup.md) to enable it. Leaving it unconfigured keeps the bot fully rule-based.
+The rule-based engine answers instantly and offline, ensuring safety warnings appear predictably before instructions for adult-supervision tools. For questions it can't answer, VIVI Bot falls back to an OpenRouter-backed LLM via a Cloud Function whose API key stays server-side — see [docs/openrouter-chatbot-setup.md](docs/openrouter-chatbot-setup.md) to enable it. Leaving it unconfigured keeps the bot fully rule-based.
 
 The Maker Bot supports the core requirements from the makerspace user requirements document:
 
