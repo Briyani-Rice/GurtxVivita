@@ -186,7 +186,13 @@ const styles: Styles = {
         fontWeight: 650,
         outline: 'none',
         cursor: 'pointer',
-        boxShadow: '0 10px 26px rgba(15, 23, 42, 0.08)'
+        boxShadow: '0 10px 26px rgba(15, 23, 42, 0.08)',
+        // A native select sizes itself to its widest option. The longest category
+        // ("Peripheral Devices (Power. Cables. Adapters. Mouses)") would otherwise
+        // push the control past a third of the row and squeeze the search box,
+        // which is the control children actually reach for.
+        maxWidth: 220,
+        textOverflow: 'ellipsis'
     },
 
     input: {
