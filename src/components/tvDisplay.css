@@ -1,6 +1,20 @@
 .tv-root {
+    /*
+     * Title-safe area. A TV panel overscans: it crops roughly 5% of every edge,
+     * so anything drawn to the true viewport edge is simply not on screen in the
+     * room. Everything inside .tv-root is inset by this much.
+     *
+     * env(safe-area-inset-*) covers Android TV webviews that report their own
+     * insets; the vw/vh floor covers ordinary TVs that report nothing but still
+     * crop. Whichever is larger wins.
+     */
+    --tv-safe-x: max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px), 4vw);
+    --tv-safe-y: max(env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px), 4vh);
+
     position: fixed;
     inset: 0;
+    box-sizing: border-box;
+    padding: var(--tv-safe-y) var(--tv-safe-x);
     display: flex;
     flex-direction: column;
     background: var(--background, #0b0b0f);
@@ -13,7 +27,10 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    padding: 3vmin 4vmin;
+    /* Reduced from 3vmin/4vmin: .tv-root now supplies the title-safe inset, and
+       stacking the old padding on top wasted a band of a screen meant to be read
+       from across the room. */
+    padding: 1.5vmin 2vmin;
     gap: 2vmin;
 }
 .tv-scene--map { padding: 0; }
@@ -30,9 +47,11 @@
 .tv-dot { width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: rgba(255, 255, 255, 0.25); }
 .tv-dot--active { background: var(--primary, #7c5cff); }
 .tv-fullscreen-hint {
+    /* Fixed to the viewport, so it sits outside .tv-root's padding and has to
+       clear the overscan on its own or it lands in the cropped corner. */
     position: fixed;
-    top: 2vmin;
-    right: 2vmin;
+    top: calc(max(env(safe-area-inset-top, 0px), 4vh) + 1vmin);
+    right: calc(max(env(safe-area-inset-right, 0px), 4vw) + 1vmin);
     font-size: 14px;
     opacity: 0.6;
     cursor: pointer;
