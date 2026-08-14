@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
     DISPLAY_MODE_STORAGE_KEY,
     type DisplayModeStorage,
+    isDevBuild,
     isNativeRuntime,
     needsDeviceModeChoice,
     parseDisplayMode,
@@ -122,5 +123,26 @@ assert.equal(isNativeRuntime(undefined), false);
 assert.equal(isNativeRuntime(null), false);
 assert.equal(isNativeRuntime({ __TAURI_INTERNALS__: {} }), true);
 assert.equal(isNativeRuntime({ __TAURI__: {} }), true);
+
+// --- development always gets the full app ---
+
+// `tauri dev` is a native build, so without this a single afternoon of testing
+// kiosk mode would leave every later dev run stuck in it, with no tabs, settings
+// or admin. Development ignores whatever this machine was last set to.
+const devStored = fakeStorage({ [DISPLAY_MODE_STORAGE_KEY]: "kiosk" });
+assert.equal(resolveDisplayMode("", devStored, true), "normal", "dev ignores a stored kiosk mode");
+assert.equal(resolveDisplayMode("", devStored, false), "kiosk", "production still honours it");
+
+// Dev is never interrupted by the device-setup screen, even on a fresh install.
+assert.equal(needsDeviceModeChoice("", fakeStorage(), true, true), false, "dev is never asked");
+assert.equal(needsDeviceModeChoice("", fakeStorage(), true, false), true, "production still asks");
+
+// ...but an explicit ?display= still works in dev, so the other shells stay testable.
+assert.equal(resolveDisplayMode("?display=kiosk", fakeStorage(), true), "kiosk");
+assert.equal(resolveDisplayMode("?display=tv", fakeStorage(), true), "tv");
+
+// Outside Vite there is no import.meta.env, so this must not throw.
+assert.doesNotThrow(() => isDevBuild());
+assert.equal(typeof isDevBuild(), "boolean");
 
 console.log("displayMode tests passed");

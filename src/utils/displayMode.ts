@@ -21,6 +21,19 @@ function defaultStorage(): DisplayModeStorage | null {
     }
 }
 
+/**
+ * True during `npm run dev` / `npm run tauri dev`.
+ *
+ * Development always starts in the full app. `tauri dev` is a native build, so
+ * without this it would ask once and then remember — leaving the dev shell stuck
+ * in kiosk mode with no tabs, settings, or admin, which is not what anyone wants
+ * from a dev run. `?display=` still works in dev for testing the other shells.
+ */
+export function isDevBuild(): boolean {
+    const env = (import.meta as ImportMeta & { env?: Record<string, unknown> }).env;
+    return env?.DEV === true;
+}
+
 export function parseDisplayMode(value: string | null | undefined): DisplayMode | null {
     const normalized = value?.trim().toLowerCase();
 
@@ -85,7 +98,13 @@ export function needsDeviceModeChoice(
     search: string = typeof window !== "undefined" ? window.location.search : "",
     storage: DisplayModeStorage | null = defaultStorage(),
     native: boolean = isNativeRuntime(),
+    dev: boolean = isDevBuild(),
 ): boolean {
+    // A dev run should never be interrupted by device setup.
+    if (dev) {
+        return false;
+    }
+
     if (parseDisplayMode(new URLSearchParams(search).get("display"))) {
         return false;
     }
@@ -100,12 +119,19 @@ export function needsDeviceModeChoice(
 export function resolveDisplayMode(
     search: string = typeof window !== "undefined" ? window.location.search : "",
     storage: DisplayModeStorage | null = defaultStorage(),
+    dev: boolean = isDevBuild(),
 ): DisplayMode {
     const fromQuery = parseDisplayMode(new URLSearchParams(search).get("display"));
 
     if (fromQuery) {
         storeDisplayMode(fromQuery, storage);
         return fromQuery;
+    }
+
+    // In development, ignore whatever this machine was last set to. Otherwise one
+    // afternoon spent testing kiosk mode leaves every later dev run stuck in it.
+    if (dev) {
+        return "normal";
     }
 
     return readStoredDisplayMode(storage) ?? "normal";
