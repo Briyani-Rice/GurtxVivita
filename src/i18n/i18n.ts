@@ -24,6 +24,8 @@ const en: Dict = {
     "tab.Documentation": "Documentation",
     "tab.Settings": "Settings",
 
+    "welcome.greeting": "Hi, {name}!",
+    "welcome.guestName": "user",
     "welcome.heading": "Welcome to VIVITA Singapore",
     "welcome.sub": "Our Vivistop @ 10 Kampong Eunos has the tools, materials, and space to build your ideas.",
     "welcome.searchPlaceholder": "Search materials, tools, or rooms...",
@@ -205,6 +207,8 @@ const zh: Dict = {
     "tab.Documentation": "文档",
     "tab.Settings": "设置",
 
+    "welcome.greeting": "你好，{name}！",
+    "welcome.guestName": "用户",
     "welcome.heading": "欢迎来到 VIVITA 新加坡",
     "welcome.sub": "我们位于 10 Kampong Eunos 的 Vivistop 拥有工具、材料和空间，助你实现创意。",
     "welcome.searchPlaceholder": "搜索材料、工具或房间…",
@@ -385,6 +389,8 @@ const ja: Dict = {
     "tab.Documentation": "ドキュメント",
     "tab.Settings": "設定",
 
+    "welcome.greeting": "こんにちは、{name}さん！",
+    "welcome.guestName": "ユーザー",
     "welcome.heading": "VIVITA シンガポールへようこそ",
     "welcome.sub": "10 Kampong Eunos の Vivistop には、アイデアを形にする道具・材料・スペースがそろっています。",
     "welcome.searchPlaceholder": "材料・道具・部屋を検索…",
@@ -565,6 +571,8 @@ const ms: Dict = {
     "tab.Documentation": "Dokumentasi",
     "tab.Settings": "Tetapan",
 
+    "welcome.greeting": "Hai, {name}!",
+    "welcome.guestName": "pengguna",
     "welcome.heading": "Selamat datang ke VIVITA Singapura",
     "welcome.sub": "Vivistop kami di 10 Kampong Eunos mempunyai alat, bahan dan ruang untuk membina idea anda.",
     "welcome.searchPlaceholder": "Cari bahan, alat atau bilik…",
@@ -745,6 +753,8 @@ const ta: Dict = {
     "tab.Documentation": "ஆவணங்கள்",
     "tab.Settings": "அமைப்புகள்",
 
+    "welcome.greeting": "வணக்கம், {name}!",
+    "welcome.guestName": "பயனர்",
     "welcome.heading": "VIVITA சிங்கப்பூருக்கு நல்வரவு",
     "welcome.sub": "10 Kampong Eunos இல் உள்ள எங்கள் Vivistop இல் உங்கள் யோசனைகளை உருவாக்கத் தேவையான கருவிகள், பொருட்கள், இடம் உள்ளன.",
     "welcome.searchPlaceholder": "பொருட்கள், கருவிகள் அல்லது அறைகளைத் தேடுங்கள்…",

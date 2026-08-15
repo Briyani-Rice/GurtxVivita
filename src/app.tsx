@@ -29,7 +29,13 @@ import { DeviceModePicker } from "./components/DeviceModePicker";
 import TvDisplay from "./components/TvDisplay";
 import AdminViewTab from "./components/AdminViewTab";
 import { consumeGoogleRedirectResult } from "./services/firebaseAuth";
-import { recordAccountLogin } from "./services/accountSession";
+import {
+    ACCOUNT_SESSION_EVENT,
+    loadCurrentAccount,
+    recordAccountLogin,
+    type AccountRecord,
+} from "./services/accountSession";
+import { greetingName } from "./services/greetingName";
 import { translateTabName, useI18n } from "./i18n/i18n";
 import { hasPrimaryModifier, isApplePlatform } from "./utils/shortcutModifier";
 import { Toaster } from "./components/ui/sonner";
@@ -137,6 +143,19 @@ export class welcomeTab implements Tab {
 function WelcomeContent() {
     const { t } = useI18n();
     const searchInputId = "welcome-search";
+    // accountSession broadcasts on both sign-in and sign-out, so the greeting
+    // flips without a reload.
+    const [account, setAccount] = useState<AccountRecord | null>(() => loadCurrentAccount());
+
+    useEffect(() => {
+        const syncAccount = () => setAccount(loadCurrentAccount());
+
+        window.addEventListener(ACCOUNT_SESSION_EVENT, syncAccount);
+        return () => window.removeEventListener(ACCOUNT_SESSION_EVENT, syncAccount);
+    }, []);
+
+    const name = greetingName(account);
+    const greeting = t("welcome.greeting", { name: name ?? t("welcome.guestName") });
 
     const quickLinks: Array<{ label: string; open: () => void }> = [
         { label: t("link.makerBot"), open: () => focusOrOpenTab("Maker Bot", () => new MakerKioskTab()) },
@@ -182,6 +201,14 @@ function WelcomeContent() {
                             filter: "var(--viventory-logo-filter)",
                         }}
                     />
+                    <p style={{
+                        margin: "0 0 -10px",
+                        fontSize: "17px",
+                        fontWeight: 600,
+                        color: "var(--viventory-muted-text)",
+                    }}>
+                        {greeting}
+                    </p>
                     <h1 style={{
                         margin: 0,
                         fontSize: "clamp(30px, 4.5vw, 42px)",
