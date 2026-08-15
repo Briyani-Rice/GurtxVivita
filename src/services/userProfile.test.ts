@@ -1,13 +1,6 @@
 import assert from "node:assert/strict";
-import { buildUserProfile, permsFromValue } from "./userProfile.ts";
+import { buildUserProfile } from "./userProfile.ts";
 import { UserPerms } from "../types.ts";
-
-// permsFromValue maps known staff markers to Staff, everything else to Basic.
-assert.equal(permsFromValue("staff"), UserPerms.Staff);
-assert.equal(permsFromValue("admin"), UserPerms.Staff);
-assert.equal(permsFromValue(UserPerms.Staff), UserPerms.Staff);
-assert.equal(permsFromValue("basic"), UserPerms.Basic);
-assert.equal(permsFromValue(undefined), UserPerms.Basic);
 
 // A fallback of Staff (email is on the admin list) always wins.
 const adminProfile = buildUserProfile(
@@ -18,14 +11,18 @@ const adminProfile = buildUserProfile(
 assert.equal(adminProfile.perms, UserPerms.Staff);
 assert.equal(adminProfile.username, "Ada");
 
-// A non-admin fallback keeps whatever perms the stored doc had.
-const returningStaff = buildUserProfile(
+// The stored perms field must NEVER grant staff. A signed-in user owns their
+// own user/{uid} document, so trusting it let anyone write perms: "staff" once
+// and come back as an admin. Staff comes from the email allowlist only.
+const plantedStaff = buildUserProfile(
     { uid: "u2", email: "c@d.com", displayName: null },
     { username: "StoredName", perms: "staff" },
     UserPerms.Basic,
 );
-assert.equal(returningStaff.perms, UserPerms.Staff);
-assert.equal(returningStaff.username, "StoredName");
+assert.equal(plantedStaff.perms, UserPerms.Basic);
+
+// Non-privileged stored fields are still honoured.
+assert.equal(plantedStaff.username, "StoredName");
 
 // Username falls back email -> "Google user" when nothing else is present.
 const noName = buildUserProfile(
