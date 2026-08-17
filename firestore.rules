@@ -1,19 +1,18 @@
 rules_version = '2';
 
-// Recommended Firestore security rules for Viventory.
+// Firestore security rules for Viventory. THESE ARE LIVE.
 //
-// NOT DEPLOYED AUTOMATICALLY. Review, add your staff emails below, then deploy
-// with `firebase deploy --only firestore:rules` (or paste into the Firestore
-// Rules tab in the Firebase console).
+// firebase.json wires this file to `firebase deploy --only firestore:rules`,
+// so a change here ships the moment that command runs. Add staff emails to the
+// isAdmin() allowlist below — and note the same allowlist is duplicated in the
+// client's VITE_FIREBASE_ADMIN_EMAILS, so both have to be kept in step.
 //
-// TRADE-OFF TO DECIDE FIRST — the demo login (User / User12345) has no Firebase
-// Authentication, so with these rules a demo admin CANNOT write to Firestore
-// (their material/idea edits will fail and fall back to local-only for the
-// session). Only the Google admin sign-in — which is Firebase-authenticated —
-// can write. Choose one:
-//   * Deploy these rules and do real admin work via Google sign-in (demo login
-//     becomes read-only against Firestore). Recommended for anything shared.
-//   * Keep Firestore in test mode for a purely local, offline prototype.
+// Consequence of these rules being enforced: the demo login (User / User12345)
+// has no Firebase Authentication, so a demo admin CANNOT write to Firestore.
+// Their material and idea edits fail and fall back to local-only for the
+// session. Real admin work has to go through the Google sign-in, which is
+// Firebase-authenticated. A denied write from the demo account is this rule
+// working, not a bug.
 
 service cloud.firestore {
   match /databases/{database}/documents {
