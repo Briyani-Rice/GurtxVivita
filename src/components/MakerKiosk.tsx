@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { MakerAvatar } from "./MakerAvatar";
+import { makerAvatarState } from "./makerAvatarState";
 import {
     AlertTriangle,
     Bot,
@@ -308,7 +310,10 @@ function ProjectCard({ project }: { project: MakerProjectIdea }) {
 function AssistantAnswer({ answer }: { answer: MakerAnswer }) {
     return (
         <>
-            <strong style={{ fontSize: 18 }}>{answer.title}</strong>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <MakerAvatar state={makerAvatarState(answer)} size={40} />
+                <strong style={{ fontSize: 18 }}>{answer.title}</strong>
+            </div>
             {answer.sections.map(formatSection)}
             {isSafeHttpUrl(answer.item?.imageUrl) && (
                 <img
