@@ -24,6 +24,15 @@ import { UserPrefs } from './SettingsView';
 
 type UserTab = 'map' | 'materials';
 
+/**
+ * How long the "request sent" confirmation is held.
+ *
+ * Was 800ms, which is shorter than the time a child takes to look back up at
+ * the screen after tapping — the acknowledgement existed but was routinely
+ * missed.
+ */
+const REQUEST_CONFIRMATION_MS = 1200;
+
 const SORT_LABEL_KEYS: Record<MaterialSortKey, TranslationKey> = {
     'default': 'user.sortDefault',
     'name-asc': 'user.sortNameAsc',
@@ -511,7 +520,7 @@ export function UserView({
                 setReqQty('1');
                 setReqReason('');
                 setRequestError('');
-            }, 800);
+            }, REQUEST_CONFIRMATION_MS);
         } catch (error) {
             setRequestError(error instanceof Error ? error.message : t('user.errFailed'));
         } finally {
@@ -697,7 +706,11 @@ export function UserView({
                                 const needsAdult = kioskMode && materialRequiresAdultSupervision(m);
 
                                 return (
-                                    <div key={m.id} style={styles.card(!available)}>
+                                    <div
+                                        key={m.id}
+                                        className={kioskMode ? 'vk-card' : undefined}
+                                        style={styles.card(!available)}
+                                    >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
                                             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0 }}>
                                                 {kioskMode && <CategoryGlyph category={m.category ?? ''} />}
@@ -787,7 +800,7 @@ export function UserView({
                 <div style={styles.modalBackdrop}>
                     <div style={styles.modal}>
                         {submitted ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div className="vk-confirm" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <Check />
                                 {t('user.requestSubmitted')}
                             </div>

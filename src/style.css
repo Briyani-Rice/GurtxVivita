@@ -398,3 +398,44 @@ html {
   --vk-empty: #8A8F99;
   --vk-shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 10px 24px -14px rgba(0, 0, 0, 0.8);
 }
+
+/* Kiosk motion.
+ *
+ * Every rule is opt-out: a child who needs stillness gets the instant
+ * behaviour rather than a degraded one. CSS transitions only — no animation
+ * library, and nothing that blocks a tap.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .viventory-kiosk button,
+  .viventory-kiosk [role="button"] {
+    transition: transform 120ms ease, background-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .viventory-kiosk button:active,
+  .viventory-kiosk [role="button"]:active {
+    transform: scale(0.96);
+  }
+
+  .viventory-kiosk button:disabled:active {
+    transform: none;
+  }
+
+  .viventory-kiosk .vk-card {
+    animation: vk-settle 220ms ease both;
+  }
+
+  .viventory-kiosk .vk-confirm {
+    animation: vk-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @keyframes vk-settle {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes vk-pop {
+    0% { opacity: 0; transform: scale(0.8); }
+    60% { transform: scale(1.06); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+}
