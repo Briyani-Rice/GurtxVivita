@@ -331,8 +331,20 @@ function significantTokens(text: string): string[] {
 // A prefix match (either direction, min 3 chars) so plurals and simple
 // suffixes line up: "leds" ~ "led", "scissors" ~ "scissor", "printers" ~
 // "printer". Kept deliberately conservative to avoid unrelated collisions.
+//
+// The trailing difference is capped: an unbounded prefix match let any short
+// item word swallow a longer unrelated query word, so "nonsense" matched the
+// "non" in "non-fabric" and "papercut" matched "paper", and the bot answered
+// gibberish with a confident "Found: ..." instead of saying it did not know.
+const MAX_SUFFIX_DELTA = 2;
+
 function tokensRelated(a: string, b: string): boolean {
-    return a === b || a.startsWith(b) || b.startsWith(a);
+    if (a === b) return true;
+
+    const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+    if (!longer.startsWith(shorter)) return false;
+
+    return longer.length - shorter.length <= MAX_SUFFIX_DELTA;
 }
 
 // Whole-word intent matching. Substring matching mis-routed item names that
@@ -375,11 +387,43 @@ function isGreeting(normalized: string): boolean {
 //     Filament"); without this tier only certain items ever answered.
 const FULL_MATCH_OFFSET = 1_000_000;
 
+const WORD_CHARACTER = /[\p{L}\p{N}]/u;
+
+// Scripts written without spaces between words. A neighbouring character in one
+// of these is no evidence that the phrase is part of a longer word, so the
+// boundary rule below must not apply to them — "纸箱在哪里" has to keep matching
+// the item named "纸箱".
+const UNSPACED_SCRIPT = /[぀-ヿ㐀-䶿一-鿿가-힯豈-﫿]/u;
+
+function continuesWord(character: string | undefined): boolean {
+    if (!character) return false;
+    return WORD_CHARACTER.test(character) && !UNSPACED_SCRIPT.test(character);
+}
+
+// Whole-phrase containment. A raw substring test matched an alias inside a
+// longer word — "papercut" contains "paper" — and answered an unrelated
+// question with a confident "Found: Coloured Paper". Multi-word aliases like
+// "hot glue gun" still match, because only the two edges are checked.
+export function normalizedTextContainsPhrase(normalizedText: string, normalizedPhrase: string): boolean {
+    if (!normalizedPhrase) return false;
+
+    for (let from = 0; ; ) {
+        const at = normalizedText.indexOf(normalizedPhrase, from);
+        if (at === -1) return false;
+
+        const before = normalizedText[at - 1];
+        const after = normalizedText[at + normalizedPhrase.length];
+        if (!continuesWord(before) && !continuesWord(after)) return true;
+
+        from = at + 1;
+    }
+}
+
 function itemMatchScore(item: MakerItem, normalizedQuery: string, queryTokens: string[]): number {
     let best = 0;
     for (const alias of [item.name, ...item.aliases]) {
         const normalizedAlias = normalize(alias);
-        if (normalizedAlias && normalizedQuery.includes(normalizedAlias) && normalizedAlias.length > best) {
+        if (normalizedTextContainsPhrase(normalizedQuery, normalizedAlias) && normalizedAlias.length > best) {
             best = normalizedAlias.length;
         }
     }
@@ -417,7 +461,8 @@ function findItem(query: string, items: MakerItem[]): MakerItem | undefined {
 function findMatchingProjects(query: string, projects: MakerProjectIdea[], items: MakerItem[]): MakerProjectIdea[] {
     const normalized = normalize(query);
     const mentionedItemIds = items
-        .filter(item => [item.name, ...item.aliases].some(alias => normalized.includes(normalize(alias))))
+        .filter(item => [item.name, ...item.aliases]
+            .some(alias => normalizedTextContainsPhrase(normalized, normalize(alias))))
         .map(item => item.id);
 
     if (mentionedItemIds.length === 0) {

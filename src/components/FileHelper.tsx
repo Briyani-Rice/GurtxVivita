@@ -16,20 +16,16 @@ export class File {
 
     async refresh(): Promise<void> {
         try {
-            const result = await loadDocsMarkdownFileContent(this.path);
-            console.log(result)
-            this.contents = result;
+            this.contents = await loadDocsMarkdownFileContent(this.path);
         } catch (e) {
             this.contents = undefined;
             this.err = `${e}`;
-            console.error(this.err)
-            console.log(this.contents)
+            console.error(`Failed to load ${this.path}: ${this.err}`)
         }
     }
 }
 
 export function renderMdFile(file:File):React.ReactElement{
-    console.log(file.contents)
     if (file.contents){
         return(<ReactMarkdown
             remarkPlugins={[remarkGfm]}

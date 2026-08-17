@@ -62,15 +62,15 @@ function DocsContent() {
             display: "flex",
             height: "100%",
             fontFamily: "monospace",
-            background: "#ffffff",
-            color: "#111111"
+            background: "var(--viventory-bg)",
+            color: "var(--viventory-text)"
         }}>
             <div style={{
                 width: "240px",
-                borderRight: "1px solid #e5e5e5",
+                borderRight: "1px solid var(--viventory-border)",
                 padding: "10px",
                 overflowY: "auto",
-                background: "#fafafa",
+                background: "var(--viventory-muted-surface)",
                 display: "flex",
                 flexDirection: "column",
                 gap: "8px"
@@ -81,11 +81,13 @@ function DocsContent() {
                     placeholder="Search..."
                     style={{
                         padding: "6px 8px",
-                        border: "1px solid #ddd",
+                        border: "1px solid var(--viventory-border)",
                         borderRadius: "4px",
                         outline: "none",
                         fontFamily: "monospace",
-                        fontSize: "12px"
+                        fontSize: "12px",
+                        background: "var(--viventory-surface)",
+                        color: "var(--viventory-text)"
                     }}
                 />
 
@@ -103,8 +105,8 @@ function DocsContent() {
                                     marginBottom: "4px",
                                     cursor: "pointer",
                                     borderRadius: "4px",
-                                    background: active ? "#eaeaea" : "transparent",
-                                    border: active ? "1px solid #d0d0d0" : "1px solid transparent"
+                                    background: active ? "var(--viventory-active-tab)" : "transparent",
+                                    border: active ? "1px solid var(--viventory-border)" : "1px solid transparent"
                                 }}
                             >
                                 {name}
@@ -118,7 +120,7 @@ function DocsContent() {
                 flex: 1,
                 padding: "18px 26px",
                 overflowY: "auto",
-                background: "#ffffff"
+                background: "var(--viventory-bg)"
             }}>
                 {loading ? (
                     <div>Loading documentation...</div>

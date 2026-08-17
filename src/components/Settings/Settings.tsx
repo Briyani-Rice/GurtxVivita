@@ -37,10 +37,8 @@ function SettingsContent() {
 
     async function loadPages() {
         const loadedPages = await getPages();
-        console.log(loadedPages)
         setPages(loadedPages);
     }
-    console.log(pages[selectedIndex]?.content)
 
     // @ts-ignore
     return (

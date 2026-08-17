@@ -725,27 +725,25 @@ function App() {
 
     const handleClosingTab:(index:number)=>void = (index: number) => {
 
-        setTabs((prevTabs) => {
+        if (index < 0 || index >= tabs.length) return
 
-            const newTabs = prevTabs.filter((_, i) => i !== index)
+        const newTabs = tabs.filter((_, i) => i !== index)
 
-            if (newTabs.length === 0) {
-                setTabIndex(0)
-                return [new welcomeTab()]
-            }
+        if (newTabs.length === 0) {
+            setTabs([new welcomeTab()])
+            setTabIndex(0)
+            return
+        }
 
-            // Keep the highlighted tab pointing at the same tab after the close.
-            // Using the functional form avoids depending on a stale tabIndex
-            // closure, and the index must shift left when a tab before the
-            // active one is removed.
-            setTabIndex((prevIndex) => {
-                if (index < prevIndex) return prevIndex - 1
-                if (index === prevIndex) return Math.min(prevIndex, newTabs.length - 1)
-                return prevIndex
-            })
-
-            return newTabs
-        })
+        // Keep the highlighted tab pointing at the same tab after the close: the
+        // index shifts left when a tab before the active one is removed.
+        //
+        // Both updates are computed here rather than inside the setTabs updater.
+        // React invokes updaters twice under StrictMode, so a relative
+        // setTabIndex nested in one was applied twice and the highlight jumped
+        // two tabs instead of one.
+        setTabs(newTabs)
+        setTabIndex(index < tabIndex ? tabIndex - 1 : Math.min(tabIndex, newTabs.length - 1))
     }
 
     const moveTab = (from: number, to: number) => {
@@ -811,10 +809,11 @@ function App() {
             return;
         }
 
-        setTabs((prevTabs) => {
-            setTabIndex(prevTabs.length);
-            return [...prevTabs, new UserViewTab(trimmedQuery)];
-        });
+        // Computed outside a setTabs updater for the same reason as
+        // handleClosingTab: StrictMode runs updaters twice, and a tab must not
+        // be constructed as a side effect of one.
+        setTabs([...tabs, new UserViewTab(trimmedQuery)]);
+        setTabIndex(tabs.length);
     }
     const openLoginTab = useCallback(() => {
         const existingIndex = tabs.findIndex(tab => tab.name === "Login");
