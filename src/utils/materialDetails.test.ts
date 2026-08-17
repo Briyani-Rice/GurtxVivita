@@ -3,6 +3,7 @@ import type { Material } from "../types";
 import {
     enrichMaterial,
     isMaterialAvailable,
+    kioskDescription,
     materialStockLabel,
     parseMaterialDescription,
     parseStockStatus,
@@ -89,3 +90,50 @@ assert.equal(materialStockLabel(makeMaterial({ quantity: 0, stockStatus: "low" }
 assert.equal(materialStockLabel(makeMaterial({ quantity: 0 })), "Out of stock");
 
 console.log("materialDetails tests passed");
+
+// Kid-facing cards currently render the raw description, which is a merged blob
+// of staff fields. Children have been shown purchase remarks, loan history and
+// raw Notion URLs. This is an allowlist, not a denylist: free-text staff data
+// guarantees a denylist leaks the next key nobody anticipated.
+
+// The one keyed field a child benefits from.
+assert.equal(
+    kioskDescription("Used for: paper, plastic, wood"),
+    "paper, plastic, wood",
+);
+
+// Staff fields are dropped.
+assert.equal(kioskDescription("Purchase remarks: Comes with 4 mini tubes, Red label"), "");
+assert.equal(kioskDescription("Loan period: March 30, 2022 → May 22, 2022"), "");
+assert.equal(kioskDescription("Loaned to: External Site_ Hebron"), "");
+assert.equal(kioskDescription("Kit: Leather Kit"), "");
+
+// Unrecognised keys are dropped too — that is the point of an allowlist.
+assert.equal(kioskDescription("Procurement notes: reorder in April"), "");
+
+// Anything carrying a URL is dropped whatever its key.
+assert.equal(
+    kioskDescription("Specific materials: Calico Fabric (https://app.notion.com/p/Calico-abc?pvs=21)"),
+    "",
+);
+assert.equal(kioskDescription("Used for: see https://example.com/guide"), "");
+
+// A mixed blob keeps only the child-facing part.
+assert.equal(
+    kioskDescription(
+        "Used for: paper, plastic; Specific materials: Pom Poms (https://app.notion.com/p/x); Purchase remarks: 30 sticks",
+    ),
+    "paper, plastic",
+);
+
+// A plain keyless description is a genuine human sentence, not a staff field,
+// so it survives — unless it carries a URL.
+assert.equal(kioskDescription("Cat 6 networking cable"), "Cat 6 networking cable");
+assert.equal(kioskDescription("See https://example.com"), "");
+
+// Empty input stays empty rather than throwing.
+assert.equal(kioskDescription(""), "");
+assert.equal(kioskDescription("   "), "");
+assert.equal(kioskDescription(";;"), "");
+
+console.log("kioskDescription tests passed");

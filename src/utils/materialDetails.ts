@@ -144,3 +144,43 @@ export function materialStockLabel(material: Material): string {
 
     return "Out of stock";
 }
+
+/** Keyed segments a child benefits from. Everything else is staff bookkeeping. */
+const KIOSK_DESCRIPTION_KEYS = new Set(["used for"]);
+
+const CONTAINS_URL = /https?:\/\//i;
+
+/**
+ * Strips a material description down to what a child should read.
+ *
+ * `description` is a merged blob of `Key: value` segments joined with ";" —
+ * purchase remarks, loan history, supplier notes and Notion URLs all end up in
+ * it, and the kiosk card renders it verbatim today. This keeps only an allowed
+ * key plus genuine keyless prose, and drops anything carrying a URL.
+ *
+ * An allowlist rather than a denylist: staff type these keys by hand, so a
+ * denylist is certain to leak the first key nobody thought of.
+ */
+export function kioskDescription(description: string): string {
+    const kept: string[] = [];
+
+    for (const segment of description.split(";")) {
+        const trimmed = segment.trim();
+        if (!trimmed || CONTAINS_URL.test(trimmed)) continue;
+
+        const separatorIndex = trimmed.indexOf(":");
+
+        if (separatorIndex === -1) {
+            kept.push(trimmed);
+            continue;
+        }
+
+        const key = trimmed.slice(0, separatorIndex).trim().toLowerCase();
+        if (!KIOSK_DESCRIPTION_KEYS.has(key)) continue;
+
+        const value = trimmed.slice(separatorIndex + 1).trim();
+        if (value) kept.push(value);
+    }
+
+    return kept.join("; ");
+}
