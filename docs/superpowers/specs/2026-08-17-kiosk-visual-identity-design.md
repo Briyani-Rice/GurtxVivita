@@ -135,14 +135,17 @@ side, and it is pure logic over data already in memory — no new queries.
 | Any touch target | nothing | press-down scale + colour shift |
 | Card appearing | instant | short staggered settle |
 | Bot answer | full wall of text at once | sections reveal in sequence |
-| Request submitted | dialog just closes | confirmation moment, then closes |
+| Request submitted | static check + text for 800 ms | the same beat, animated, held to 1200 ms |
 
 All CSS transitions, no animation library. Every rule sits inside a
 `@media (prefers-reduced-motion: no-preference)` guard, so a child who needs
 stillness gets the current instant behaviour rather than a degraded one.
 
-The request confirmation matters most: submitting currently gives no
-acknowledgement at all, which reads as the app having ignored you.
+The request confirmation already exists — `UserView.tsx:443` sets a `submitted`
+state that renders a check and `user.requestSubmitted`, then closes on an 800 ms
+timer. It is not missing, it is easy to miss: nothing moves, and 800 ms is
+shorter than the glance it takes a child to look back up at the screen. This is a
+change to an existing beat, not a new one.
 
 ## 6. Bot expression
 
