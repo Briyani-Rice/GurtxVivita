@@ -37,8 +37,8 @@ const styles = {
         inset: 0,
         display: 'flex',
         flexDirection: 'column',
-        background: 'var(--viventory-bg)',
-        color: 'var(--viventory-text)',
+        background: 'var(--vk-ground, var(--viventory-bg))',
+        color: 'var(--vk-ink, var(--viventory-text))',
         // TV panels crop the frame edges; keep content inside the safe area.
         padding: 'env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)',
     } as React.CSSProperties,
@@ -121,7 +121,7 @@ export function KioskShell({ onRequestModeChange }: { onRequestModeChange?: () =
     };
 
     return (
-        <div style={styles.shell}>
+        <div className="viventory-kiosk" style={styles.shell}>
             {onRequestModeChange && (
                 <button
                     type="button"

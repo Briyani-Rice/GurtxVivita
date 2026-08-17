@@ -353,3 +353,48 @@ html {
 @media (pointer: coarse) {
   button, a, [role="button"] { min-height: 44px; }
 }
+
+/* Kiosk palette.
+ *
+ * Additive and class-scoped on purpose. VivitaPalette.test.ts pins every
+ * light-mode --viventory-* surface to #ffffff, so the child-facing shell gets
+ * its own layer instead of recolouring the staff shell. Colours derive from the
+ * four VIVITA site colours.
+ */
+.viventory-kiosk {
+  --vk-ground: #FBF6EC;
+  --vk-surface: #FFFFFF;
+  --vk-surface-raised: #FFFDF6;
+  --vk-ink: #24262B;
+  --vk-ink-muted: #6F6A61;
+  --vk-accent: #33A7B5;
+  --vk-accent-soft: #A5D6D1;
+  --vk-safe: #2E7D6B;
+  --vk-caution: #A1824F;
+  --vk-empty: #9A8F86;
+
+  --vk-zone-1: #33A7B5;
+  --vk-zone-2: #A1824F;
+  --vk-zone-3: #7A9E4B;
+  --vk-zone-4: #C2703D;
+  --vk-zone-5: #6B7FC7;
+  --vk-zone-6: #B0567F;
+  --vk-zone-7: #4E9E86;
+
+  --vk-radius: 18px;
+  --vk-shadow: 0 1px 0 rgba(36, 38, 43, 0.05), 0 10px 24px -14px rgba(36, 38, 43, 0.5);
+}
+
+[data-viventory-theme="dark"] .viventory-kiosk {
+  --vk-ground: #161D26;
+  --vk-surface: #24262B;
+  --vk-surface-raised: #2C2F36;
+  --vk-ink: #FFFDF6;
+  --vk-ink-muted: #C9CED8;
+  --vk-accent: #A5D6D1;
+  --vk-accent-soft: #33A7B5;
+  --vk-safe: #7FCDB8;
+  --vk-caution: #D8B57A;
+  --vk-empty: #8A8F99;
+  --vk-shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 10px 24px -14px rgba(0, 0, 0, 0.8);
+}
