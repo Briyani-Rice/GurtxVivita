@@ -144,6 +144,7 @@ export function KioskShell({ onRequestModeChange }: { onRequestModeChange?: () =
                         onSubmitRequest={inventory.submitRequest}
                         initialTab={destination === 'map' ? 'map' : 'materials'}
                         showTabBar={false}
+                        kioskMode
                         prefs={{
                             hideOutOfStock: false,
                             compactCards: false,

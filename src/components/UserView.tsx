@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { filterMaterialsBySearch } from '../utils/materialSearch';
+import { filterMaterialsBySearch, findSubstitutes } from '../utils/materialSearch';
 import {
     ALL_CATEGORIES,
     collectMaterialCategories,
     filterMaterialsByCategory,
 } from '../utils/materialCategories';
-import { isMaterialAvailable } from '../utils/materialDetails';
+import { isMaterialAvailable, kioskDescription } from '../utils/materialDetails';
+import { zoneToken } from '../utils/zoneIdentity';
+import { materialRequiresAdultSupervision } from './inventoryStore';
+import { CategoryGlyph } from './CategoryGlyph';
 import { sortMaterials, MATERIAL_SORT_KEYS, MaterialSortKey } from '../utils/materialSort';
 import { translatedStockLabel, useI18n, TranslationKey } from '../i18n/i18n';
 import {
@@ -43,6 +46,12 @@ interface UserViewProps {
      * tab strip is suppressed there to avoid two competing navigations.
      */
     showTabBar?: boolean;
+    /**
+     * Renders the child-facing card: category glyph, zone dot, safety badge,
+     * substitutes when empty, and a description stripped of staff bookkeeping.
+     * Off by default so the staff tab keeps its full detail.
+     */
+    kioskMode?: boolean;
 }
 
 type Styles = {
@@ -64,6 +73,11 @@ type Styles = {
     card: (empty: boolean) => React.CSSProperties;
     statusPill: (empty: boolean) => React.CSSProperties;
     chipRow: React.CSSProperties;
+    zoneDot: (token: string) => React.CSSProperties;
+    safetyBadge: React.CSSProperties;
+    substitutePanel: React.CSSProperties;
+    substituteLead: React.CSSProperties;
+    substituteChip: React.CSSProperties;
     chip: React.CSSProperties;
     cardDescription: React.CSSProperties;
     btnPrimary: React.CSSProperties;
@@ -257,6 +271,55 @@ const styles: Styles = {
         gap: 6
     },
 
+    zoneDot: (token: string): React.CSSProperties => ({
+        display: 'inline-block',
+        width: 9,
+        height: 9,
+        borderRadius: '50%',
+        marginRight: 7,
+        verticalAlign: 'middle',
+        background: token,
+        flexShrink: 0,
+    }),
+
+    safetyBadge: {
+        alignSelf: 'flex-start',
+        padding: '4px 9px',
+        borderRadius: 999,
+        fontSize: 12,
+        fontWeight: 750,
+        color: 'var(--vk-caution, var(--viventory-text))',
+        background: 'color-mix(in srgb, var(--vk-caution, #A1824F) 16%, transparent)',
+        border: '1px solid var(--vk-caution, var(--viventory-border))',
+    },
+
+    substitutePanel: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        padding: '8px 10px',
+        borderRadius: 12,
+        background: 'var(--vk-surface-raised, transparent)',
+        border: '1px solid var(--vk-accent-soft, var(--viventory-border))',
+    },
+
+    substituteLead: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: 'var(--vk-ink-muted, var(--viventory-muted-text))',
+    },
+
+    substituteChip: {
+        padding: '6px 10px',
+        borderRadius: 999,
+        border: '1px solid var(--vk-accent, var(--viventory-border))',
+        background: 'var(--vk-surface, transparent)',
+        color: 'var(--vk-ink, var(--viventory-text))',
+        fontSize: 13,
+        fontWeight: 650,
+        cursor: 'pointer',
+    },
+
     chip: {
         display: 'inline-flex',
         alignItems: 'center',
@@ -376,7 +439,8 @@ export function UserView({
                              prefs,
                              initialTab = 'map',
                              initialMaterialSearch = '',
-                             showTabBar = true
+                             showTabBar = true,
+                             kioskMode = false
                          }: UserViewProps) {
     const [activeTab, setActiveTab] = useState<UserTab>(initialTab);
     const [search, setSearch] = useState(initialMaterialSearch);
@@ -609,22 +673,49 @@ export function UserView({
                         <div style={styles.grid}>
                             {displayedMaterials.map(m => {
                                 const available = isMaterialAvailable(m);
-                                const chips = [
-                                    m.category,
-                                    m.location && `📍 ${m.location}`,
-                                    m.storage && `📦 ${m.storage}`,
-                                ].filter(Boolean) as string[];
+                                const shownDescription = kioskMode
+                                    ? kioskDescription(m.description)
+                                    : m.description;
+                                // Staff still need location and storage; a child
+                                // only needs to know which category it is.
+                                const chips = (kioskMode
+                                    ? [m.category]
+                                    : [
+                                        m.category,
+                                        m.location && `📍 ${m.location}`,
+                                        m.storage && `📦 ${m.storage}`,
+                                    ]
+                                ).filter(Boolean) as string[];
+                                const substitutes = kioskMode && !available
+                                    ? findSubstitutes(m, materials)
+                                    : [];
+                                const zone = kioskMode ? zoneToken(m.compartmentId, floors) : null;
+                                // Not m.safetyLevel: that stored flag is unset on most
+                                // real inventory, and safety is inferred from the name
+                                // instead. Reading the raw field meant the badge never
+                                // fired for a laser cutter.
+                                const needsAdult = kioskMode && materialRequiresAdultSupervision(m);
 
                                 return (
                                     <div key={m.id} style={styles.card(!available)}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-                                            <strong style={{ fontSize: 16, textAlign: 'left', lineHeight: 1.25 }}>
-                                                {m.name}
-                                            </strong>
+                                            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0 }}>
+                                                {kioskMode && <CategoryGlyph category={m.category ?? ''} />}
+                                                <strong style={{ fontSize: 16, textAlign: 'left', lineHeight: 1.25 }}>
+                                                    {zone && <span style={styles.zoneDot(zone)} aria-hidden="true" />}
+                                                    {m.name}
+                                                </strong>
+                                            </div>
                                             <span style={styles.statusPill(!available)}>
                                                 {translatedStockLabel(language, m)}
                                             </span>
                                         </div>
+
+                                        {needsAdult && (
+                                            <span style={styles.safetyBadge}>
+                                                {t('user.needsAdult')}
+                                            </span>
+                                        )}
 
                                         {chips.length > 0 && (
                                             <div style={styles.chipRow}>
@@ -636,10 +727,30 @@ export function UserView({
                                             </div>
                                         )}
 
-                                        {m.description && (
-                                            <p style={styles.cardDescription} title={m.description}>
-                                                {m.description}
+                                        {shownDescription && (
+                                            <p style={styles.cardDescription} title={shownDescription}>
+                                                {shownDescription}
                                             </p>
+                                        )}
+
+                                        {substitutes.length > 0 && (
+                                            <div style={styles.substitutePanel}>
+                                                <span style={styles.substituteLead}>
+                                                    {t('user.tryInstead')}
+                                                </span>
+                                                <div style={styles.chipRow}>
+                                                    {substitutes.map(s => (
+                                                        <button
+                                                            key={s.id}
+                                                            type="button"
+                                                            style={styles.substituteChip}
+                                                            onClick={() => setSearch(s.name)}
+                                                        >
+                                                            {s.name}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         )}
 
                                         <button
