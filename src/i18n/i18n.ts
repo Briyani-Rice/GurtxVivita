@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Language, type Material } from "../types";
 import { loadAppearancePrefs } from "../components/Settings/appearancePreferences";
+import { formatQuantityWithUnit } from "../utils/materialDetails";
 
 // App-wide UI translations. The language is picked in Settings -> Appearance
 // and broadcast via the "viventory:appearance-change" event; useI18n()
@@ -990,7 +991,8 @@ export function translateDifficulty(language: Language, difficulty: string): str
 /** Stock label for material cards: exact count when known, status otherwise. */
 export function translatedStockLabel(language: Language, material: Material): string {
     if (material.quantity > 0) {
-        return `${material.quantity} ${material.unit}`;
+        // Shared with materialStockLabel so a card never reads "1 items".
+        return formatQuantityWithUnit(material.quantity, material.unit);
     }
 
     const key: TranslationKey = material.stockStatus === "in-stock" ? "stock.inStock"

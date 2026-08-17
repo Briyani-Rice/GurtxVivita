@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import type { Material } from "../types";
 import {
     enrichMaterial,
+    formatQuantityWithUnit,
     isMaterialAvailable,
     kioskDescription,
     materialStockLabel,
@@ -137,3 +138,41 @@ assert.equal(kioskDescription("   "), "");
 assert.equal(kioskDescription(";;"), "");
 
 console.log("kioskDescription tests passed");
+
+// Every one of the 905 real materials carries unit "items", so a card holding a
+// single thing read "1 items". Staff can type any unit, so this singularises a
+// known set of count nouns and leaves everything else exactly as written.
+assert.equal(formatQuantityWithUnit(1, "items"), "1 item");
+assert.equal(formatQuantityWithUnit(1, "units"), "1 unit");
+assert.equal(formatQuantityWithUnit(1, "sheets"), "1 sheet");
+assert.equal(formatQuantityWithUnit(1, "boxes"), "1 box");
+assert.equal(formatQuantityWithUnit(1, "pairs"), "1 pair");
+
+// Plurals are untouched.
+assert.equal(formatQuantityWithUnit(2, "items"), "2 items");
+assert.equal(formatQuantityWithUnit(20, "items"), "20 items");
+assert.equal(formatQuantityWithUnit(0, "items"), "0 items");
+
+// Casing as staff typed it is preserved.
+assert.equal(formatQuantityWithUnit(1, "Items"), "1 Item");
+assert.equal(formatQuantityWithUnit(1, "ITEMS"), "1 ITEM");
+
+// Measurements and abbreviations must never be truncated — "1 pcs" is right and
+// "1 pc" is not, "1 m" must not become "1 " and "1 mm" must stay "1 mm".
+for (const unit of ["pcs", "m", "mm", "cm", "kg", "ml", "g", "rolls of tape"]) {
+    assert.equal(
+        formatQuantityWithUnit(1, unit),
+        `1 ${unit}`,
+        `"${unit}" must pass through unchanged`,
+    );
+}
+
+// A missing or blank unit renders the bare number rather than a trailing space.
+assert.equal(formatQuantityWithUnit(1, ""), "1");
+assert.equal(formatQuantityWithUnit(3, "   "), "3");
+
+// The card labels both route through it.
+assert.equal(materialStockLabel(makeMaterial({ quantity: 1, unit: "items" })), "1 item");
+assert.equal(materialStockLabel(makeMaterial({ quantity: 4, unit: "items" })), "4 items");
+
+console.log("formatQuantityWithUnit tests passed");

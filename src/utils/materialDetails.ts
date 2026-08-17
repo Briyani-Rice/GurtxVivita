@@ -131,10 +131,58 @@ export function isMaterialAvailable(material: Material): boolean {
     return material.stockStatus === "in-stock" || material.stockStatus === "low";
 }
 
+/**
+ * Count nouns worth singularising, keyed by their plural form.
+ *
+ * An allowlist rather than a "strip the trailing s" rule: that would turn
+ * "1 pcs" into "1 pc" and could eat the only letter of a unit. Anything not
+ * listed here is rendered exactly as staff typed it.
+ */
+const SINGULAR_UNITS: Record<string, string> = {
+    items: "item",
+    units: "unit",
+    pieces: "piece",
+    sheets: "sheet",
+    rolls: "roll",
+    boxes: "box",
+    packs: "pack",
+    pairs: "pair",
+    sets: "set",
+    bottles: "bottle",
+    tubes: "tube",
+    sticks: "stick",
+};
+
+/**
+ * Renders a quantity with its unit, singularising a known count noun when there
+ * is exactly one.
+ *
+ * Every material in the current inventory carries unit "items", so a card
+ * holding one thing read "1 items".
+ */
+export function formatQuantityWithUnit(quantity: number, unit: string): string {
+    const trimmed = unit.trim();
+
+    if (!trimmed) return `${quantity}`;
+    if (quantity !== 1) return `${quantity} ${trimmed}`;
+
+    const singular = SINGULAR_UNITS[trimmed.toLowerCase()];
+    if (!singular) return `${quantity} ${trimmed}`;
+
+    // Preserve the casing staff typed: "Items" -> "Item", "ITEMS" -> "ITEM".
+    const cased = trimmed === trimmed.toUpperCase()
+        ? singular.toUpperCase()
+        : trimmed[0] === trimmed[0].toUpperCase()
+            ? singular[0].toUpperCase() + singular.slice(1)
+            : singular;
+
+    return `${quantity} ${cased}`;
+}
+
 /** Short stock text for cards: exact count when known, status otherwise. */
 export function materialStockLabel(material: Material): string {
     if (material.quantity > 0) {
-        return `${material.quantity} ${material.unit}`;
+        return formatQuantityWithUnit(material.quantity, material.unit);
     }
 
     if (material.stockStatus === "in-stock") return "In stock";
